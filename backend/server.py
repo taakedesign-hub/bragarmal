@@ -14,6 +14,8 @@ from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Literal
 
 import httpx
+import bcrypt
+import secrets
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, UploadFile, File, Form
 from fastapi.responses import StreamingResponse, JSONResponse
 from dotenv import load_dotenv
@@ -133,6 +135,138 @@ async def get_current_user(request: Request) -> User:
     if not user_doc:
         raise HTTPException(status_code=401, detail="Bruker ikke funnet")
     return User(**user_doc)
+
+
+def _hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+
+def _verify_password(password: str, hashed: str) -> bool:
+    try:
+        return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
+    except Exception:
+        return False
+
+
+async def _create_session_for_user(user_id: str, response: Response) -> str:
+    session_token = secrets.token_urlsafe(32)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    await db.user_sessions.insert_one({
+        "user_id": user_id,
+        "session_token": session_token,
+        "expires_at": expires_at.isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        max_age=7 * 24 * 60 * 60,
+        path="/",
+    )
+    return session_token
+
+
+class EmailRegister(BaseModel):
+    email: str
+    password: str
+    name: Optional[str] = None
+
+
+class EmailLogin(BaseModel):
+    email: str
+    password: str
+
+
+@api_router.post("/auth/register")
+async def auth_register(payload: EmailRegister, request: Request, response: Response):
+    email = payload.email.strip().lower()
+    if "@" not in email or len(email) < 5:
+        raise HTTPException(status_code=400, detail="Ugyldig e-post")
+    if len(payload.password) < 8:
+        raise HTTPException(status_code=400, detail="Passord må være minst 8 tegn")
+
+    existing = await db.users.find_one({"email": email}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="En bruker med denne e-posten finnes allerede")
+
+    user_id = f"user_{uuid.uuid4().hex[:12]}"
+    await db.users.insert_one({
+        "user_id": user_id,
+        "email": email,
+        "name": (payload.name or email.split("@")[0]).strip()[:80],
+        "picture": None,
+        "password_hash": _hash_password(payload.password),
+        "auth_provider": "email",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+    await _create_session_for_user(user_id, response)
+
+    return {
+        "user_id": user_id,
+        "email": email,
+        "name": (payload.name or email.split("@")[0]).strip()[:80],
+        "picture": None,
+    }
+
+
+@api_router.post("/auth/login")
+async def auth_login(payload: EmailLogin, request: Request, response: Response):
+    email = payload.email.strip().lower()
+    ip = request.client.host if request.client else "unknown"
+    identifier = f"{ip}:{email}"
+
+    # Brute-force lockout: 5 failed attempts within 15 minutes
+    now = datetime.now(timezone.utc)
+    attempts_doc = await db.login_attempts.find_one({"identifier": identifier}, {"_id": 0})
+    if attempts_doc and attempts_doc.get("locked_until"):
+        try:
+            locked_until = datetime.fromisoformat(attempts_doc["locked_until"])
+            if locked_until.tzinfo is None:
+                locked_until = locked_until.replace(tzinfo=timezone.utc)
+            if locked_until > now:
+                raise HTTPException(status_code=429, detail="For mange feilede forsøk. Prøv igjen om 15 minutter.")
+        except HTTPException:
+            raise
+        except Exception:
+            pass
+
+    user_doc = await db.users.find_one({"email": email}, {"_id": 0})
+    if not user_doc or not user_doc.get("password_hash"):
+        # Increment failed attempts
+        await _record_failed_login(identifier)
+        raise HTTPException(status_code=401, detail="Ugyldig e-post eller passord")
+
+    if not _verify_password(payload.password, user_doc["password_hash"]):
+        await _record_failed_login(identifier)
+        raise HTTPException(status_code=401, detail="Ugyldig e-post eller passord")
+
+    # Success — clear attempts and create session
+    await db.login_attempts.delete_one({"identifier": identifier})
+    await _create_session_for_user(user_doc["user_id"], response)
+
+    return {
+        "user_id": user_doc["user_id"],
+        "email": user_doc["email"],
+        "name": user_doc.get("name"),
+        "picture": user_doc.get("picture"),
+    }
+
+
+async def _record_failed_login(identifier: str):
+    now = datetime.now(timezone.utc)
+    doc = await db.login_attempts.find_one({"identifier": identifier}, {"_id": 0})
+    attempts = (doc or {}).get("attempts", 0) + 1
+    update = {"identifier": identifier, "attempts": attempts, "last_attempt": now.isoformat()}
+    if attempts >= 5:
+        update["locked_until"] = (now + timedelta(minutes=15)).isoformat()
+        update["attempts"] = 0  # reset after lock
+    await db.login_attempts.update_one(
+        {"identifier": identifier}, {"$set": update}, upsert=True
+    )
 
 
 @api_router.post("/auth/session")

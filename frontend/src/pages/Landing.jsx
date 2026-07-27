@@ -1,14 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
 import { TID } from "@/lib/testIds";
 import { Feather, ArrowRight, Camera, Mic, FileText, ScanLine } from "lucide-react";
-// REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
-function startGoogleLogin() {
-  const redirectUrl = window.location.origin + "/dashboard";
-  window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
-}
 
 export default function Landing() {
   const nav = useNavigate();
+  const goLogin = () => nav("/logg-inn");
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
@@ -23,7 +19,7 @@ export default function Landing() {
             <span className="label-ui hidden sm:inline">no · nb</span>
             <button
               data-testid={TID.loginBtn}
-              onClick={startGoogleLogin}
+              onClick={goLogin}
               className="btn-ghost"
             >
               Logg inn
@@ -46,7 +42,7 @@ export default function Landing() {
             <div className="mt-10 flex flex-wrap gap-4 items-center">
               <button
                 data-testid={TID.ctaGetStarted}
-                onClick={startGoogleLogin}
+                onClick={goLogin}
                 className="btn-primary inline-flex items-center gap-3"
               >
                 Test den ut nå <ArrowRight size={16} strokeWidth={1.6} />
@@ -56,9 +52,9 @@ export default function Landing() {
             <div className="mt-6 flex items-center gap-3">
               <span
                 className="inline-flex items-center gap-2 px-3 py-1.5"
-                style={{ background: "var(--moss)", color: "#F4F1EA" }}
+                style={{ background: "var(--linen)", color: "var(--ink)" }}
               >
-                <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#F4F1EA" }} />
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--ink)" }} />
                 <span className="font-mono-ui text-xs tracking-wider">BETA</span>
               </span>
               <span className="font-editor text-sm" style={{ color: "var(--ink-soft)" }}>

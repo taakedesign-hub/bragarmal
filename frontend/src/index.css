@@ -16,6 +16,10 @@
   --moss: #4A5D4E;
   --moss-hover: #3C4B3F;
   --rust: #8A4B2A;
+  --sky: #B8CBD3;
+  --sky-soft: #E4EBEE;
+  --linen: #E8D89A;
+  --linen-soft: #F5EDC9;
   --paper-shadow: rgba(28,27,26,0.06);
 }
 
@@ -31,6 +35,10 @@
   --moss: #7A8F7C;
   --moss-hover: #96A997;
   --rust: #B8724A;
+  --sky: #7C99A6;
+  --sky-soft: #2C3A40;
+  --linen: #C4B577;
+  --linen-soft: #3A331F;
   --paper-shadow: rgba(0,0,0,0.4);
 }
 

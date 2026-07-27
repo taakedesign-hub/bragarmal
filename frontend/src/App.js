@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 import "@/App.css";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import Landing from "@/pages/Landing";
+import LoginPage from "@/pages/LoginPage";
 import ManifestPage from "@/pages/ManifestPage";
 import EthicsPage from "@/pages/EthicsPage";
 import AuthCallback from "@/pages/AuthCallback";
@@ -21,6 +22,7 @@ function AppRouter() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
+      <Route path="/logg-inn" element={<LoginPage />} />
       <Route path="/manifest" element={<ManifestPage />} />
       <Route path="/etikk" element={<EthicsPage />} />
       <Route path="/dashboard" element={<Protected><AppShell><Dashboard /></AppShell></Protected>} />
