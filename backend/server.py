@@ -51,7 +51,7 @@ FOUNDER_SLOTS = 100  # First 100 (including the 50 beta) can access founder pric
 
 # ---------- Object Storage ----------
 STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"
-APP_NAME = "echo"
+APP_NAME = "bragr"
 _storage_key: Optional[str] = None
 
 
@@ -118,7 +118,7 @@ def storage_get(path: str) -> tuple[bytes, str]:
 
 
 
-app = FastAPI(title="Echo")
+app = FastAPI(title="Bragr")
 api_router = APIRouter(prefix="/api")
 
 
@@ -871,7 +871,7 @@ async def transcribe_audio(
     }
 
 
-
+@api_router.get("/samples")
 async def list_samples(user: User = Depends(get_current_user)):
     docs = await db.samples.find({"user_id": user.user_id}, {"_id": 0}).sort("created_at", -1).to_list(200)
     for d in docs:
@@ -1877,7 +1877,7 @@ async def stripe_webhook(request: Request):
 
 @api_router.get("/")
 async def root():
-    return {"app": "ECHO", "ok": True}
+    return {"app": "BRAGR", "ok": True}
 
 
 app.include_router(api_router)
