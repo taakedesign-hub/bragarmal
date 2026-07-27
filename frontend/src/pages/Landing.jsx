@@ -19,7 +19,7 @@ export default function Landing() {
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Feather size={18} strokeWidth={1.4} />
-            <span className="font-serif-display text-xl">Skrivestemme</span>
+            <span className="font-serif-display text-xl">Nina2</span>
           </div>
           <nav className="flex items-center gap-6">
             <span className="label-ui hidden sm:inline">no · nb</span>
@@ -43,7 +43,7 @@ export default function Landing() {
               Din stemme, ikke <em className="italic font-serif-display" style={{ color: "var(--moss)" }}>maskinens</em>.
             </h1>
             <p className="mt-8 font-editor text-lg md:text-xl max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>
-              Lim inn eller last opp tekstene du allerede har skrevet. Skrivestemme lærer rytmen din,
+              Lim inn eller last opp tekstene du allerede har skrevet. Nina2 lærer rytmen din,
               ordvalgene dine, pausene dine — og hjelper deg gjennom skrivesperren uten å høres ut som en robot.
             </p>
             <div className="mt-10 flex flex-wrap gap-4 items-center">
@@ -116,7 +116,7 @@ export default function Landing() {
       {/* Footer */}
       <footer>
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-10 flex items-center justify-between">
-          <span className="label-ui">Skrivestemme <span className="marker-ornament" /> 2026</span>
+          <span className="label-ui">Nina2 <span className="marker-ornament" /> 2026</span>
           <span className="label-ui">et verktøy for forfattere</span>
         </div>
       </footer>

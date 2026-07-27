@@ -21,7 +21,8 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, ConfigDict
 
-from emergentintegrations.llm.chat import LlmChat, UserMessage, TextDelta, StreamDone
+from emergentintegrations.llm.chat import LlmChat, UserMessage, TextDelta, StreamDone, ImageContent
+from emergentintegrations.llm.openai import OpenAISpeechToText
 
 # Extraction libs
 from PyPDF2 import PdfReader
@@ -61,7 +62,7 @@ class Sample(BaseModel):
     user_id: str
     title: str
     content: str
-    source: Literal["paste", "file"] = "paste"
+    source: Literal["paste", "file", "handwriting", "audio"] = "paste"
     filename: Optional[str] = None
     word_count: int = 0
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -407,7 +408,129 @@ async def upload_sample(
     return sample
 
 
-@api_router.get("/samples")
+@api_router.post("/samples/scan")
+async def scan_handwritten(
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+):
+    """OCR a photo of handwritten Norwegian text using Claude Sonnet 4.5 vision.
+    Returns extracted text without saving as a sample — user can review before saving.
+    """
+    import base64
+
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(status_code=500, detail="LLM-nøkkel mangler")
+
+    ct = (file.content_type or "").lower()
+    if not (ct.startswith("image/") or file.filename.lower().endswith((".jpg", ".jpeg", ".png", ".webp", ".heic"))):
+        raise HTTPException(status_code=400, detail="Bare bildefiler (.jpg, .png, .webp)")
+
+    data = await file.read()
+    if len(data) > 15 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Bildet er for stort (maks 15 MB)")
+
+    b64 = base64.b64encode(data).decode("utf-8")
+
+    system = (
+        "Du er en nøyaktig transkriberer av norsk håndskrift. Din oppgave er å transkribere "
+        "teksten i bildet HELT ORDRETT — bevar setningsstruktur, linjeskift, og alle særegenheter "
+        "i skrivemåten (staveformer, dialektord, gammeldags skrivemåte). "
+        "IKKE forbedre grammatikken. IKKE moderniser språket. IKKE oppsummer. "
+        "Hvis noen ord er uleselige, marker med [uleselig] i stedet for å gjette. "
+        "Returner KUN den transkriberte teksten, ingen forklaring."
+    )
+
+    chat = LlmChat(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=f"ocr-{user.user_id}-{uuid.uuid4().hex[:6]}",
+        system_message=system,
+    ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+
+    msg = UserMessage(
+        text="Transkriber all håndskrevet norsk tekst i dette bildet ordrett.",
+        file_contents=[ImageContent(image_base64=b64)],
+    )
+
+    try:
+        parts = []
+        async for ev in chat.stream_message(msg):
+            if isinstance(ev, TextDelta):
+                parts.append(ev.content)
+            elif isinstance(ev, StreamDone):
+                break
+        text = "".join(parts).strip()
+    except Exception as e:
+        logger.exception("OCR failed")
+        raise HTTPException(status_code=500, detail=f"Kunne ikke transkribere: {e}")
+
+    if len(text) < 5:
+        raise HTTPException(status_code=400, detail="Fant ikke lesbar tekst i bildet")
+
+    return {
+        "text": text,
+        "word_count": len(re.findall(r"\S+", text)),
+        "filename": file.filename,
+    }
+
+
+@api_router.post("/samples/transcribe")
+async def transcribe_audio(
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+):
+    """Transcribe a recorded Norwegian audio file (høytlesning) to text via Whisper.
+    Returns the transcript — user reviews and can save as a sample.
+    """
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(status_code=500, detail="LLM-nøkkel mangler")
+
+    name = (file.filename or "").lower()
+    ct = (file.content_type or "").lower()
+    if not (ct.startswith("audio/") or ct.startswith("video/webm") or
+            name.endswith((".mp3", ".mp4", ".mpeg", ".mpga", ".m4a", ".wav", ".webm"))):
+        raise HTTPException(status_code=400, detail="Bare lydfiler (.mp3, .m4a, .wav, .webm)")
+
+    data = await file.read()
+    if len(data) > 25 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Lyden er for stor (maks 25 MB)")
+
+    # Write to a temp file so OpenAI SDK can read it
+    import tempfile
+    suffix = os.path.splitext(name)[1] or ".webm"
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp.write(data)
+        tmp_path = tmp.name
+
+    try:
+        stt = OpenAISpeechToText(api_key=EMERGENT_LLM_KEY)
+        with open(tmp_path, "rb") as af:
+            resp = await stt.transcribe(
+                file=af,
+                model="whisper-1",
+                response_format="json",
+                language="no",
+                temperature=0.0,
+                prompt="Norsk høytlesning fra forfatter. Bevar egne ord og dialekt.",
+            )
+        text = (getattr(resp, "text", None) or "").strip()
+    except Exception as e:
+        logger.exception("Whisper failed")
+        raise HTTPException(status_code=500, detail=f"Kunne ikke transkribere lyd: {e}")
+    finally:
+        try: os.unlink(tmp_path)
+        except Exception: pass
+
+    if len(text) < 3:
+        raise HTTPException(status_code=400, detail="Fant ingen tale i lyden")
+
+    return {
+        "text": text,
+        "word_count": len(re.findall(r"\S+", text)),
+        "filename": file.filename,
+    }
+
+
+
 async def list_samples(user: User = Depends(get_current_user)):
     docs = await db.samples.find({"user_id": user.user_id}, {"_id": 0}).sort("created_at", -1).to_list(200)
     for d in docs:
@@ -458,12 +581,18 @@ async def get_voice_profile(user: User = Depends(get_current_user)):
 
 
 # ---------- Generation ----------
-def build_voice_system_prompt(profile: Optional[dict], samples: List[dict], humanize_level: int) -> str:
+def build_voice_system_prompt(profile: Optional[dict], samples: List[dict], inspirations: List[dict], humanize_level: int) -> str:
     base = (
         "Du er en skygge-skriver som gjenskaper en spesifikk norsk forfatters stemme perfekt. "
         "Du skriver ALLTID på norsk (bokmål med mindre prøvene tydelig er nynorsk). "
         "Målet er tekst som verken føles maskinell eller generisk. "
         "\n\n"
+        "ABSOLUTT REGEL OM REFERANSEFORFATTERE: Hvis brukeren har oppgitt litterære slektninger "
+        "(referanseforfattere), skal du ALDRI, under noen omstendighet, plagiere eller kopiere "
+        "deres stemme direkte. Du skal heller ikke navngi dem, låne deres kjente motiver, karakterer "
+        "eller kjennemerkevendinger. Referanseforfattere brukes KUN som svakt bakteppe for å hjelpe "
+        "deg forstå hvilket landskap brukerens egen stemme beveger seg i. Sluttresultatet skal alltid "
+        "være brukerens egen stemme, slik den fremgår av hennes prøvetekster — aldri en imitasjon.\n\n"
         "Kritiske krav for å unngå AI-signaturer:\n"
         "- Ikke bruk fraser som 'i en verden der', 'la oss dykke ned', 'det er verdt å nevne', "
         "'til syvende og sist', 'i lys av', 'det er viktig å merke seg', 'når alt kommer til alt'.\n"
@@ -499,6 +628,23 @@ def build_voice_system_prompt(profile: Optional[dict], samples: List[dict], huma
         base += "\n--- REFERANSE FRA FORFATTERENS EGNE TEKSTER (etterlign rytme og ordvalg) ---\n"
         base += "\n\n---\n\n".join(excerpts)
 
+    if inspirations:
+        base += "\n\n--- LITTERÆRE SLEKTNINGER (KUN BAKTEPPE — ALDRI PLAGIER) ---\n"
+        base += (
+            "Forfatteren kjenner seg beslektet med disse. Bruk dem som et svakt "
+            "orienteringspunkt — for å forstå hvilket landskap brukerens stemme beveger seg i. "
+            "IKKE etterlign dem. IKKE nevn dem. IKKE lån kjente vendinger eller motiver fra dem. "
+            "Brukerens egen stemme, slik den fremgår av hennes prøvetekster, kommer alltid først.\n"
+        )
+        lines = []
+        for i in inspirations[:10]:
+            note = (i.get("note") or "").strip()
+            if note:
+                lines.append(f"- {i['name']} — {note}")
+            else:
+                lines.append(f"- {i['name']}")
+        base += "\n".join(lines)
+
     if humanize_level >= 2:
         base += (
             "\n\nEkstra humanisering: Legg inn små naturlige uregelmessigheter — "
@@ -530,8 +676,11 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
 
     profile = await db.voice_profiles.find_one({"user_id": user.user_id}, {"_id": 0})
     samples = await db.samples.find({"user_id": user.user_id}, {"_id": 0}).sort("created_at", -1).to_list(20)
+    inspirations = await db.inspirations.find(
+        {"user_id": user.user_id}, {"_id": 0, "name_lower": 0}
+    ).sort("created_at", 1).to_list(20)
 
-    system = build_voice_system_prompt(profile, samples, body.humanize_level)
+    system = build_voice_system_prompt(profile, samples, inspirations, body.humanize_level)
 
     length_hint = {
         "kort": "Skriv omtrent 80-150 ord.",
@@ -658,7 +807,7 @@ async def list_models():
 
 @api_router.get("/")
 async def root():
-    return {"app": "Skrivestemme", "ok": True}
+    return {"app": "Nina2", "ok": True}
 
 
 app.include_router(api_router)
