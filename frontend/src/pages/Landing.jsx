@@ -50,7 +50,8 @@ export default function Landing() {
             </p>
             <p className="mt-6 font-editor text-sm max-w-[62ch]" style={{ color: "var(--ink-mute)" }}>
               <span className="font-serif-display text-base" style={{ color: "var(--ink)" }}>Bragr</span>
-              {" "}— norrønt for «diktekunst» og «den fremste». Finn din indre skald.
+              {" "}— norrønt for «diktekunst» og «den fremste».
+              {" "}<em className="italic" style={{ color: "var(--moss)" }}>Bragarmál</em> — skaldens språk. Finn ditt eget.
             </p>
             <div className="mt-10 flex flex-wrap gap-4 items-center">
               <button

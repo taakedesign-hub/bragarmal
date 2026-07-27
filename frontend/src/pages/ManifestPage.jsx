@@ -57,6 +57,9 @@ export default function ManifestPage() {
           direkte tiltale. Til høyre står samme tekst etter en typisk AI-redigering — «ryddet»,
           «flyt», «forbedret». Legg merke til hva som blir borte.
         </p>
+        <p className="mt-8 font-editor text-sm italic max-w-[60ch]" style={{ color: "var(--moss)" }}>
+          <em>Bragarmál</em> — skaldens språk. Det språket bare du kan snakke.
+        </p>
       </section>
 
       <section className="max-w-[1500px] mx-auto px-6 md:px-10 pb-16">
