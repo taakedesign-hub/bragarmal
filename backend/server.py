@@ -16,7 +16,8 @@ from typing import List, Optional, Literal
 import httpx
 import bcrypt
 import secrets
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, UploadFile, File, Form
+import requests
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, UploadFile, File, Form, Query, Header
 from fastapi.responses import StreamingResponse, JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -41,8 +42,82 @@ db = client[os.environ['DB_NAME']]
 
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 
-app = FastAPI(title="Skrivestemme")
+# ---------- Object Storage ----------
+STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"
+APP_NAME = "echo"
+_storage_key: Optional[str] = None
+
+
+def init_storage() -> Optional[str]:
+    global _storage_key
+    if _storage_key:
+        return _storage_key
+    if not EMERGENT_LLM_KEY:
+        return None
+    try:
+        resp = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": EMERGENT_LLM_KEY}, timeout=30)
+        resp.raise_for_status()
+        _storage_key = resp.json()["storage_key"]
+        return _storage_key
+    except Exception as e:
+        logging.getLogger(__name__).warning(f"Storage init failed: {e}")
+        return None
+
+
+def storage_put(path: str, data: bytes, content_type: str) -> dict:
+    key = init_storage()
+    if not key:
+        raise HTTPException(status_code=500, detail="Fillagring ikke tilgjengelig")
+    resp = requests.put(
+        f"{STORAGE_URL}/objects/{path}",
+        headers={"X-Storage-Key": key, "Content-Type": content_type},
+        data=data, timeout=120,
+    )
+    if resp.status_code == 403:
+        # key expired — reinit and retry once
+        global _storage_key
+        _storage_key = None
+        key = init_storage()
+        resp = requests.put(
+            f"{STORAGE_URL}/objects/{path}",
+            headers={"X-Storage-Key": key, "Content-Type": content_type},
+            data=data, timeout=120,
+        )
+    resp.raise_for_status()
+    return resp.json()
+
+
+def storage_get(path: str) -> tuple[bytes, str]:
+    key = init_storage()
+    if not key:
+        raise HTTPException(status_code=500, detail="Fillagring ikke tilgjengelig")
+    resp = requests.get(
+        f"{STORAGE_URL}/objects/{path}",
+        headers={"X-Storage-Key": key}, timeout=60,
+    )
+    if resp.status_code == 403:
+        global _storage_key
+        _storage_key = None
+        key = init_storage()
+        resp = requests.get(
+            f"{STORAGE_URL}/objects/{path}",
+            headers={"X-Storage-Key": key}, timeout=60,
+        )
+    if resp.status_code == 404:
+        raise HTTPException(status_code=404, detail="Fil ikke funnet i lagring")
+    resp.raise_for_status()
+    return resp.content, resp.headers.get("Content-Type", "application/octet-stream")
+
+
+
+
+app = FastAPI(title="Echo")
 api_router = APIRouter(prefix="/api")
+
+
+@app.on_event("startup")
+async def _startup():
+    init_storage()
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -564,6 +639,30 @@ async def upload_sample(
     if len(text) < 20:
         raise HTTPException(status_code=400, detail="Kunne ikke lese meningsfull tekst fra filen")
     cat = category if category in SAMPLE_CATEGORIES else "ren_menneske_ny"
+
+    # Store original file in object storage
+    storage_path = None
+    try:
+        ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "bin"
+        path = f"{APP_NAME}/uploads/{user.user_id}/{uuid.uuid4()}.{ext}"
+        result = storage_put(path, data, file.content_type or "application/octet-stream")
+        storage_path = result["path"]
+        file_id = str(uuid.uuid4())
+        await db.files.insert_one({
+            "id": file_id,
+            "user_id": user.user_id,
+            "storage_path": storage_path,
+            "original_filename": file.filename,
+            "content_type": file.content_type or "application/octet-stream",
+            "size": len(data),
+            "kind": "document",
+            "is_deleted": False,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+    except Exception as e:
+        logger.warning(f"Original file not stored: {e}")
+        file_id = None
+
     sample = Sample(
         user_id=user.user_id,
         title=(title or file.filename or "Uten tittel").strip(),
@@ -575,6 +674,8 @@ async def upload_sample(
     )
     doc = sample.model_dump()
     doc["created_at"] = doc["created_at"].isoformat()
+    if file_id:
+        doc["file_id"] = file_id
     await db.samples.insert_one(doc)
     return sample
 
@@ -653,11 +754,33 @@ async def scan_handwritten(
     if len(text) < 5:
         raise HTTPException(status_code=400, detail="Fant ikke lesbar tekst i bildet")
 
+    # Store original image
+    file_id = None
+    try:
+        ext = (file.filename or "photo.jpg").rsplit(".", 1)[-1].lower() if "." in (file.filename or "") else "jpg"
+        path = f"{APP_NAME}/uploads/{user.user_id}/{uuid.uuid4()}.{ext}"
+        result = storage_put(path, data, file.content_type or "image/jpeg")
+        file_id = str(uuid.uuid4())
+        await db.files.insert_one({
+            "id": file_id,
+            "user_id": user.user_id,
+            "storage_path": result["path"],
+            "original_filename": file.filename or "handwriting.jpg",
+            "content_type": file.content_type or "image/jpeg",
+            "size": len(data),
+            "kind": "handwriting",
+            "is_deleted": False,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+    except Exception as e:
+        logger.warning(f"Handwriting image not stored: {e}")
+
     return {
         "text": text,
         "word_count": len(re.findall(r"\S+", text)),
         "filename": file.filename,
         "suggested_title": suggest_title(text),
+        "file_id": file_id,
     }
 
 
@@ -711,11 +834,33 @@ async def transcribe_audio(
     if len(text) < 3:
         raise HTTPException(status_code=400, detail="Fant ingen tale i lyden")
 
+    # Store original audio
+    file_id = None
+    try:
+        ext = (file.filename or "audio.webm").rsplit(".", 1)[-1].lower() if "." in (file.filename or "") else "webm"
+        path = f"{APP_NAME}/uploads/{user.user_id}/{uuid.uuid4()}.{ext}"
+        result = storage_put(path, data, file.content_type or "audio/webm")
+        file_id = str(uuid.uuid4())
+        await db.files.insert_one({
+            "id": file_id,
+            "user_id": user.user_id,
+            "storage_path": result["path"],
+            "original_filename": file.filename or "audio.webm",
+            "content_type": file.content_type or "audio/webm",
+            "size": len(data),
+            "kind": "audio",
+            "is_deleted": False,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+    except Exception as e:
+        logger.warning(f"Audio not stored: {e}")
+
     return {
         "text": text,
         "word_count": len(re.findall(r"\S+", text)),
         "filename": file.filename,
         "suggested_title": suggest_title(text),
+        "file_id": file_id,
     }
 
 
@@ -1381,6 +1526,64 @@ async def list_models():
         {"id": "gemini-3-pro", "label": "Gemini 3.1 Pro", "provider": "Google"},
         {"id": "gemini-3-flash", "label": "Gemini 3 Flash", "provider": "Google"},
     ]
+
+
+@api_router.get("/files")
+async def list_files(user: User = Depends(get_current_user)):
+    docs = await db.files.find(
+        {"user_id": user.user_id, "is_deleted": False}, {"_id": 0, "storage_path": 0}
+    ).sort("created_at", -1).to_list(500)
+    return docs
+
+
+@api_router.get("/files/{file_id}/download")
+async def download_file(
+    file_id: str,
+    authorization: Optional[str] = Header(None),
+    auth: Optional[str] = Query(None),
+    request: Request = None,
+):
+    # Auth: session_token cookie OR ?auth=token query param OR Authorization header
+    token = None
+    if request:
+        token = request.cookies.get("session_token")
+    if not token and auth:
+        token = auth
+    if not token and authorization and authorization.startswith("Bearer "):
+        token = authorization.split(" ", 1)[1]
+    if not token:
+        raise HTTPException(status_code=401, detail="Ikke autentisert")
+
+    session = await db.user_sessions.find_one({"session_token": token}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=401, detail="Ugyldig økt")
+
+    doc = await db.files.find_one(
+        {"id": file_id, "user_id": session["user_id"], "is_deleted": False}, {"_id": 0}
+    )
+    if not doc:
+        raise HTTPException(status_code=404, detail="Fil ikke funnet")
+
+    data, content_type = storage_get(doc["storage_path"])
+    return Response(
+        content=data,
+        media_type=doc.get("content_type") or content_type,
+        headers={
+            "Content-Disposition": f'inline; filename="{doc.get("original_filename", "fil")}"',
+            "Cache-Control": "private, max-age=3600",
+        },
+    )
+
+
+@api_router.delete("/files/{file_id}")
+async def delete_file(file_id: str, user: User = Depends(get_current_user)):
+    r = await db.files.update_one(
+        {"id": file_id, "user_id": user.user_id, "is_deleted": False},
+        {"$set": {"is_deleted": True, "deleted_at": datetime.now(timezone.utc).isoformat()}},
+    )
+    if r.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Ikke funnet")
+    return {"ok": True}
 
 
 @api_router.get("/")
