@@ -115,8 +115,8 @@ export default function ManifestPage() {
       <section className="hairline-t">
         <div className="max-w-[1500px] mx-auto px-6 md:px-10 py-16 text-center">
           <div className="label-ui">Poenget</div>
-          <h2 className="font-serif-display text-4xl md:text-5xl font-light mt-3 max-w-[24ch] mx-auto" style={{ color: "var(--ink)" }}>
-            Echo pynter ikke. Echo <em className="italic" style={{ color: "var(--moss)" }}>lytter</em>.
+          <h2 className="font-serif-display text-4xl md:text-5xl font-light mt-3 max-w-[26ch] mx-auto" style={{ color: "var(--ink)" }}>
+            Echo sender deg tilbake til <em className="italic" style={{ color: "var(--moss)" }}>deg selv</em>.
           </h2>
           <div className="mt-8 flex items-center justify-center gap-4 flex-wrap">
             <Link to="/etikk" className="btn-ghost inline-flex items-center gap-2">
