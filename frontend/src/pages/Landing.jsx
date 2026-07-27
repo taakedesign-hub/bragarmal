@@ -116,7 +116,17 @@ export default function Landing() {
                 >
                   Det viktigst av alt med Bragr er ikke at det er et verktøy for deg som bare vil
                   skrive en bok, publisere tekst, løse skriveoppgaver etisk, men for deg som står
-                  fast, trenger noen nye vinklinger, etc., med DIN stemme.
+                  fast, trenger noen nye vinklinger, etc., med <em className="italic" style={{ color: "var(--moss)" }}>DIN stemme</em>
+                  {" "}— gjennom bilder av tekster du har skrevet for hånd, notater, meldinger om
+                  du vil, den boka du begynte på en gang for lenge siden, men aldri skreiv ferdig.
+                </p>
+                <p className="mt-6 font-editor text-lg md:text-xl leading-[1.85]" style={{ color: "var(--ink)" }}>
+                  Stemmeaktivering for å fange din fortellerstemme muntlig om du har problemer med
+                  skriftspråket, og ikke vil gi fra deg fortellerstemmen din og miste ektheten som
+                  er deg.
+                </p>
+                <p className="mt-8 font-serif-display text-xl md:text-2xl" style={{ color: "var(--moss)" }}>
+                  Sparringspartner. Ikke tekstautomat.
                 </p>
                 <p className="mt-8" style={{ color: "var(--ink-soft)" }}>
                   En tekst på en app kunne nok vært mer formell, men det ville tatt bort poenget
@@ -126,7 +136,7 @@ export default function Landing() {
                   className="mt-10 font-serif-display text-3xl md:text-4xl leading-snug"
                   style={{ color: "var(--ink)" }}
                 >
-                  DIN stemme er din. Bragr hjelper deg videre — på dine premisser.
+                  DIN stemme er din. Bragr sender deg tilbake til deg selv.
                 </p>
               </div>
 
