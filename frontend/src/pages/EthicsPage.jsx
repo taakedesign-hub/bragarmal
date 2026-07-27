@@ -67,7 +67,7 @@ export default function EthicsPage() {
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <Feather size={18} strokeWidth={1.4} />
-            <span className="font-serif-display text-xl">Echo</span>
+            <span className="font-serif-display text-xl tracking-widest">ECHO</span>
           </Link>
           <Link to="/" className="label-ui inline-flex items-center gap-2">
             <ArrowLeft size={14} strokeWidth={1.5} /> Tilbake

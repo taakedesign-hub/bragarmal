@@ -445,6 +445,22 @@ async def upload_sample(
     return sample
 
 
+def suggest_title(text: str) -> str:
+    """First 6-8 meaningful words of the transcript as a title."""
+    if not text:
+        return ""
+    first_line = text.strip().split("\n", 1)[0].strip()
+    if len(first_line) < 8:
+        # merge with next line
+        parts = text.strip().split("\n", 2)
+        first_line = " ".join(p.strip() for p in parts[:2] if p.strip())
+    words = re.findall(r"\S+", first_line)
+    title = " ".join(words[:8])
+    if len(title) > 60:
+        title = title[:57].rsplit(" ", 1)[0] + "…"
+    return title or "Uten tittel"
+
+
 @api_router.post("/samples/scan")
 async def scan_handwritten(
     file: UploadFile = File(...),
@@ -466,7 +482,7 @@ async def scan_handwritten(
     if len(data) > 15 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Bildet er for stort (maks 15 MB)")
 
-    b64 = base64.b64encode(data).decode("utf-8")
+    const b64 = base64.b64encode(data).decode("utf-8")
 
     system = (
         "Du er en nøyaktig transkriberer av norsk håndskrift. Din oppgave er å transkribere "
@@ -507,6 +523,7 @@ async def scan_handwritten(
         "text": text,
         "word_count": len(re.findall(r"\S+", text)),
         "filename": file.filename,
+        "suggested_title": suggest_title(text),
     }
 
 
@@ -564,6 +581,7 @@ async def transcribe_audio(
         "text": text,
         "word_count": len(re.findall(r"\S+", text)),
         "filename": file.filename,
+        "suggested_title": suggest_title(text),
     }
 
 
@@ -1074,7 +1092,7 @@ async def list_models():
 
 @api_router.get("/")
 async def root():
-    return {"app": "Echo", "ok": True}
+    return {"app": "ECHO", "ok": True}
 
 
 app.include_router(api_router)

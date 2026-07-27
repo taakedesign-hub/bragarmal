@@ -17,7 +17,7 @@ export default function Landing() {
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Feather size={18} strokeWidth={1.4} />
-            <span className="font-serif-display text-xl">Nina2</span>
+            <span className="font-serif-display text-xl tracking-widest">ECHO</span>
           </div>
           <nav className="flex items-center gap-6">
             <span className="label-ui hidden sm:inline">no · nb</span>
@@ -131,7 +131,7 @@ export default function Landing() {
       {/* Model row */}
       <section className="hairline-t hairline-b">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-10 flex flex-wrap items-center gap-6 justify-between">
-          <div className="label-ui">Velg din modell</div>
+          <div className="label-ui">Sammenslått støtte fra</div>
           <div className="flex flex-wrap gap-3">
             <span className="chip">Claude Sonnet 4.5</span>
             <span className="chip">Claude Sonnet 4.6</span>
@@ -145,7 +145,7 @@ export default function Landing() {
       {/* Footer */}
       <footer>
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-10 flex items-center justify-between">
-          <span className="label-ui">Echo <span className="marker-ornament" /> 2026</span>
+          <span className="label-ui">ECHO <span className="marker-ornament" /> 2026</span>
           <span className="label-ui">et verktøy for forfattere som står fast</span>
         </div>
       </footer>

@@ -297,7 +297,7 @@ function ScanForm({ onSaved }) {
       fd.append("file", file);
       const r = await api.post("/samples/scan", fd, { headers: { "Content-Type": "multipart/form-data" } });
       setText(r.data.text || "");
-      setTitle(file.name.replace(/\.[^.]+$/, ""));
+      setTitle(r.data.suggested_title || file.name.replace(/\.[^.]+$/, ""));
       toast("Transkribert — sjekk og lagre");
     } catch (e) {
       toast(e?.response?.data?.detail || "Kunne ikke scanne");
@@ -445,7 +445,7 @@ function AudioForm({ onSaved }) {
       fd.append("file", file);
       const r = await api.post("/samples/transcribe", fd, { headers: { "Content-Type": "multipart/form-data" } });
       setText(r.data.text || "");
-      setTitle("Høytlesning");
+      setTitle(r.data.suggested_title || "Høytlesning");
       toast("Transkribert");
     } catch (e) {
       toast(e?.response?.data?.detail || "Kunne ikke transkribere");

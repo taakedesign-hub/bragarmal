@@ -471,7 +471,7 @@ export default function WritePage() {
                     Setninger fremmed fra din stemme
                   </h4>
                 </div>
-                <div className="flex items-center gap-4 label-ui">
+                <div className="flex items-center gap-4 label-ui flex-wrap">
                   <span className="inline-flex items-center gap-2">
                     <span className="inline-block w-3 h-3" style={{ background: "rgba(74,93,78,0.18)" }} />
                     Din stemme
@@ -484,6 +484,27 @@ export default function WritePage() {
                     <span className="inline-block w-3 h-3" style={{ background: "rgba(161,58,58,0.22)" }} />
                     Fremmed
                   </span>
+                  {detection.highlights.some((h) => h.foreign) && (
+                    <button
+                      data-testid="rewrite-all-foreign-btn"
+                      onClick={() => {
+                        const foreignText = detection.highlights
+                          .filter((h) => h.foreign)
+                          .map((h) => h.sentence)
+                          .join(" ");
+                        if (!foreignText) return;
+                        setInput(foreignText);
+                        setMode("humanize");
+                        setDetection(null);
+                        if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+                        toast("Alle røde setninger satt til omskriving");
+                      }}
+                      className="btn-primary"
+                      style={{ padding: "0.4rem 0.9rem", fontSize: "0.7rem" }}
+                    >
+                      Skriv om alle røde
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -491,7 +512,7 @@ export default function WritePage() {
                 <div className="label-ui mb-4">
                   <span className="inline-flex items-center gap-2">
                     <span className="inline-block w-1 h-1 rounded-full" style={{ background: "var(--ink-mute)" }} />
-                    Trykk på en rød setning for å skrive den om i din stemme
+                    Trykk på hvilken som helst setning for å sende den til omskriving
                   </span>
                 </div>
                 {detection.highlights.map((h, i) => {
@@ -505,28 +526,26 @@ export default function WritePage() {
                     <span
                       key={i}
                       onClick={() => {
-                        if (h.foreign) {
-                          setInput(h.sentence);
-                          setMode("humanize");
-                          setDetection(null);
-                          if (typeof window !== "undefined") {
-                            window.scrollTo({ top: 0, behavior: "smooth" });
-                          }
-                          toast("Setning satt til omskriving i din stemme");
+                        setInput(h.sentence);
+                        setMode("humanize");
+                        setDetection(null);
+                        if (typeof window !== "undefined") {
+                          window.scrollTo({ top: 0, behavior: "smooth" });
                         }
+                        toast(
+                          h.foreign
+                            ? "Setning satt til omskriving i din stemme"
+                            : "Setning klar for finpuss"
+                        );
                       }}
-                      title={
-                        h.foreign
-                          ? `Trykk for å skrive om i din stemme · Likhet ${h.similarity}/100${h.ai_marker_hit ? " · AI-frase" : ""}${h.foreign_words?.length ? " · " + h.foreign_words.join(", ") : ""}`
-                          : `Likhet ${h.similarity}/100`
-                      }
+                      title={`Trykk for å skrive om · Likhet ${h.similarity}/100${h.ai_marker_hit ? " · AI-frase" : ""}${h.foreign_words?.length ? " · " + h.foreign_words.join(", ") : ""}`}
                       data-testid={`highlight-sentence-${i}`}
                       style={{
                         background: bg,
                         padding: "0 4px",
                         marginRight: "4px",
                         borderRadius: "1px",
-                        cursor: h.foreign ? "pointer" : "help",
+                        cursor: "pointer",
                         textDecoration: h.ai_marker_hit ? "underline wavy rgba(161,58,58,0.6)" : "none",
                       }}
                     >

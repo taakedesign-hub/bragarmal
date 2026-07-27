@@ -36,7 +36,7 @@ export default function ManifestPage() {
         <div className="max-w-[1500px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <Feather size={18} strokeWidth={1.4} />
-            <span className="font-serif-display text-xl">Echo</span>
+            <span className="font-serif-display text-xl tracking-widest">ECHO</span>
           </Link>
           <Link to="/" className="label-ui inline-flex items-center gap-2">
             <ArrowLeft size={14} strokeWidth={1.5} /> Tilbake
@@ -113,7 +113,10 @@ export default function ManifestPage() {
           <h2 className="font-serif-display text-4xl md:text-5xl font-light mt-3 max-w-[24ch] mx-auto" style={{ color: "var(--ink)" }}>
             Echo pynter ikke. Echo <em className="italic" style={{ color: "var(--moss)" }}>lytter</em>.
           </h2>
-          <div className="mt-8">
+          <div className="mt-8 flex items-center justify-center gap-4 flex-wrap">
+            <Link to="/etikk" className="btn-ghost inline-flex items-center gap-2">
+              Les etikk-siden →
+            </Link>
             <Link to="/" className="btn-primary inline-flex items-center gap-3">
               Tilbake til forsiden
             </Link>
