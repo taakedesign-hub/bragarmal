@@ -1,56 +1,62 @@
-# Skrivestemme — PRD
+# Bragr — Product Requirements Document
 
-## Original problem statement
-"Writers block: make an app that detect ly voice, stays clear of ai detection when i need help with my blocks. I will now upload different types of writing i have done so you can see my writers voice. It's all in Norwegian. Train to be my voice."
+## Original Problem Statement
+An app that detects the user's unique writing voice and helps them overcome writer's block without sounding like generic AI. Users can upload previous writings (text, PDF, DOCX, handwriting photos, voice recordings) to train a personal voice profile. The app provides writing assistance, style matching, and highlights sentences that deviate from the user's authentic voice.
 
-## User preferences (2026-02)
-- **LLMs**: Claude Sonnet 4.5 (primary), GPT 5.2, Gemini 3.1 Pro via Emergent Universal Key
-- **Auth**: Emergent-managed Google Auth (private, single-user oriented)
-- **Ingestion**: Both paste + file upload (.txt/.md/.pdf/.docx)
-- **Features**: All four — voice analysis, voice-mimicking generation, "continue my text", AI-detection avoidance
-- **UI language**: Norwegian (bokmål)
-- **Aesthetic**: Nordic minimalist editorial — Cormorant Garamond + Lora + IBM Plex Sans
+## Branding
+- **App name**: Bragr (Norwegian for "poetic art" / "the foremost", from Norse mythology)
+- **Domain**: bragrapp.no (purchased Feb 2026)
+- **Tagline**: "Vi genererer ikke ord. Vi finner din stemme."
+- **Sub-tagline**: "Finn din indre skald."
+- **Language**: Norwegian (all UI + user interactions)
+- **Design**: Nordic editorial aesthetic — papyrus/off-white, moss green (#4A5D23), rust (#8B4513). No purple gradients or AI slop.
 
-## User personas
-- **The Norwegian novelist / writer** (this user): mixes genres — noir/thriller, dark coming-of-age, children's books, personal essays. Wants a private assistant that knows *her* voice, not a generic AI chatbot.
+## Philosophy
+- Sparring partner, not a text generator
+- No auto-writing whole chapters
+- Highlights AI-deviation from user's authentic voice
+- Click-to-rewrite sentences into user's voice
 
-## Architecture
-- **Backend**: FastAPI + MongoDB (Motor). Single-file `/app/backend/server.py`.
-- **LLM**: `emergentintegrations.llm.chat.LlmChat` with `stream_message()` → SSE.
-- **Auth**: Emergent Google OAuth → session_id → `/session-data` → session_token cookie (7-day).
-- **File extraction**: PyPDF2 + python-docx (in-process, no object storage).
-- **Frontend**: React 19, react-router 7, TanStack Query, shadcn/ui, Recharts.
+## Core Features (DONE)
+- JWT + Emergent Google Auth
+- Samples: paste, upload (PDF/DOCX/TXT), handwriting OCR (Claude Vision), voice transcription (Whisper)
+- Voice profile analysis (function words, sentence lengths, top content words)
+- AI signature detection with sentence-level color-coded highlighting
+- Custom AI Helpers (users can provide own OpenAI/Claude/Gemini API keys)
+- Stripe billing: 3 tiers (Beta 3-mo free, Founder, Standard) — TEST MODE
+- Info pages: Manifest, Etikk (Ethics), Priser
+- Free contact + save alternatives: mailto contact link, Download .txt, Send via mailto
+- Norwegian UI throughout
 
-## Endpoints (all `/api`-prefixed)
-- `GET /` health
-- `POST /auth/session`, `GET /auth/me`, `POST /auth/logout`
-- `POST /samples`, `POST /samples/upload`, `GET /samples`, `DELETE /samples/{id}`
-- `POST /voice/analyze`, `GET /voice/profile`
-- `POST /generate` (SSE)
-- `POST /detect`
-- `GET /models`
+## Tech Stack
+- **Frontend**: React + Tailwind + Shadcn UI
+- **Backend**: FastAPI + Motor (async MongoDB)
+- **DB**: MongoDB
+- **Integrations**: Emergent LLM Key (Claude/GPT/Gemini/Whisper), Stripe (test), File & Media storage
 
-## Implemented (2026-02-27)
-- Landing page in Norwegian with Google login CTA
-- Auth callback + session cookie handling
-- Dashboard with stats + shortcut tiles
-- Samples page: drag-drop upload + paste + list + delete
-- Voice page: statistical + Claude-driven style analysis, Recharts bar chart
-- Write page: 3 modes (prompt/continue/humanize) × 3 lengths × 3 humanize levels × 6 models, live SSE streaming, copy/regenerate/humanize-more, AI-detection meter
-- 23/23 backend tests passing; Claude + GPT 5.2 + Gemini 3.1 Pro all verified streaming Norwegian
+## Data Models
+- users, samples, voice_profiles, files, subscriptions, helpers, payment_transactions
 
-## Backlog
-### P1
-- Rich-text editor mode with inline "continue from cursor" (currently textarea + copy back)
-- Save generated drafts as new samples with one click
-- Per-sample influence toggle (mute/boost specific samples in the profile)
+## Recent Changes (Feb 2026)
+- 2026-02-27: Renamed Echo → Bragr across all UI + backend
+- 2026-02-27: Added new taglines and Bragr name explanation on Landing hero
+- 2026-02-27: Added download .txt, email out, contact footer link
+- 2026-02-27: Removed manifest closing lines (redundant with hero)
+- 2026-02-27: Removed Grok (xAI) and Resend integrations
+- 2026-02-27: Fixed missing @api_router.get decorator on /api/samples
+- 2026-02-27: Deployment readiness confirmed (WARN status — performance-only, non-blocking)
 
-### P2
-- Export analysis / drafts as .docx
-- Dark mode toggle in UI (CSS already prepared, needs a switch)
-- Style comparison view (compare tones across sample subsets)
-- Team/family sharing (currently strictly single-user)
+## Deployment Status
+- Preview URL: https://echo-writer-2.preview.emergentagent.com
+- **Ready to deploy** via Emergent Deploy button
+- User owns bragrapp.no — pending domain link via Emergent → Entri
 
-## Not implemented
-- JWT email/password auth (user picked "both" but Emergent Google Auth is enough for a private tool; no reason to build a second path)
-- Object storage for files (files are parsed to text in-process; original files are not retained — content is what matters for voice analysis)
+## Backlog (P1)
+- Add paginering to /api/samples, /api/voice/analyze, /api/generate (perf opt after lansering)
+- Update Stripe products to `bragr_*` lookup_keys (currently `echo_*`, works fine)
+- Update meta tags in index.html to Bragr
+
+## Backlog (P2)
+- Modularize server.py (~1900 lines → split into auth/billing/samples/generation modules)
+- Custom domain landing (bragrapp.no)
+- Norwegian SEO optimization
