@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { Feather, ArrowLeft, ArrowRight } from "lucide-react";
+import InfoMenu from "@/components/InfoMenu";
+import Footer from "@/components/Footer";
 
 const CORE_QUESTIONS = [
   {
@@ -69,9 +71,12 @@ export default function EthicsPage() {
             <Feather size={18} strokeWidth={1.4} />
             <span className="font-serif-display text-xl tracking-widest">ECHO</span>
           </Link>
-          <Link to="/" className="label-ui inline-flex items-center gap-2">
-            <ArrowLeft size={14} strokeWidth={1.5} /> Tilbake
-          </Link>
+          <div className="flex items-center gap-4">
+            <InfoMenu align="right" />
+            <Link to="/" className="label-ui inline-flex items-center gap-2">
+              <ArrowLeft size={14} strokeWidth={1.5} /> Tilbake
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -265,6 +270,7 @@ export default function EthicsPage() {
           </div>
         </div>
       </section>
+      <Footer />
     </div>
   );
 }

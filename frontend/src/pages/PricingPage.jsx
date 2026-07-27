@@ -4,6 +4,8 @@ import { Feather, ArrowLeft, Check } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import InfoMenu from "@/components/InfoMenu";
+import Footer from "@/components/Footer";
 
 const REGULAR = {
   monthly: { key: "echo_monthly_nok", price: 149, per: "mnd" },
@@ -52,9 +54,12 @@ export default function PricingPage() {
             <Feather size={18} strokeWidth={1.4} />
             <span className="font-serif-display text-xl tracking-widest">ECHO</span>
           </Link>
-          <Link to={user ? "/dashboard" : "/"} className="label-ui inline-flex items-center gap-2">
-            <ArrowLeft size={14} strokeWidth={1.5} /> Tilbake
-          </Link>
+          <div className="flex items-center gap-4">
+            <InfoMenu align="right" />
+            <Link to={user ? "/dashboard" : "/"} className="label-ui inline-flex items-center gap-2">
+              <ArrowLeft size={14} strokeWidth={1.5} /> Tilbake
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -180,6 +185,7 @@ export default function PricingPage() {
           filer — men kan ikke generere ny tekst før medlemskapet er aktivt igjen.
         </p>
       </section>
+      <Footer />
     </div>
   );
 }

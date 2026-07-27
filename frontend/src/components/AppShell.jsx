@@ -1,7 +1,9 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { TID } from "@/lib/testIds";
 import { Feather, LogOut } from "lucide-react";
+import InfoMenu from "@/components/InfoMenu";
+import Footer from "@/components/Footer";
 
 export default function AppShell({ children }) {
   const { user, logout } = useAuth();
@@ -28,7 +30,7 @@ export default function AppShell({ children }) {
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <header className="hairline-b sticky top-0 z-30" style={{ background: "var(--bg)" }}>
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-4 flex items-center justify-between gap-4">
-          <Link to="/dashboard" className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3">
             <Feather size={18} strokeWidth={1.4} />
             <span className="font-serif-display text-xl tracking-widest">ECHO</span>
           </Link>
@@ -37,6 +39,7 @@ export default function AppShell({ children }) {
             <NavLink to="/prover" label="Prøver" tid={TID.navSamples} />
             <NavLink to="/stemme" label="Stemme" tid={TID.navVoice} />
             <NavLink to="/skriv" label="Skriv" tid={TID.navWrite} />
+            <InfoMenu align="right" />
           </nav>
           <div className="flex items-center gap-3">
             <Link to="/priser" className="label-ui hidden sm:inline" style={{ color: "var(--ink-mute)" }}>Priser</Link>
@@ -63,6 +66,7 @@ export default function AppShell({ children }) {
         </div>
       </header>
       <main>{children}</main>
+      <Footer />
     </div>
   );
 }

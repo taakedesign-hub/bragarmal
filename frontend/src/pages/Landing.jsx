@@ -1,6 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { TID } from "@/lib/testIds";
 import { Feather, ArrowRight, Camera, Mic, FileText, ScanLine } from "lucide-react";
+import InfoMenu from "@/components/InfoMenu";
+import Footer from "@/components/Footer";
 
 export default function Landing() {
   const nav = useNavigate();
@@ -11,12 +13,12 @@ export default function Landing() {
       {/* Top rule */}
       <div className="hairline-b">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3">
             <Feather size={18} strokeWidth={1.4} />
             <span className="font-serif-display text-xl tracking-widest">ECHO</span>
-          </div>
-          <nav className="flex items-center gap-6">
-            <span className="label-ui hidden sm:inline">no · nb</span>
+          </Link>
+          <nav className="flex items-center gap-2 md:gap-6">
+            <InfoMenu align="right" />
             <Link to="/priser" className="label-ui" style={{ color: "var(--ink-mute)" }}>Priser</Link>
             <button
               data-testid={TID.loginBtn}
@@ -210,12 +212,7 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer>
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-10 flex items-center justify-between">
-          <span className="label-ui">ECHO <span className="marker-ornament" /> 2026</span>
-          <span className="label-ui">et verktøy for forfattere som står fast</span>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
