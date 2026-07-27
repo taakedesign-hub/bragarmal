@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import Logo from "@/components/Logo";
 import { TID } from "@/lib/testIds";
 import { Feather, ArrowRight, Camera, Mic, FileText, ScanLine } from "lucide-react";
 import InfoMenu from "@/components/InfoMenu";
@@ -13,9 +14,8 @@ export default function Landing() {
       {/* Top rule */}
       <div className="hairline-b">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <Feather size={18} strokeWidth={1.4} />
-            <span className="font-serif-display text-xl tracking-widest">BRAGR</span>
+          <Link to="/" className="flex items-center">
+            <Logo size={28} />
           </Link>
           <nav className="flex items-center gap-2 md:gap-6">
             <InfoMenu align="right" />

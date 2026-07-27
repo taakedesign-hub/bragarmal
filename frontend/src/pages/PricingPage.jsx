@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Logo from "@/components/Logo";
 import { Link, useNavigate } from "react-router-dom";
 import { Feather, ArrowLeft, Check } from "lucide-react";
 import { api } from "@/lib/api";
@@ -51,9 +52,8 @@ export default function PricingPage() {
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <div className="hairline-b">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <Feather size={18} strokeWidth={1.4} />
-            <span className="font-serif-display text-xl tracking-widest">BRAGR</span>
+          <Link to="/" className="flex items-center">
+            <Logo size={28} />
           </Link>
           <div className="flex items-center gap-4">
             <InfoMenu align="right" />

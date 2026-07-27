@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import Logo from "@/components/Logo";
 import { Feather, ArrowLeft } from "lucide-react";
 import InfoMenu from "@/components/InfoMenu";
 import Footer from "@/components/Footer";
@@ -34,9 +35,8 @@ export default function ManifestPage() {
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <div className="hairline-b">
         <div className="max-w-[1500px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <Feather size={18} strokeWidth={1.4} />
-            <span className="font-serif-display text-xl tracking-widest">BRAGR</span>
+          <Link to="/" className="flex items-center">
+            <Logo size={28} />
           </Link>
           <div className="flex items-center gap-4">
             <InfoMenu align="right" />

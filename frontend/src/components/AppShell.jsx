@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import Logo from "@/components/Logo";
 import { useAuth } from "@/lib/auth";
 import { TID } from "@/lib/testIds";
 import { Feather, LogOut } from "lucide-react";
@@ -30,9 +31,8 @@ export default function AppShell({ children }) {
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <header className="hairline-b sticky top-0 z-30" style={{ background: "var(--bg)" }}>
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-4 flex items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-3">
-            <Feather size={18} strokeWidth={1.4} />
-            <span className="font-serif-display text-xl tracking-widest">BRAGR</span>
+          <Link to="/" className="flex items-center">
+            <Logo size={28} />
           </Link>
           <nav className="flex items-center gap-1 md:gap-2">
             <NavLink to="/dashboard" label="Hjem" tid={TID.navHome} />
