@@ -92,7 +92,7 @@ export default function LoginPage() {
           </p>
           <div className="mt-8 inline-flex items-center gap-3 px-3 py-1.5" style={{ background: "var(--linen)", color: "var(--ink)" }}>
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--ink)" }} />
-            <span className="font-mono-ui text-xs tracking-wider">BETA · GRATIS FOR DE 10 FØRSTE</span>
+            <span className="font-mono-ui text-xs tracking-wider">BETA · GRATIS FOR DE 50 FØRSTE</span>
           </div>
         </div>
 

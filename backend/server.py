@@ -46,8 +46,8 @@ EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 XAI_API_KEY = os.environ.get('XAI_API_KEY')
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
-BETA_FREE_SLOTS = 10
-FOUNDER_SLOTS = 100  # First 100 (including the 10 beta) can access founder prices
+BETA_FREE_SLOTS = 50
+FOUNDER_SLOTS = 100  # First 100 (including the 50 beta) can access founder prices
 
 # ---------- Object Storage ----------
 STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"

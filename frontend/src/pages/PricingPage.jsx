@@ -114,14 +114,14 @@ export default function PricingPage() {
             title="Gratis"
             price="0"
             unit="/for alltid"
-            note={status ? `${status.beta_slots_remaining} av ${status.beta_total} plasser igjen` : "For de 10 første"}
+            note={status ? `${status.beta_slots_remaining} av ${status.beta_total} plasser igjen` : "For de 50 første"}
             features={[
               "Alle funksjoner",
               "Alle modeller (Claude, GPT, Gemini, Grok)",
               "Ubegrenset generering",
-              "Prioritet på tilbakemelding",
+              "Gratis for alltid",
             ]}
-            cta={isBeta ? "Du er beta-medlem" : "Kun for de 10 første"}
+            cta={isBeta ? "Du er beta-medlem" : "Kun for de 50 første"}
             disabled
             highlight={isBeta}
           />
@@ -131,7 +131,7 @@ export default function PricingPage() {
             title="Grunnlegger"
             price={FOUNDER[cycle].price}
             unit={` kr/${FOUNDER[cycle].per}`}
-            note={status ? `${status.founder_slots_remaining} av ${status.founder_total} grunnleggerplasser igjen` : "For bruker 11-100"}
+            note={status ? `${status.founder_slots_remaining} av ${status.founder_total} grunnleggerplasser igjen` : "For bruker 51-100"}
             features={[
               "Alle funksjoner",
               "Alle modeller",
