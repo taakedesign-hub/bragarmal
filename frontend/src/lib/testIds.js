@@ -33,6 +33,8 @@ export const TID = {
   tabAudio: "tab-audio",
   sampleListItem: (id) => `sample-item-${id}`,
   sampleDeleteBtn: (id) => `sample-delete-${id}`,
+  sampleCategorySelect: (id) => `sample-category-select-${id}`,
+  categorySelector: "category-selector",
   // Voice
   analyzeVoiceBtn: "analyze-voice-btn",
   voiceProfileCard: "voice-profile-card",

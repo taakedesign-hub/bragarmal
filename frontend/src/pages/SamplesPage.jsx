@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import {
   Upload, Trash2, FileText, Camera, Mic, Square, ClipboardPaste, ScanLine, Loader2
 } from "lucide-react";
+import { useCategories, labelForCategory } from "@/lib/categories";
 
 const TABS = [
   { id: "paste", label: "Lim inn", icon: ClipboardPaste, tid: "tab-paste" },
@@ -16,6 +17,7 @@ const TABS = [
 export default function SamplesPage() {
   const [samples, setSamples] = useState([]);
   const [tab, setTab] = useState("paste");
+  const cats = useCategories();
 
   const load = async () => {
     try {
@@ -31,6 +33,14 @@ export default function SamplesPage() {
       setSamples((s) => s.filter((x) => x.id !== id));
       toast("Slettet");
     } catch { toast("Kunne ikke slette"); }
+  };
+
+  const changeCategory = async (id, category) => {
+    try {
+      await api.patch(`/samples/${id}/category`, { category });
+      setSamples((s) => s.map((x) => (x.id === id ? { ...x, category } : x)));
+      toast("Kategori oppdatert");
+    } catch { toast("Kunne ikke oppdatere"); }
   };
 
   return (
@@ -108,6 +118,19 @@ export default function SamplesPage() {
                     <div className="font-editor text-sm mt-2 line-clamp-2" style={{ color: "var(--ink-soft)" }}>
                       {s.content.slice(0, 180)}…
                     </div>
+                    <div className="mt-3">
+                      <select
+                        data-testid={TID.sampleCategorySelect(s.id)}
+                        value={s.category || "ren_menneske_ny"}
+                        onChange={(e) => changeCategory(s.id, e.target.value)}
+                        className="select-line text-xs"
+                        style={{ padding: "4px 8px" }}
+                      >
+                        {cats.map((c) => (
+                          <option key={c.id} value={c.id}>{c.label}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                   <button
                     data-testid={TID.sampleDeleteBtn(s.id)}
@@ -137,14 +160,16 @@ function sourceLabel(src) {
 function PasteForm({ onSaved }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [category, setCategory] = useState("ren_menneske_ny");
   const [submitting, setSubmitting] = useState(false);
+  const cats = useCategories();
 
   const submit = async (e) => {
     e?.preventDefault?.();
     if (content.trim().length < 20) { toast("Minst 20 tegn"); return; }
     setSubmitting(true);
     try {
-      await api.post("/samples", { title: title.trim() || "Uten tittel", content });
+      await api.post("/samples", { title: title.trim() || "Uten tittel", content, category });
       setTitle(""); setContent("");
       toast("Lagret prøve");
       onSaved();
@@ -169,19 +194,37 @@ function PasteForm({ onSaved }) {
         value={content}
         onChange={(e) => setContent(e.target.value)}
       />
-      <div className="mt-6 flex items-center justify-between">
-        <span className="label-ui">
-          {content.trim().length > 0 ? `${content.trim().split(/\s+/).length} ord` : "0 ord"}
-        </span>
-        <button
-          data-testid={TID.sampleSubmitBtn}
-          type="submit"
-          className="btn-primary"
-          disabled={submitting}
-        >
-          {submitting ? "Lagrer…" : "Lagre prøve"}
-        </button>
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+        <div>
+          <div className="label-ui mb-2">Kategori</div>
+          <select
+            data-testid={TID.categorySelector}
+            className="select-line w-full"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            {cats.map((c) => (
+              <option key={c.id} value={c.id}>{c.label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center justify-between sm:justify-end gap-4">
+          <span className="label-ui">
+            {content.trim().length > 0 ? `${content.trim().split(/\s+/).length} ord` : "0 ord"}
+          </span>
+          <button
+            data-testid={TID.sampleSubmitBtn}
+            type="submit"
+            className="btn-primary"
+            disabled={submitting}
+          >
+            {submitting ? "Lagrer…" : "Lagre prøve"}
+          </button>
+        </div>
       </div>
+      <p className="label-ui mt-4" style={{ maxWidth: "60ch" }}>
+        Tips: bare «ren menneske»-prøver brukes til å bygge stemmeprofilen din. Hybrid og AI holdes utenfor.
+      </p>
     </form>
   );
 }

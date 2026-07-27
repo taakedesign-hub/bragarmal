@@ -56,6 +56,17 @@ class User(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
+SAMPLE_CATEGORIES = {
+    "ren_menneske_gammel": "Ren menneske · gamle tekster",
+    "ren_menneske_ny": "Ren menneske · nye tekster",
+    "hybrid": "Hybrid · AI-start + tung redigering",
+    "ren_ai": "Ren AI",
+    "melding": "Uformelt · meldinger/notater",
+}
+
+HUMAN_CATEGORIES = {"ren_menneske_gammel", "ren_menneske_ny", "melding"}
+
+
 class Sample(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -63,6 +74,7 @@ class Sample(BaseModel):
     title: str
     content: str
     source: Literal["paste", "file", "handwriting", "audio"] = "paste"
+    category: str = "ren_menneske_ny"
     filename: Optional[str] = None
     word_count: int = 0
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -78,6 +90,7 @@ class VoiceProfile(BaseModel):
     avg_word_length: float = 0
     vocabulary_richness: float = 0  # unique / total
     top_words: List[dict] = []
+    function_word_frequencies: List[dict] = []
     sentence_length_distribution: List[dict] = []
     tone_description: str = ""
     style_summary: str = ""
@@ -289,12 +302,30 @@ def analyze_voice(samples: List[dict]) -> dict:
     top = sorted(freq.items(), key=lambda x: -x[1])[:15]
     top_words = [{"word": w, "count": c} for w, c in top]
 
+    # Function-word frequencies (per 1000 words) — strong stylometric marker
+    fw_targets = [
+        "og","men","som","at","fordi","hvis","når","der","hvor","der",
+        "ikke","også","kanskje","liksom","altså","bare","enda","jo","nok","alltid",
+        "kanskje","selv","ganske","helt","litt","veldig","så","da","mens","selv",
+    ]
+    fw_set = list(dict.fromkeys(fw_targets))
+    fw_counts = {}
+    for w in words_lower:
+        if w in fw_set:
+            fw_counts[w] = fw_counts.get(w, 0) + 1
+    per_1000 = 1000.0 / max(len(words_lower), 1)
+    function_word_frequencies = sorted(
+        [{"word": w, "per_1000": round(c * per_1000, 2), "count": c} for w, c in fw_counts.items()],
+        key=lambda x: -x["per_1000"],
+    )[:20]
+
     return {
         "total_words": len(words_lower),
         "avg_sentence_length": round(avg_sent, 2),
         "avg_word_length": round(avg_word_len, 2),
         "vocabulary_richness": round(richness, 3),
         "top_words": top_words,
+        "function_word_frequencies": function_word_frequencies,
         "sentence_length_distribution": distribution,
     }
 
@@ -361,6 +392,7 @@ TEKSTER:
 class SampleCreate(BaseModel):
     title: str
     content: str
+    category: Optional[str] = None
 
 
 @api_router.post("/samples")
@@ -368,11 +400,13 @@ async def create_sample(payload: SampleCreate, user: User = Depends(get_current_
     content = payload.content.strip()
     if len(content) < 20:
         raise HTTPException(status_code=400, detail="Teksten er for kort (minst 20 tegn)")
+    category = payload.category if payload.category in SAMPLE_CATEGORIES else "ren_menneske_ny"
     sample = Sample(
         user_id=user.user_id,
         title=payload.title.strip() or "Uten tittel",
         content=content,
         source="paste",
+        category=category,
         word_count=len(re.findall(r"\S+", content)),
     )
     doc = sample.model_dump()
@@ -385,6 +419,7 @@ async def create_sample(payload: SampleCreate, user: User = Depends(get_current_
 async def upload_sample(
     file: UploadFile = File(...),
     title: Optional[str] = Form(None),
+    category: Optional[str] = Form(None),
     user: User = Depends(get_current_user),
 ):
     data = await file.read()
@@ -394,11 +429,13 @@ async def upload_sample(
     text = text.strip()
     if len(text) < 20:
         raise HTTPException(status_code=400, detail="Kunne ikke lese meningsfull tekst fra filen")
+    cat = category if category in SAMPLE_CATEGORIES else "ren_menneske_ny"
     sample = Sample(
         user_id=user.user_id,
         title=(title or file.filename or "Uten tittel").strip(),
         content=text,
         source="file",
+        category=cat,
         filename=file.filename,
         word_count=len(re.findall(r"\S+", text)),
     )
@@ -547,20 +584,54 @@ async def delete_sample(sample_id: str, user: User = Depends(get_current_user)):
     return {"ok": True}
 
 
+class SampleCategoryUpdate(BaseModel):
+    category: str
+
+
+@api_router.patch("/samples/{sample_id}/category")
+async def update_sample_category(
+    sample_id: str,
+    body: SampleCategoryUpdate,
+    user: User = Depends(get_current_user),
+):
+    if body.category not in SAMPLE_CATEGORIES:
+        raise HTTPException(status_code=400, detail="Ukjent kategori")
+    r = await db.samples.update_one(
+        {"id": sample_id, "user_id": user.user_id},
+        {"$set": {"category": body.category}},
+    )
+    if r.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Ikke funnet")
+    return {"ok": True, "category": body.category}
+
+
+@api_router.get("/categories")
+async def list_categories():
+    return [{"id": k, "label": v} for k, v in SAMPLE_CATEGORIES.items()]
+
+
 # ---------- Voice profile ----------
 @api_router.post("/voice/analyze")
 async def analyze_user_voice(user: User = Depends(get_current_user)):
-    samples = await db.samples.find({"user_id": user.user_id}, {"_id": 0}).to_list(500)
-    if not samples:
+    all_samples = await db.samples.find({"user_id": user.user_id}, {"_id": 0}).to_list(500)
+    if not all_samples:
         raise HTTPException(status_code=400, detail="Legg til minst én skriveprøve først")
 
-    stats = analyze_voice(samples)
-    ai_stuff = await build_style_summary(samples, stats)
+    # Base the voice profile on HUMAN samples only (exclude hybrid/pure AI)
+    human_samples = [s for s in all_samples if s.get("category", "ren_menneske_ny") in HUMAN_CATEGORIES]
+    if not human_samples:
+        raise HTTPException(
+            status_code=400,
+            detail="Ingen 'ren menneske'-prøver funnet. Hybrid- og AI-prøver brukes ikke som basis for stemmen."
+        )
+
+    stats = analyze_voice(human_samples)
+    ai_stuff = await build_style_summary(human_samples, stats)
 
     profile = {
         "user_id": user.user_id,
         "updated_at": datetime.now(timezone.utc).isoformat(),
-        "total_samples": len(samples),
+        "total_samples": len(human_samples),
         **stats,
         **ai_stuff,
     }
@@ -675,7 +746,9 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
     provider, model = ALLOWED_MODELS[body.model]
 
     profile = await db.voice_profiles.find_one({"user_id": user.user_id}, {"_id": 0})
-    samples = await db.samples.find({"user_id": user.user_id}, {"_id": 0}).sort("created_at", -1).to_list(20)
+    all_samples = await db.samples.find({"user_id": user.user_id}, {"_id": 0}).sort("created_at", -1).to_list(30)
+    # Only use HUMAN samples as style anchors for generation
+    samples = [s for s in all_samples if s.get("category", "ren_menneske_ny") in HUMAN_CATEGORIES][:20]
     inspirations = await db.inspirations.find(
         {"user_id": user.user_id}, {"_id": 0, "name_lower": 0}
     ).sort("created_at", 1).to_list(20)
@@ -782,6 +855,10 @@ async def detect_ai(body: DetectBody, user: User = Depends(get_current_user)):
 
     label = "Menneskelig" if score >= 65 else ("Blandet" if score >= 40 else "AI-aktig")
 
+    # ---- Personal style similarity ----
+    # Compare text against the user's HUMAN samples using function-word + top-word fingerprint.
+    personal = await compute_personal_style_score(user.user_id, text, words)
+
     return {
         "score": round(score, 1),
         "label": label,
@@ -789,6 +866,104 @@ async def detect_ai(body: DetectBody, user: User = Depends(get_current_user)):
         "vocab_richness": round(unique_ratio, 3),
         "avg_sentence_length": round(sum(sent_lens) / len(sent_lens), 2) if sent_lens else 0,
         "ai_markers": hits_list,
+        "personal_style": personal,
+    }
+
+
+async def compute_personal_style_score(user_id: str, text: str, words: List[str]) -> dict:
+    """
+    Similarity between the input text and the user's known voice.
+    Uses:
+      - Cosine similarity on function-word frequency vector
+      - Overlap ratio of user's signature top-words appearing in the text
+      - Sentence-length distribution correlation
+    Returns a 0..100 personal_similarity score and diagnostic breakdown.
+    """
+    profile = await db.voice_profiles.find_one({"user_id": user_id}, {"_id": 0})
+    if not profile:
+        return {
+            "available": False,
+            "reason": "Ingen stemmeprofil ennå — kjør analyse under «Stemme» først.",
+        }
+
+    # Build vectors
+    text_words = [w.lower() for w in words]
+    text_len = max(len(text_words), 1)
+
+    # Function-word cosine
+    fw_profile = {f["word"]: f["per_1000"] for f in (profile.get("function_word_frequencies") or [])}
+    if fw_profile:
+        text_fw_counts = {}
+        for w in text_words:
+            if w in fw_profile:
+                text_fw_counts[w] = text_fw_counts.get(w, 0) + 1
+        per_1000 = 1000.0 / text_len
+        text_fw = {w: c * per_1000 for w, c in text_fw_counts.items()}
+        # Cosine over union of keys
+        keys = set(fw_profile.keys()) | set(text_fw.keys())
+        dot = sum(fw_profile.get(k, 0) * text_fw.get(k, 0) for k in keys)
+        na = sum(v * v for v in fw_profile.values()) ** 0.5
+        nb = sum(v * v for v in text_fw.values()) ** 0.5
+        fw_cos = (dot / (na * nb)) if (na and nb) else 0
+    else:
+        fw_cos = 0
+
+    # Signature-word overlap: how many of the user's top 15 words appear in this text
+    top_words = [w["word"] for w in (profile.get("top_words") or [])[:15]]
+    if top_words:
+        text_word_set = set(text_words)
+        overlap = sum(1 for w in top_words if w in text_word_set)
+        overlap_ratio = overlap / len(top_words)
+    else:
+        overlap_ratio = 0
+
+    # Sentence-length distribution correlation (pearson-ish, using shared bins)
+    profile_dist = {d["range"]: d["count"] for d in (profile.get("sentence_length_distribution") or [])}
+    if profile_dist:
+        sentences = [s for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
+        sl = [len(re.findall(r"\S+", s)) for s in sentences]
+        sl = [n for n in sl if n > 0]
+        text_dist = {"1-5": 0, "6-10": 0, "11-15": 0, "16-20": 0, "21-30": 0, "31+": 0}
+        for n in sl:
+            if n <= 5: text_dist["1-5"] += 1
+            elif n <= 10: text_dist["6-10"] += 1
+            elif n <= 15: text_dist["11-15"] += 1
+            elif n <= 20: text_dist["16-20"] += 1
+            elif n <= 30: text_dist["21-30"] += 1
+            else: text_dist["31+"] += 1
+        # Normalize
+        def norm(d):
+            t = sum(d.values()) or 1
+            return {k: v / t for k, v in d.items()}
+        pn = norm(profile_dist)
+        tn = norm(text_dist)
+        # 1 - half L1 (0..1 similarity)
+        dist_sim = 1 - 0.5 * sum(abs(pn[k] - tn[k]) for k in pn.keys())
+    else:
+        dist_sim = 0
+
+    # Blend
+    personal_similarity = (
+        0.55 * fw_cos +
+        0.25 * overlap_ratio +
+        0.20 * dist_sim
+    ) * 100
+    personal_similarity = round(max(0, min(100, personal_similarity)), 1)
+
+    if personal_similarity >= 70:
+        label = "Din stemme"
+    elif personal_similarity >= 45:
+        label = "Delvis din stemme"
+    else:
+        label = "Fremmed stemme"
+
+    return {
+        "available": True,
+        "personal_similarity": personal_similarity,
+        "label": label,
+        "function_word_cosine": round(fw_cos, 3),
+        "signature_word_overlap": round(overlap_ratio, 3),
+        "sentence_shape_similarity": round(dist_sim, 3),
     }
 
 

@@ -377,34 +377,89 @@ export default function WritePage() {
 
       {/* Detection strip */}
       {detection && (
-        <div data-testid={TID.writeDetectionResult} className="mt-12 hairline-t hairline-b py-6 grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div>
-            <div className="label-ui">Menneske-score</div>
-            <div className="font-serif-display text-4xl mt-1" style={{ color: "var(--ink)" }}>
-              {detection.score}<span className="text-xl" style={{ color: "var(--ink-mute)" }}>/100</span>
+        <div data-testid={TID.writeDetectionResult} className="mt-12">
+          <div className="hairline-t hairline-b py-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div>
+              <div className="label-ui">Menneske-score</div>
+              <div className="font-serif-display text-4xl mt-1" style={{ color: "var(--ink)" }}>
+                {detection.score}<span className="text-xl" style={{ color: "var(--ink-mute)" }}>/100</span>
+              </div>
+              <div className="label-ui mt-1" style={{ color: detection.score >= 65 ? "var(--moss)" : detection.score >= 40 ? "var(--rust)" : "#a13a3a" }}>
+                {detection.label}
+              </div>
             </div>
-            <div className="label-ui mt-1" style={{ color: detection.score >= 65 ? "var(--moss)" : detection.score >= 40 ? "var(--rust)" : "#a13a3a" }}>
-              {detection.label}
+            <div className="md:border-l md:pl-6" style={{ borderColor: "var(--line)" }}>
+              <div className="label-ui">Rytme-variasjon</div>
+              <div className="font-serif-display text-3xl mt-1" style={{ color: "var(--ink)" }}>
+                {detection.burstiness}
+              </div>
+            </div>
+            <div className="md:border-l md:pl-6" style={{ borderColor: "var(--line)" }}>
+              <div className="label-ui">Ordforråd</div>
+              <div className="font-serif-display text-3xl mt-1" style={{ color: "var(--ink)" }}>
+                {Math.round(detection.vocab_richness * 100)}%
+              </div>
+            </div>
+            <div className="md:border-l md:pl-6" style={{ borderColor: "var(--line)" }}>
+              <div className="label-ui">AI-fraser funnet</div>
+              <div className="font-serif-display text-3xl mt-1" style={{ color: "var(--ink)" }}>
+                {(detection.ai_markers || []).reduce((a, m) => a + m.count, 0)}
+              </div>
             </div>
           </div>
-          <div className="md:border-l md:pl-6" style={{ borderColor: "var(--line)" }}>
-            <div className="label-ui">Rytme-variasjon</div>
-            <div className="font-serif-display text-3xl mt-1" style={{ color: "var(--ink)" }}>
-              {detection.burstiness}
+
+          {/* Personal style row */}
+          {detection.personal_style?.available && (
+            <div className="hairline-b py-6">
+              <div className="label-ui mb-3">Sammenlignet med din stemme</div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div>
+                  <div className="label-ui">Personlig likhet</div>
+                  <div
+                    className="font-serif-display text-5xl mt-1"
+                    style={{
+                      color:
+                        detection.personal_style.personal_similarity >= 70
+                          ? "var(--moss)"
+                          : detection.personal_style.personal_similarity >= 45
+                          ? "var(--rust)"
+                          : "#a13a3a",
+                    }}
+                  >
+                    {detection.personal_style.personal_similarity}<span className="text-xl" style={{ color: "var(--ink-mute)" }}>/100</span>
+                  </div>
+                  <div className="label-ui mt-1">{detection.personal_style.label}</div>
+                </div>
+                <div className="md:border-l md:pl-6" style={{ borderColor: "var(--line)" }}>
+                  <div className="label-ui">Funksjonsord</div>
+                  <div className="font-serif-display text-3xl mt-1" style={{ color: "var(--ink)" }}>
+                    {Math.round(detection.personal_style.function_word_cosine * 100)}%
+                  </div>
+                  <div className="label-ui">og · men · som · at …</div>
+                </div>
+                <div className="md:border-l md:pl-6" style={{ borderColor: "var(--line)" }}>
+                  <div className="label-ui">Signaturord</div>
+                  <div className="font-serif-display text-3xl mt-1" style={{ color: "var(--ink)" }}>
+                    {Math.round(detection.personal_style.signature_word_overlap * 100)}%
+                  </div>
+                  <div className="label-ui">av topp-15 gjenfunnet</div>
+                </div>
+                <div className="md:border-l md:pl-6" style={{ borderColor: "var(--line)" }}>
+                  <div className="label-ui">Setnings-form</div>
+                  <div className="font-serif-display text-3xl mt-1" style={{ color: "var(--ink)" }}>
+                    {Math.round(detection.personal_style.sentence_shape_similarity * 100)}%
+                  </div>
+                  <div className="label-ui">rytmelikhet</div>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="md:border-l md:pl-6" style={{ borderColor: "var(--line)" }}>
-            <div className="label-ui">Ordforråd</div>
-            <div className="font-serif-display text-3xl mt-1" style={{ color: "var(--ink)" }}>
-              {Math.round(detection.vocab_richness * 100)}%
+          )}
+
+          {detection.personal_style && !detection.personal_style.available && (
+            <div className="hairline-b py-4 font-editor italic text-sm" style={{ color: "var(--ink-mute)" }}>
+              {detection.personal_style.reason}
             </div>
-          </div>
-          <div className="md:border-l md:pl-6" style={{ borderColor: "var(--line)" }}>
-            <div className="label-ui">AI-fraser funnet</div>
-            <div className="font-serif-display text-3xl mt-1" style={{ color: "var(--ink)" }}>
-              {(detection.ai_markers || []).reduce((a, m) => a + m.count, 0)}
-            </div>
-          </div>
+          )}
         </div>
       )}
     </div>
