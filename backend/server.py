@@ -1643,10 +1643,22 @@ async def get_user_rank(user_id: str) -> int:
 
 async def get_user_subscription_status(user_id: str) -> dict:
     """Return {active, plan, beta, current_period_end}"""
-    # Beta: first N users get free access
+    now = datetime.now(timezone.utc)
     user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
     if user and user.get("is_beta_member"):
-        return {"active": True, "plan": "beta", "beta": True, "current_period_end": None}
+        expires_at = user.get("beta_expires_at")
+        if expires_at:
+            try:
+                exp = datetime.fromisoformat(expires_at) if isinstance(expires_at, str) else expires_at
+                if exp.tzinfo is None:
+                    exp = exp.replace(tzinfo=timezone.utc)
+                if exp > now:
+                    return {"active": True, "plan": "beta", "beta": True, "current_period_end": exp.isoformat()}
+            except Exception:
+                pass
+        else:
+            # Legacy beta without expiry — grant 3 months from creation
+            return {"active": True, "plan": "beta", "beta": True, "current_period_end": None}
 
     # Any active subscription?
     sub = await db.subscriptions.find_one(
@@ -1664,13 +1676,17 @@ async def get_user_subscription_status(user_id: str) -> dict:
 
 
 async def ensure_beta_flag(user_id: str):
-    """Grant beta ONLY to the first BETA_FREE_SLOTS users."""
+    """Grant beta ONLY to the first BETA_FREE_SLOTS users. Beta is free for 3 months."""
     user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
     if not user or user.get("is_beta_member"):
         return
     rank = await get_user_rank(user_id)
     if rank <= BETA_FREE_SLOTS:
-        await db.users.update_one({"user_id": user_id}, {"$set": {"is_beta_member": True}})
+        expires_at = datetime.now(timezone.utc) + timedelta(days=90)
+        await db.users.update_one(
+            {"user_id": user_id},
+            {"$set": {"is_beta_member": True, "beta_expires_at": expires_at.isoformat()}},
+        )
 
 
 class CheckoutRequest(BaseModel):

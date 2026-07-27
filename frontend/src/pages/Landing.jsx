@@ -64,7 +64,7 @@ export default function Landing() {
                 <span className="font-mono-ui text-xs tracking-wider">BETA</span>
               </span>
               <span className="font-editor text-sm" style={{ color: "var(--ink-soft)" }}>
-                Gratis for de 50 første som prøver den ut.
+                Gratis i 3 måneder for de 50 første som prøver den ut.
               </span>
             </div>
           </div>

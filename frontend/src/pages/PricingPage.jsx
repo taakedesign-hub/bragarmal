@@ -111,15 +111,15 @@ export default function PricingPage() {
           <Tier
             badge="BETA"
             badgeColor="var(--linen)"
-            title="Gratis"
+            title="Gratis · 3 mnd"
             price="0"
-            unit="/for alltid"
+            unit="/de første 3 månedene"
             note={status ? `${status.beta_slots_remaining} av ${status.beta_total} plasser igjen` : "For de 50 første"}
             features={[
               "Alle funksjoner",
               "Alle modeller (Claude, GPT, Gemini, Grok)",
               "Ubegrenset generering",
-              "Gratis for alltid",
+              "Gratis i 3 måneder — deretter velg plan",
             ]}
             cta={isBeta ? "Du er beta-medlem" : "Kun for de 50 første"}
             disabled
@@ -131,6 +131,7 @@ export default function PricingPage() {
             title="Grunnlegger"
             price={FOUNDER[cycle].price}
             unit={` kr/${FOUNDER[cycle].per}`}
+            alt={cycle === "monthly" ? `Årlig: ${FOUNDER.yearly.price} kr/år · spar 2 mnd` : `Månedlig: ${FOUNDER.monthly.price} kr/mnd`}
             note={status ? `${status.founder_slots_remaining} av ${status.founder_total} grunnleggerplasser igjen` : "For bruker 51-100"}
             features={[
               "Alle funksjoner",
@@ -150,6 +151,7 @@ export default function PricingPage() {
             title="Ordinær"
             price={REGULAR[cycle].price}
             unit={` kr/${REGULAR[cycle].per}`}
+            alt={cycle === "monthly" ? `Årlig: ${REGULAR.yearly.price} kr/år · spar 2 mnd` : `Månedlig: ${REGULAR.monthly.price} kr/mnd`}
             note="Uten begrensning på når"
             features={[
               "Alle funksjoner",
@@ -190,7 +192,7 @@ export default function PricingPage() {
   );
 }
 
-function Tier({ badge, badgeColor, title, price, unit, note, features, cta, onClick, disabled, highlight }) {
+function Tier({ badge, badgeColor, title, price, unit, alt, note, features, cta, onClick, disabled, highlight }) {
   return (
     <div
       className="paper p-8 md:p-10 flex flex-col"
@@ -209,6 +211,9 @@ function Tier({ badge, badgeColor, title, price, unit, note, features, cta, onCl
         <span className="font-serif-display text-6xl font-light" style={{ color: "var(--ink)" }}>{price}</span>
         <span className="font-editor text-sm" style={{ color: "var(--ink-mute)" }}>{unit}</span>
       </div>
+      {alt && (
+        <div className="label-ui mt-2" style={{ color: "var(--moss)" }}>{alt}</div>
+      )}
       <div className="label-ui mt-2">{note}</div>
       <ul className="mt-8 space-y-3 flex-1">
         {features.map((f, i) => (
