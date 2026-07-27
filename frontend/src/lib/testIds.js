@@ -35,4 +35,7 @@ export const TID = {
   writeHumanizeMoreBtn: "write-humanize-more-btn",
   writeDetectBtn: "write-detect-btn",
   writeDetectionResult: "write-detection-result",
+  writeSaveAsSampleBtn: "write-save-as-sample-btn",
+  writeSaveAsSampleTitleInput: "write-save-as-sample-title-input",
+  writeSaveAsSampleConfirm: "write-save-as-sample-confirm",
 };

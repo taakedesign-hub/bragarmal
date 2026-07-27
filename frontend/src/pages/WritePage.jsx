@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api, BACKEND } from "@/lib/api";
 import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
-import { PenLine, Copy, RefreshCcw, Wand2, Gauge } from "lucide-react";
+import { PenLine, Copy, RefreshCcw, Wand2, Gauge, BookmarkPlus, X } from "lucide-react";
 
 const MODES = [
   { id: "prompt", label: "Fra frø", hint: "Skriv fra et emne, en åpningslinje eller en idé." },
@@ -34,6 +34,9 @@ export default function WritePage() {
   const [detection, setDetection] = useState(null);
   const [samplesReady, setSamplesReady] = useState(false);
   const [profileReady, setProfileReady] = useState(false);
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [saveTitle, setSaveTitle] = useState("");
+  const [saving, setSaving] = useState(false);
   const abortRef = useRef(null);
 
   useEffect(() => {
@@ -126,6 +129,32 @@ export default function WritePage() {
     setMode("humanize");
     setHumanize(Math.min(humanize + 1, 3));
     setTimeout(() => generate(), 50);
+  };
+
+  const openSave = () => {
+    if (!output.trim()) return;
+    // Default title from input or first line of output
+    const seed = (input || output).trim().split(/\n/)[0].slice(0, 60);
+    setSaveTitle(seed || "Utkast");
+    setSaveOpen(true);
+  };
+
+  const saveAsSample = async () => {
+    if (!output.trim()) return;
+    setSaving(true);
+    try {
+      await api.post("/samples", {
+        title: saveTitle.trim() || "Utkast",
+        content: output,
+      });
+      toast("Lagret som prøve");
+      setSaveOpen(false);
+      setSaveTitle("");
+    } catch (e) {
+      toast(e?.response?.data?.detail || "Kunne ikke lagre");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const runDetect = async () => {
@@ -266,9 +295,85 @@ export default function WritePage() {
             >
               <Wand2 size={16} strokeWidth={1.5} /> Gjør mer menneskelig
             </button>
+            <button
+              data-testid={TID.writeSaveAsSampleBtn}
+              onClick={openSave}
+              className="btn-ghost inline-flex items-center gap-2"
+              disabled={streaming || !output}
+            >
+              <BookmarkPlus size={16} strokeWidth={1.5} /> Lagre som prøve
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Save-as-sample modal */}
+      {saveOpen && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center px-4"
+          style={{ background: "rgba(28,27,26,0.35)" }}
+          onClick={() => !saving && setSaveOpen(false)}
+        >
+          <div
+            className="paper w-full max-w-lg p-8"
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: "var(--surface)" }}
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="label-ui">Legg til i biblioteket</div>
+                <h3 className="font-serif-display text-3xl mt-2" style={{ color: "var(--ink)" }}>
+                  Lagre som prøve
+                </h3>
+              </div>
+              <button
+                onClick={() => !saving && setSaveOpen(false)}
+                className="p-1"
+                style={{ color: "var(--ink-mute)" }}
+                aria-label="Lukk"
+              >
+                <X size={18} strokeWidth={1.4} />
+              </button>
+            </div>
+            <p className="font-editor mt-4 text-sm" style={{ color: "var(--ink-soft)" }}>
+              Utkastet legges til i «Prøver» og brukes til å forsterke stemmeprofilen din neste gang du kjører analyse.
+            </p>
+            <div className="mt-6">
+              <div className="label-ui mb-2">Tittel</div>
+              <input
+                data-testid={TID.writeSaveAsSampleTitleInput}
+                className="input-line"
+                value={saveTitle}
+                onChange={(e) => setSaveTitle(e.target.value)}
+                placeholder="Kort beskrivelse"
+                autoFocus
+              />
+            </div>
+            <div className="mt-4 paper p-4 max-h-40 overflow-auto" style={{ background: "var(--bg-alt)" }}>
+              <p className="font-editor text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "var(--ink-soft)" }}>
+                {output.slice(0, 400)}{output.length > 400 ? "…" : ""}
+              </p>
+            </div>
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                onClick={() => setSaveOpen(false)}
+                className="btn-ghost"
+                disabled={saving}
+              >
+                Avbryt
+              </button>
+              <button
+                data-testid={TID.writeSaveAsSampleConfirm}
+                onClick={saveAsSample}
+                className="btn-primary"
+                disabled={saving || !saveTitle.trim()}
+              >
+                {saving ? "Lagrer…" : "Lagre"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Detection strip */}
       {detection && (
