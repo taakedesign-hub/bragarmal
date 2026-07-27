@@ -55,6 +55,7 @@ export const TID = {
   writeSaveAsSampleTitleInput: "write-save-as-sample-title-input",
   writeSaveAsSampleConfirm: "write-save-as-sample-confirm",
   writeDownloadBtn: "write-download-btn",
+  writePdfBtn: "write-pdf-btn",
   writeEmailBtn: "write-email-btn",
   // Footer
   footerContactLink: "footer-contact-link",

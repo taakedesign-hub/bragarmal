@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { api, BACKEND } from "@/lib/api";
 import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
-import { PenLine, Copy, RefreshCcw, Wand2, Gauge, BookmarkPlus, X, Download, Mail } from "lucide-react";
+import { PenLine, Copy, RefreshCcw, Wand2, Gauge, BookmarkPlus, X, Download, Mail, FileText } from "lucide-react";
+import jsPDF from "jspdf";
 
 const MODES = [
   { id: "prompt", label: "Fra frø", hint: "Skriv fra et emne, en åpningslinje eller en idé." },
@@ -154,6 +155,76 @@ export default function WritePage() {
     const subject = encodeURIComponent("Utkast fra BRAGR");
     const body = encodeURIComponent(output);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  };
+
+  const downloadPdf = async () => {
+    if (!output.trim()) return;
+    try {
+      const pdf = new jsPDF({ unit: "pt", format: "a4" });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 64;
+      const stamp = new Date().toISOString().slice(0, 10);
+
+      // Load logo once
+      let logoImg = null;
+      try {
+        logoImg = await new Promise((res, rej) => {
+          const img = new Image();
+          img.onload = () => res(img);
+          img.onerror = rej;
+          img.src = "/bragr-logo.png";
+        });
+      } catch {}
+
+      // Watermark on background — centred, low opacity
+      if (logoImg) {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = logoImg.naturalWidth;
+          canvas.height = logoImg.naturalHeight;
+          const ctx = canvas.getContext("2d");
+          ctx.globalAlpha = 0.07;
+          ctx.drawImage(logoImg, 0, 0);
+          const dataUrl = canvas.toDataURL("image/png");
+          const wmW = pageW * 0.55;
+          const wmH = wmW * (logoImg.naturalHeight / logoImg.naturalWidth);
+          pdf.addImage(dataUrl, "PNG", (pageW - wmW) / 2, (pageH - wmH) / 2, wmW, wmH);
+        } catch {}
+      }
+
+      // Header logo (small, top-left)
+      if (logoImg) {
+        try {
+          const headerW = 70;
+          const headerH = headerW * (logoImg.naturalHeight / logoImg.naturalWidth);
+          pdf.addImage(logoImg, "PNG", margin, margin - 32, headerW, headerH);
+        } catch {}
+      }
+
+      // Body text
+      pdf.setFont("times", "normal");
+      pdf.setFontSize(12);
+      pdf.setTextColor(28, 27, 26);
+      const textWidth = pageW - margin * 2;
+      const lines = pdf.splitTextToSize(output, textWidth);
+      pdf.text(lines, margin, margin + 40, { lineHeightFactor: 1.55 });
+
+      // Footer on every page
+      const pageCount = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(122, 118, 110);
+        pdf.text(`Bragr · bragrapp.no · ${stamp}`, margin, pageH - margin / 2);
+        pdf.text(`${i} / ${pageCount}`, pageW - margin, pageH - margin / 2, { align: "right" });
+      }
+
+      pdf.save(`bragr-utkast-${stamp}.pdf`);
+      toast("PDF lastet ned");
+    } catch {
+      toast("Kunne ikke lage PDF");
+    }
   };
 
   const humanizeMore = async () => {
@@ -343,6 +414,14 @@ export default function WritePage() {
               disabled={streaming || !output}
             >
               <Download size={16} strokeWidth={1.5} /> Last ned .txt
+            </button>
+            <button
+              data-testid={TID.writePdfBtn}
+              onClick={downloadPdf}
+              className="btn-ghost inline-flex items-center gap-2"
+              disabled={streaming || !output}
+            >
+              <FileText size={16} strokeWidth={1.5} /> Last ned .pdf
             </button>
             <button
               data-testid={TID.writeEmailBtn}
