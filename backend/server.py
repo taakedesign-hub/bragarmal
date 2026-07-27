@@ -1074,7 +1074,7 @@ async def list_models():
 
 @api_router.get("/")
 async def root():
-    return {"app": "Nina2", "ok": True}
+    return {"app": "Echo", "ok": True}
 
 
 app.include_router(api_router)

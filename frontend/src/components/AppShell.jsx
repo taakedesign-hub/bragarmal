@@ -30,7 +30,7 @@ export default function AppShell({ children }) {
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-4 flex items-center justify-between gap-4">
           <Link to="/dashboard" className="flex items-center gap-3">
             <Feather size={18} strokeWidth={1.4} />
-            <span className="font-serif-display text-xl">Nina2</span>
+            <span className="font-serif-display text-xl">Echo</span>
           </Link>
           <nav className="flex items-center gap-1 md:gap-2">
             <NavLink to="/dashboard" label="Hjem" tid={TID.navHome} />

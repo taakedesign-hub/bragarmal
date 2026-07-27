@@ -174,7 +174,7 @@ export default function Landing() {
       {/* Footer */}
       <footer>
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-10 flex items-center justify-between">
-          <span className="label-ui">Nina2 <span className="marker-ornament" /> 2026</span>
+          <span className="label-ui">Echo <span className="marker-ornament" /> 2026</span>
           <span className="label-ui">et verktøy for forfattere som står fast</span>
         </div>
       </footer>

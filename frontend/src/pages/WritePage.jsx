@@ -488,6 +488,12 @@ export default function WritePage() {
               </div>
 
               <div className="paper p-6 md:p-8 font-editor text-[1.05rem] leading-[1.85]" style={{ color: "var(--ink)" }}>
+                <div className="label-ui mb-4">
+                  <span className="inline-flex items-center gap-2">
+                    <span className="inline-block w-1 h-1 rounded-full" style={{ background: "var(--ink-mute)" }} />
+                    Trykk på en rød setning for å skrive den om i din stemme
+                  </span>
+                </div>
                 {detection.highlights.map((h, i) => {
                   const bg =
                     h.similarity >= 60
@@ -498,13 +504,29 @@ export default function WritePage() {
                   return (
                     <span
                       key={i}
-                      title={`Likhet ${h.similarity}/100${h.ai_marker_hit ? " · AI-frase funnet" : ""}${h.foreign_words?.length ? " · fremmede ord: " + h.foreign_words.join(", ") : ""}`}
+                      onClick={() => {
+                        if (h.foreign) {
+                          setInput(h.sentence);
+                          setMode("humanize");
+                          setDetection(null);
+                          if (typeof window !== "undefined") {
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }
+                          toast("Setning satt til omskriving i din stemme");
+                        }
+                      }}
+                      title={
+                        h.foreign
+                          ? `Trykk for å skrive om i din stemme · Likhet ${h.similarity}/100${h.ai_marker_hit ? " · AI-frase" : ""}${h.foreign_words?.length ? " · " + h.foreign_words.join(", ") : ""}`
+                          : `Likhet ${h.similarity}/100`
+                      }
+                      data-testid={`highlight-sentence-${i}`}
                       style={{
                         background: bg,
                         padding: "0 4px",
                         marginRight: "4px",
                         borderRadius: "1px",
-                        cursor: "help",
+                        cursor: h.foreign ? "pointer" : "help",
                         textDecoration: h.ai_marker_hit ? "underline wavy rgba(161,58,58,0.6)" : "none",
                       }}
                     >
