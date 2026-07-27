@@ -1698,14 +1698,13 @@ async def ensure_beta_flag(user_id: str):
 
 
 class CheckoutRequest(BaseModel):
-    lookup_key: str  # accepts both "echo_*" and "bragr_*" during rename transition
+    lookup_key: str
     origin_url: str
 
 
 @api_router.post("/billing/checkout")
 async def billing_checkout(body: CheckoutRequest, user: User = Depends(get_current_user)):
     ALL_KEYS = {
-        "echo_monthly_nok", "echo_yearly_nok", "echo_monthly_founder", "echo_yearly_founder",
         "bragr_monthly_nok", "bragr_yearly_nok", "bragr_monthly_founder", "bragr_yearly_founder",
     }
     if body.lookup_key not in ALL_KEYS:
@@ -1717,7 +1716,6 @@ async def billing_checkout(body: CheckoutRequest, user: User = Depends(get_curre
         existing_founder = await db.subscriptions.find_one({
             "user_id": user.user_id,
             "lookup_key": {"$in": [
-                "echo_monthly_founder", "echo_yearly_founder",
                 "bragr_monthly_founder", "bragr_yearly_founder",
             ]},
         }, {"_id": 0})
@@ -1876,7 +1874,7 @@ async def stripe_webhook(request: Request):
                     "stripe_subscription_id": obj["id"],
                     "stripe_customer_id": obj.get("customer"),
                     "status": obj.get("status"),
-                    "lookup_key": lookup_key or "echo_monthly_nok",
+                    "lookup_key": lookup_key or "bragr_monthly_nok",
                     "current_period_end": datetime.fromtimestamp(obj["current_period_end"], tz=timezone.utc).isoformat() if obj.get("current_period_end") else None,
                     "cancel_at_period_end": obj.get("cancel_at_period_end", False),
                     "updated_at": now,

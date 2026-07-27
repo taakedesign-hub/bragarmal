@@ -8,12 +8,12 @@ import InfoMenu from "@/components/InfoMenu";
 import Footer from "@/components/Footer";
 
 const REGULAR = {
-  monthly: { key: "echo_monthly_nok", price: 149, per: "mnd" },
-  yearly:  { key: "echo_yearly_nok",  price: 1290, per: "år" },
+  monthly: { key: "bragr_monthly_nok", price: 149, per: "mnd" },
+  yearly:  { key: "bragr_yearly_nok",  price: 1290, per: "år" },
 };
 const FOUNDER = {
-  monthly: { key: "echo_monthly_founder", price: 99, per: "mnd" },
-  yearly:  { key: "echo_yearly_founder",  price: 890, per: "år" },
+  monthly: { key: "bragr_monthly_founder", price: 99, per: "mnd" },
+  yearly:  { key: "bragr_yearly_founder",  price: 890, per: "år" },
 };
 
 export default function PricingPage() {
