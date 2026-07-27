@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Feather, ArrowLeft } from "lucide-react";
 
 const ORIGINAL = [
+  "Publisert forfatter er jeg ikke enda, men har utallige påbegynte prosjekter over flere år. Legg merke til at jeg skrev « ikke enda» — for det er nettopp derfor jeg laget denne appen, til meg selv, men deler den slik at andre også kan få tilgang.",
   "I tre år har jeg jobbet med samme bok. Dette siste året begynte jeg å teste ut diverse AI for å se om jeg kunne få hjelp med skrivingen. Resultatet har så langt vært nedslående. De beste forteller hva som fungerer og ikke er bra.",
   "Men dessverre, alt handler om å kunne publisere mest mulig og fortest mulig. I tillegg testet jeg også AI-detektorer, og selv mine personlige tekster ble flagget som AI. Fordi AI fungerer på data, matematikk, ord som er matet inn. Dette gjelder spesielt for akademiske tekster og kreative tekster som er ryddige, har flyt fra før.",
   { block: "Det viktigst av alt med Echo er ikke at det er et verktøy for deg som bare vil skrive en bok, publisere tekst, løse skriveoppgaver etisk, men for deg som står fast, trenger noen nye vinklinger, etc., med DIN stemme, gjennom bilder av tekster du har skrevet for hånd, notater, meldinger om du vil, den boka du begynte på en gang for lenge siden, men aldri skreiv ferdig. Stemmeaktivering for å fange din fortellerstemme muntlig om du har problemer med skriftspråket, og ikke vil gi fra deg fortellerstemmen din og miste ektheten som er deg." },
@@ -12,6 +13,7 @@ const ORIGINAL = [
 ];
 
 const AI_EDITED = [
+  "Publisert forfatter er jeg ikke enda. Men jeg har utallige påbegynte prosjekter bak meg, spredt over flere år. Legg merke til at jeg skriver «ikke enda» — det er nettopp derfor denne appen finnes. Den er laget for meg. Jeg deler den slik at andre også kan bruke den.",
   "I tre år har jeg jobbet med samme bok. Det siste året begynte jeg å teste diverse AI for å se om jeg kunne få hjelp med skrivingen. Resultatet har så langt vært nedslående. De beste verktøyene kan fortelle deg hva som fungerer og hva som ikke gjør det. Men nesten alt handler om å publisere mest mulig – og fortest mulig.",
   "Jeg testet også AI-detektorer. Selv mine personlige tekster, skrevet lenge før AI fantes, ble flagget som maskinskrevet. Fordi AI lever av data, matematikk og ord som allerede er matet inn. Det gjelder særlig akademiske tekster og kreative tekster som allerede har flyt og orden.",
   { block: "Det viktigste med Echo er ikke at det er et verktøy for deg som bare vil skrive en bok. Det er et verktøy for deg som står fast. For deg som trenger nye vinklinger, uten å miste din egen fortellerstemme." },

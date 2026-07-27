@@ -80,6 +80,12 @@ export default function Landing() {
             <article className="col-span-12 md:col-span-9 md:pl-4 fade-in stagger-2">
               <div className="font-editor text-lg md:text-xl leading-[1.85]" style={{ color: "var(--ink)" }}>
                 <p>
+                  Publisert forfatter er jeg ikke <em className="italic" style={{ color: "var(--moss)" }}>enda</em>,
+                  men har utallige påbegynte prosjekter over flere år. Legg merke til at jeg skrev
+                  «ikke enda» — for det er nettopp derfor jeg laget denne appen, til meg selv,
+                  men deler den slik at andre også kan få tilgang.
+                </p>
+                <p className="mt-8">
                   I tre år har jeg jobbet med samme bok. Dette siste året begynte jeg å teste ut
                   diverse AI for å se om jeg kunne få hjelp med skrivingen. Resultatet har så langt
                   vært nedslående.
