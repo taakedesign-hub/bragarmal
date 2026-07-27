@@ -98,6 +98,10 @@ export default function Landing() {
                   skrive en bok, publisere tekst, løse skriveoppgaver etisk, men for deg som står
                   fast, trenger noen nye vinklinger, etc., med DIN stemme.
                 </p>
+                <p className="mt-8" style={{ color: "var(--ink-soft)" }}>
+                  En tekst på en app kunne nok vært mer formell, men det ville tatt bort poenget
+                  mitt med ECHO. For som jeg hevder: <em className="italic" style={{ color: "var(--moss)" }}>«Din stemme»</em>.
+                </p>
                 <p
                   className="mt-10 font-serif-display text-3xl md:text-4xl leading-snug"
                   style={{ color: "var(--ink)" }}
