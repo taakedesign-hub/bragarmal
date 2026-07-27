@@ -51,7 +51,19 @@ export default function Landing() {
               >
                 Test den ut nå <ArrowRight size={16} strokeWidth={1.6} />
               </button>
-              <span className="label-ui">gratis med Google-innlogging</span>
+              <span className="label-ui">Velg innlogging med Google eller e-post</span>
+            </div>
+            <div className="mt-6 flex items-center gap-3">
+              <span
+                className="inline-flex items-center gap-2 px-3 py-1.5"
+                style={{ background: "var(--moss)", color: "#F4F1EA" }}
+              >
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#F4F1EA" }} />
+                <span className="font-mono-ui text-xs tracking-wider">BETA</span>
+              </span>
+              <span className="font-editor text-sm" style={{ color: "var(--ink-soft)" }}>
+                Gratis for de 10 første som prøver den ut og gir meg en ærlig og redelig tilbakemelding.
+              </span>
             </div>
           </div>
         </div>
@@ -132,7 +144,19 @@ export default function Landing() {
                 «Jeg har en tendens til å gjenta meg selv, både når jeg prater og når jeg skriver.
                 Dette hjelper AI meg ved å gå gjennom teksten og luke ut.»
               </p>
-              <p className="mt-8" style={{ color: "var(--ink-soft)" }}>
+              <p
+                className="mt-6 pl-6 font-serif-display text-xl md:text-2xl italic leading-snug"
+                style={{ color: "var(--ink-soft)", borderLeft: "2px solid var(--rust)" }}
+              >
+                «Kjapp i vendingen er jeg også, noe som fører både til skrivefeil og tidvis dårlige
+                setninger. Der jeg kan ender jeg som regel opp med tidkrevende redigering.
+                Kunne selvsagt jobbet med dette, men det er et personlighetstrekk, så da velger
+                jeg heller å lage en app som hjelper meg.»
+              </p>
+              <div className="mt-8 label-ui" style={{ color: "var(--ink-mute)" }}>
+                AI-versjon
+              </div>
+              <p className="mt-3" style={{ color: "var(--ink-soft)" }}>
                 Det er nettopp slik det skal brukes. Ikke som en som skriver for deg, men som en
                 som ser deg. Som luker der du gjentar deg selv. Som stopper opp der du hopper for
                 fort. Som spør: er dette virkelig det du mente?
