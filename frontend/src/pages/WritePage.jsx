@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api, BACKEND } from "@/lib/api";
 import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
-import { PenLine, Copy, RefreshCcw, Wand2, Gauge, BookmarkPlus, X, Download, Mail, FileText } from "lucide-react";
+import { PenLine, Copy, RefreshCcw, Wand2, Gauge, BookmarkPlus, X, Download, Mail, FileText, Share2 } from "lucide-react";
 import jsPDF from "jspdf";
 
 const MODES = [
@@ -38,7 +38,16 @@ export default function WritePage() {
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveTitle, setSaveTitle] = useState("");
   const [saving, setSaving] = useState(false);
+  const [canSharePdf, setCanSharePdf] = useState(false);
   const abortRef = useRef(null);
+
+  useEffect(() => {
+    // Detect Web Share API file support (mobile Safari, Chrome Android)
+    try {
+      const probe = new File(["x"], "probe.pdf", { type: "application/pdf" });
+      setCanSharePdf(!!(navigator.canShare && navigator.canShare({ files: [probe] })));
+    } catch {}
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -157,88 +166,110 @@ export default function WritePage() {
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
 
+  const buildPdf = async () => {
+    const pdf = new jsPDF({ unit: "pt", format: "a4" });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 64;
+    const stamp = new Date().toISOString().slice(0, 10);
+
+    // Load logo once
+    let logoImg = null;
+    try {
+      logoImg = await new Promise((res, rej) => {
+        const img = new Image();
+        img.onload = () => res(img);
+        img.onerror = rej;
+        img.src = "/bragr-logo.png";
+      });
+    } catch {}
+
+    // Pre-scale logo variants to keep PDF small
+    let watermarkData = null;
+    let headerData = null;
+    if (logoImg) {
+      try {
+        const wmCanvas = document.createElement("canvas");
+        wmCanvas.width = 400;
+        wmCanvas.height = Math.round(logoImg.naturalHeight * (400 / logoImg.naturalWidth));
+        const wctx = wmCanvas.getContext("2d");
+        wctx.globalAlpha = 0.07;
+        wctx.drawImage(logoImg, 0, 0, wmCanvas.width, wmCanvas.height);
+        watermarkData = wmCanvas.toDataURL("image/png");
+
+        const hCanvas = document.createElement("canvas");
+        hCanvas.width = 200;
+        hCanvas.height = Math.round(logoImg.naturalHeight * (200 / logoImg.naturalWidth));
+        hCanvas.getContext("2d").drawImage(logoImg, 0, 0, hCanvas.width, hCanvas.height);
+        headerData = hCanvas.toDataURL("image/png");
+      } catch {}
+    }
+
+    const wmRatio = logoImg ? logoImg.naturalHeight / logoImg.naturalWidth : 0.6;
+    const wmW = pageW * 0.55;
+    const wmH = wmW * wmRatio;
+
+    pdf.setFont("times", "normal");
+    pdf.setFontSize(12);
+    pdf.setTextColor(28, 27, 26);
+    const textWidth = pageW - margin * 2;
+    const lines = pdf.splitTextToSize(output, textWidth);
+    pdf.text(lines, margin, margin + 40, { lineHeightFactor: 1.55 });
+
+    const pageCount = pdf.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      pdf.setPage(i);
+      if (watermarkData) {
+        try { pdf.addImage(watermarkData, "PNG", (pageW - wmW) / 2, (pageH - wmH) / 2, wmW, wmH); } catch {}
+      }
+      if (headerData) {
+        try {
+          const headerW = 70;
+          pdf.addImage(headerData, "PNG", margin, margin - 32, headerW, headerW * wmRatio);
+        } catch {}
+      }
+      pdf.setFontSize(8);
+      pdf.setTextColor(122, 118, 110);
+      pdf.text(`Bragr · bragrapp.no · ${stamp}`, margin, pageH - margin / 2);
+      pdf.text(`${i} / ${pageCount}`, pageW - margin, pageH - margin / 2, { align: "right" });
+    }
+
+    return { pdf, filename: `bragr-utkast-${stamp}.pdf` };
+  };
+
   const downloadPdf = async () => {
     if (!output.trim()) return;
     try {
-      const pdf = new jsPDF({ unit: "pt", format: "a4" });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const margin = 64;
-      const stamp = new Date().toISOString().slice(0, 10);
-
-      // Load logo once
-      let logoImg = null;
-      try {
-        logoImg = await new Promise((res, rej) => {
-          const img = new Image();
-          img.onload = () => res(img);
-          img.onerror = rej;
-          img.src = "/bragr-logo.png";
-        });
-      } catch {}
-
-      // Pre-scale logo variants to keep PDF small
-      let watermarkData = null;
-      let headerData = null;
-      if (logoImg) {
-        try {
-          // Watermark — 400px wide, 7% opacity
-          const wmCanvas = document.createElement("canvas");
-          const wmScale = 400 / logoImg.naturalWidth;
-          wmCanvas.width = 400;
-          wmCanvas.height = Math.round(logoImg.naturalHeight * wmScale);
-          const wctx = wmCanvas.getContext("2d");
-          wctx.globalAlpha = 0.07;
-          wctx.drawImage(logoImg, 0, 0, wmCanvas.width, wmCanvas.height);
-          watermarkData = wmCanvas.toDataURL("image/png");
-
-          // Header — 200px wide, full opacity
-          const hCanvas = document.createElement("canvas");
-          hCanvas.width = 200;
-          hCanvas.height = Math.round(logoImg.naturalHeight * (200 / logoImg.naturalWidth));
-          hCanvas.getContext("2d").drawImage(logoImg, 0, 0, hCanvas.width, hCanvas.height);
-          headerData = hCanvas.toDataURL("image/png");
-        } catch {}
-      }
-
-      const wmRatio = logoImg ? logoImg.naturalHeight / logoImg.naturalWidth : 0.6;
-      const wmW = pageW * 0.55;
-      const wmH = wmW * wmRatio;
-
-      // Body text
-      pdf.setFont("times", "normal");
-      pdf.setFontSize(12);
-      pdf.setTextColor(28, 27, 26);
-      const textWidth = pageW - margin * 2;
-      const lines = pdf.splitTextToSize(output, textWidth);
-      pdf.text(lines, margin, margin + 40, { lineHeightFactor: 1.55 });
-
-      // Watermark, header + footer on every page
-      const pageCount = pdf.internal.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        pdf.setPage(i);
-        if (watermarkData) {
-          try {
-            pdf.addImage(watermarkData, "PNG", (pageW - wmW) / 2, (pageH - wmH) / 2, wmW, wmH);
-          } catch {}
-        }
-        if (headerData) {
-          try {
-            const headerW = 70;
-            const headerH = headerW * wmRatio;
-            pdf.addImage(headerData, "PNG", margin, margin - 32, headerW, headerH);
-          } catch {}
-        }
-        pdf.setFontSize(8);
-        pdf.setTextColor(122, 118, 110);
-        pdf.text(`Bragr · bragrapp.no · ${stamp}`, margin, pageH - margin / 2);
-        pdf.text(`${i} / ${pageCount}`, pageW - margin, pageH - margin / 2, { align: "right" });
-      }
-
-      pdf.save(`bragr-utkast-${stamp}.pdf`);
+      const { pdf, filename } = await buildPdf();
+      pdf.save(filename);
       toast("PDF lastet ned");
     } catch {
       toast("Kunne ikke lage PDF");
+    }
+  };
+
+  const sharePdf = async () => {
+    if (!output.trim()) return;
+    try {
+      const { pdf, filename } = await buildPdf();
+      const blob = pdf.output("blob");
+      const file = new File([blob], filename, { type: "application/pdf" });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: "Utkast fra Bragr",
+          text: "Skrevet med Bragr — bragrapp.no",
+        });
+        toast("Delt");
+      } else {
+        // Fallback — download instead
+        pdf.save(filename);
+        toast("Deling ikke støttet — PDF lastet ned");
+      }
+    } catch (e) {
+      if (e && e.name === "AbortError") return; // user cancelled share sheet
+      toast("Kunne ikke dele PDF");
     }
   };
 
@@ -438,6 +469,16 @@ export default function WritePage() {
             >
               <FileText size={16} strokeWidth={1.5} /> Last ned .pdf
             </button>
+            {canSharePdf && (
+              <button
+                data-testid={TID.writeSharePdfBtn}
+                onClick={sharePdf}
+                className="btn-ghost inline-flex items-center gap-2"
+                disabled={streaming || !output}
+              >
+                <Share2 size={16} strokeWidth={1.5} /> Del PDF
+              </button>
+            )}
             <button
               data-testid={TID.writeEmailBtn}
               onClick={emailOut}
