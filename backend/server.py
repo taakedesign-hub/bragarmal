@@ -26,6 +26,7 @@ from pydantic import BaseModel, Field, ConfigDict
 
 from emergentintegrations.llm.chat import LlmChat, UserMessage, TextDelta, StreamDone, ImageContent
 from emergentintegrations.llm.openai import OpenAISpeechToText
+from openai import AsyncOpenAI
 
 # Extraction libs
 from PyPDF2 import PdfReader
@@ -41,6 +42,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
+XAI_API_KEY = os.environ.get('XAI_API_KEY')
 
 # ---------- Object Storage ----------
 STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"
@@ -181,6 +183,8 @@ ALLOWED_MODELS = {
     "gpt-5.4": ("openai", "gpt-5.4"),
     "gemini-3-pro": ("gemini", "gemini-3.1-pro-preview"),
     "gemini-3-flash": ("gemini", "gemini-3-flash-preview"),
+    "grok-2": ("xai", "grok-2-latest"),
+    "grok-4": ("xai", "grok-4-latest"),
 }
 
 
@@ -1232,9 +1236,9 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
         api_key=api_key_to_use,
         session_id=f"gen-{user.user_id}-{uuid.uuid4().hex[:6]}",
         system_message=system,
-    ).with_model(provider, model)
+    ).with_model(provider, model) if provider != "xai" else None
 
-    async def stream():
+    async def stream_llmchat():
         try:
             async for ev in chat.stream_message(UserMessage(text=user_msg)):
                 if isinstance(ev, TextDelta):
@@ -1246,8 +1250,32 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
             logger.exception("Generation error")
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
+    async def stream_xai():
+        if not XAI_API_KEY:
+            yield f"data: {json.dumps({'error': 'xAI-nøkkel mangler'})}\n\n"
+            return
+        try:
+            client = AsyncOpenAI(api_key=XAI_API_KEY, base_url="https://api.x.ai/v1")
+            resp = await client.chat.completions.create(
+                model=model,
+                stream=True,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user_msg},
+                ],
+            )
+            async for chunk in resp:
+                delta = chunk.choices[0].delta.content if chunk.choices else None
+                if delta:
+                    yield f"data: {json.dumps({'delta': delta})}\n\n"
+            yield f"data: {json.dumps({'done': True})}\n\n"
+        except Exception as e:
+            logger.exception("xAI generation error")
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    stream_fn = stream_xai if provider == "xai" else stream_llmchat
     return StreamingResponse(
-        stream(),
+        stream_fn(),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
@@ -1525,6 +1553,8 @@ async def list_models():
         {"id": "gpt-5.4", "label": "GPT 5.4", "provider": "OpenAI"},
         {"id": "gemini-3-pro", "label": "Gemini 3.1 Pro", "provider": "Google"},
         {"id": "gemini-3-flash", "label": "Gemini 3 Flash", "provider": "Google"},
+        {"id": "grok-2", "label": "Grok 2", "provider": "xAI"},
+        {"id": "grok-4", "label": "Grok 4", "provider": "xAI"},
     ]
 
 
