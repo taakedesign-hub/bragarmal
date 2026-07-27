@@ -7,6 +7,7 @@ import { Feather, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import InfoMenu from "@/components/InfoMenu";
 import Footer from "@/components/Footer";
+import Seo from "@/components/Seo";
 
 const TID = {
   googleBtn: "auth-google-btn",
@@ -64,6 +65,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
+      <Seo
+        title="Logg inn"
+        description="Logg inn på Bragr — det norske AI-skriveverktøyet som bevarer din stemme."
+        path="/logg-inn"
+      />
       {/* Header */}
       <div className="hairline-b">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">

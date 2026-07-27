@@ -4,6 +4,7 @@ import { TID } from "@/lib/testIds";
 import { Feather, ArrowRight, Camera, Mic, FileText, ScanLine } from "lucide-react";
 import InfoMenu from "@/components/InfoMenu";
 import Footer from "@/components/Footer";
+import Seo from "@/components/Seo";
 
 export default function Landing() {
   const nav = useNavigate();
@@ -11,6 +12,11 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
+      <Seo
+        title="AI-skriveverktøy som bevarer din stemme"
+        description="Bragr er et norsk AI-skriveverktøy for forfattere og kreative. Vi genererer ikke ord — vi finner din stemme. Tren stemmeprofil, oppdag AI-signaturer, skriv videre uten AI-slop."
+        path="/"
+      />
       {/* Top rule */}
       <div className="hairline-b">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">

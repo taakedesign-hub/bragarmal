@@ -3,6 +3,7 @@ import Logo from "@/components/Logo";
 import { Feather, ArrowLeft } from "lucide-react";
 import InfoMenu from "@/components/InfoMenu";
 import Footer from "@/components/Footer";
+import Seo from "@/components/Seo";
 
 const ORIGINAL = [
   "Publisert forfatter er jeg ikke enda, men har utallige påbegynte prosjekter over flere år. Legg merke til at jeg skrev « ikke enda» — for det er nettopp derfor jeg laget denne appen, til meg selv, men deler den slik at andre også kan få tilgang.",

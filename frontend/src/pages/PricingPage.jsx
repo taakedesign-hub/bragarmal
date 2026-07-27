@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import InfoMenu from "@/components/InfoMenu";
 import Footer from "@/components/Footer";
+import Seo from "@/components/Seo";
 
 const REGULAR = {
   monthly: { key: "bragr_monthly_nok", price: 149, per: "mnd" },
@@ -50,6 +51,11 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
+      <Seo
+        title="Priser — fair pris, ingen skjulte grenser"
+        description="Bragr-medlemskap fra 99 kr/mnd. Beta-plasser gratis i 3 måneder for de 50 første. Alle modeller, ubegrenset generering."
+        path="/priser"
+      />
       <div className="hairline-b">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center">

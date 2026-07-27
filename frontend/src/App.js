@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
+import { HelmetProvider } from "react-helmet-async";
 import "@/App.css";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import Landing from "@/pages/Landing";
@@ -54,11 +55,13 @@ function Protected({ children }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRouter />
-        <Toaster position="bottom-center" richColors={false} />
-      </AuthProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppRouter />
+          <Toaster position="bottom-center" richColors={false} />
+        </AuthProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   );
 }

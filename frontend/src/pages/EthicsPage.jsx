@@ -3,6 +3,7 @@ import Logo from "@/components/Logo";
 import { Feather, ArrowLeft, ArrowRight } from "lucide-react";
 import InfoMenu from "@/components/InfoMenu";
 import Footer from "@/components/Footer";
+import Seo from "@/components/Seo";
 
 const CORE_QUESTIONS = [
   {
@@ -66,6 +67,11 @@ const BRAGR_DESIGN = [
 export default function EthicsPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
+      <Seo
+        title="Etikk — hvordan Bragr forholder seg til AI"
+        description="Hvem eier teksten? Hvordan brukes AI etisk i skriving? Bragrs etikkside — for forfattere som vil vite hva som skjer under panseret."
+        path="/etikk"
+      />
       <div className="hairline-b">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center">

@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Auth-only pages — allow crawl but they'll redirect; not a problem
+Disallow: /dashboard
+Disallow: /prover
+Disallow: /stemme
+Disallow: /skriv
+Disallow: /auth-callback
+Disallow: /betaling/
+
+Sitemap: https://bragrapp.no/sitemap.xml
