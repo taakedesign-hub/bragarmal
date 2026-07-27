@@ -10,8 +10,6 @@ const ORIGINAL = [
   { block: "Det viktigst av alt med Echo er ikke at det er et verktøy for deg som bare vil skrive en bok, publisere tekst, løse skriveoppgaver etisk, men for deg som står fast, trenger noen nye vinklinger, etc., med DIN stemme, gjennom bilder av tekster du har skrevet for hånd, notater, meldinger om du vil, den boka du begynte på en gang for lenge siden, men aldri skreiv ferdig. Stemmeaktivering for å fange din fortellerstemme muntlig om du har problemer med skriftspråket, og ikke vil gi fra deg fortellerstemmen din og miste ektheten som er deg." },
   { emphasis: "Test den ut nå, mat inn det du har og vil, ta bilder av gamle tekster du har skrevet på papir, les inn, noter og les gjennom." },
   "En tekst på en app kunne nok vært mer formell, men det ville tatt bort poenget mitt med ECHO. For som jeg hevder: «Din stemme».",
-  "For noen dager siden hadde jeg en prat med AI jeg brukt over tid, og jeg spurte hvorfor den var blitt så kort og konkret i svarene, til og med diskutert og kritisert. Vanligvis er AI smiskete og alltid enig, så dette var nytt.",
-  "Som sagt, ingen rask metode for å publisere, kun et verktøy som tar deg videre på dine premisser. Herlig, men overraskende. Svaret jeg fikk var at jeg hadde to stemmer, en for når jeg var varm og en for når jeg jobbet med noe og bare ville ha svar. Den siste stemmen var konkret, kald, direkte og uten vissvass. Jeg ble rett og slett speilet. Ubehagelig oppdagelse, men understreker poenget mitt med Echo.",
   { closing: "DIN stemme er din. Og Echo hjelper deg uten at du må bruke lang tid på å trene opp AI." },
 ];
 
@@ -22,7 +20,6 @@ const AI_EDITED = [
   { block: "Det viktigste med Echo er ikke at det er et verktøy for deg som bare vil skrive en bok. Det er et verktøy for deg som står fast. For deg som trenger nye vinklinger, uten å miste din egen fortellerstemme." },
   "En tekst i en app kunne vært mer formell. Men det ville fjernet selve poenget med Echo. For som jeg hevder: din stemme.",
   "Du kan mate inn det du allerede har: bilder av håndskrevne tekster, gamle notater, meldinger, den boka du startet på for lenge siden men aldri fullførte. Du kan bruke stemmen din. Lese inn. Fortelle. Ikke bare ordene, men rytmen, pausene og måten du bygger en historie på når du snakker. Særlig hvis skriftspråket er en kamp.",
-  "For noen dager siden snakket jeg med en AI jeg har brukt over tid. Jeg spurte hvorfor svarene hadde blitt så korte, konkrete, til og med kritiske. Vanligvis er AI smiskete og enige. Svaret jeg fikk var at jeg har to stemmer: én når jeg er varm, og én når jeg bare vil ha svar. Den siste er kald, direkte og uten unødvendig pynt. Jeg ble speilet.",
   "Ubehagelig. Men det understreker hele poenget.",
   { closing: "Din stemme er din.\nEcho hjelper deg videre – på dine premisser." },
 ];
