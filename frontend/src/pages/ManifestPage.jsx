@@ -20,7 +20,6 @@ const AI_EDITED = [
   { block: "Det viktigste med Echo er ikke at det er et verktøy for deg som bare vil skrive en bok. Det er et verktøy for deg som står fast. For deg som trenger nye vinklinger, uten å miste din egen fortellerstemme." },
   "En tekst i en app kunne vært mer formell. Men det ville fjernet selve poenget med Echo. For som jeg hevder: din stemme.",
   "Du kan mate inn det du allerede har: bilder av håndskrevne tekster, gamle notater, meldinger, den boka du startet på for lenge siden men aldri fullførte. Du kan bruke stemmen din. Lese inn. Fortelle. Ikke bare ordene, men rytmen, pausene og måten du bygger en historie på når du snakker. Særlig hvis skriftspråket er en kamp.",
-  "Ubehagelig. Men det understreker hele poenget.",
   { closing: "Din stemme er din.\nEcho hjelper deg videre – på dine premisser." },
 ];
 
