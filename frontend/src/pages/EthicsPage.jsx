@@ -53,11 +53,11 @@ const CHECKS = [
   "Ville teksten sett annerledes ut hvis AI ikke hadde vært involvert?",
 ];
 
-const EKKO_DESIGN = [
-  { label: "Stilgjenkjenning på ditt eget materiale", detail: "Jo mer Ekko kjenner din stemme — gamle tekster, håndskrift, høytlesning — desto mindre generisk blir forslagene." },
+const BRAGR_DESIGN = [
+  { label: "Stilgjenkjenning på ditt eget materiale", detail: "Jo mer Bragr kjenner din stemme — gamle tekster, håndskrift, høytlesning — desto mindre generisk blir forslagene." },
   { label: "Forslag, ikke ferdige kapitler", detail: "Retninger og korte formuleringer. Ikke hele avsnitt klare til kopiering." },
   { label: "Tydelig merking", detail: "Din tekst og AI-forslag holdes visuelt adskilt. Ingen skjult blanding." },
-  { label: "Ingen skjult generering", detail: "«Skriv ferdig dette kapittelet» finnes ikke. Du jobber alltid videre med det Ekko leverer." },
+  { label: "Ingen skjult generering", detail: "«Skriv ferdig dette kapittelet» finnes ikke. Du jobber alltid videre med det Bragr leverer." },
   { label: "Stemme og fragmenter", detail: "Les inn, fotografer gamle notater, jobb videre derfra. Ingen overtar skrivingen." },
   { label: "Personvern og eierskap", detail: "Stemmeopptak og personlige tekster er dine. Alt låst til din innlogging. Ingen deler dine data." },
 ];
@@ -69,7 +69,7 @@ export default function EthicsPage() {
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <Feather size={18} strokeWidth={1.4} />
-            <span className="font-serif-display text-xl tracking-widest">EKKO</span>
+            <span className="font-serif-display text-xl tracking-widest">BRAGR</span>
           </Link>
           <div className="flex items-center gap-4">
             <InfoMenu align="right" />
@@ -196,21 +196,21 @@ export default function EthicsPage() {
         </div>
       </section>
 
-      {/* Ekko's design ethics */}
+      {/* Bragr's design ethics */}
       <section className="hairline-t" style={{ background: "var(--bg-alt)" }}>
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             <div className="lg:col-span-4">
               <div className="label-ui">Del 5</div>
               <h2 className="font-serif-display text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
-                Slik er Ekko bygget.
+                Slik er Bragr bygget.
               </h2>
               <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
                 Etikk er ikke en side vi la til. Det er selve arkitekturen.
               </p>
             </div>
             <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-x-8">
-              {EKKO_DESIGN.map((e, i) => (
+              {BRAGR_DESIGN.map((e, i) => (
                 <div key={i} className="hairline-b py-6">
                   <div className="font-serif-display text-lg" style={{ color: "var(--ink)" }}>{e.label}</div>
                   <div className="font-editor text-sm mt-2" style={{ color: "var(--ink-soft)" }}>{e.detail}</div>
@@ -265,7 +265,7 @@ export default function EthicsPage() {
               <ArrowLeft size={14} strokeWidth={1.6} /> Manifestet
             </Link>
             <Link to="/" className="btn-primary inline-flex items-center gap-3">
-              Tilbake til Ekko <ArrowRight size={14} strokeWidth={1.6} />
+              Tilbake til Bragr <ArrowRight size={14} strokeWidth={1.6} />
             </Link>
           </div>
         </div>

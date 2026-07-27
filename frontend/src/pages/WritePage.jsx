@@ -140,7 +140,7 @@ export default function WritePage() {
       const a = document.createElement("a");
       const stamp = new Date().toISOString().slice(0, 10);
       a.href = url;
-      a.download = `ekko-utkast-${stamp}.txt`;
+      a.download = `bragr-utkast-${stamp}.txt`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -151,7 +151,7 @@ export default function WritePage() {
 
   const emailOut = () => {
     if (!output.trim()) return;
-    const subject = encodeURIComponent("Utkast fra EKKO");
+    const subject = encodeURIComponent("Utkast fra BRAGR");
     const body = encodeURIComponent(output);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };

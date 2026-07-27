@@ -15,7 +15,7 @@ export default function Landing() {
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <Feather size={18} strokeWidth={1.4} />
-            <span className="font-serif-display text-xl tracking-widest">EKKO</span>
+            <span className="font-serif-display text-xl tracking-widest">BRAGR</span>
           </Link>
           <nav className="flex items-center gap-2 md:gap-6">
             <InfoMenu align="right" />
@@ -100,19 +100,19 @@ export default function Landing() {
                   className="mt-8 font-serif-display text-2xl md:text-3xl leading-snug pl-6"
                   style={{ color: "var(--ink)", borderLeft: "2px solid var(--moss)" }}
                 >
-                  Det viktigst av alt med Ekko er ikke at det er et verktøy for deg som bare vil
+                  Det viktigst av alt med Bragr er ikke at det er et verktøy for deg som bare vil
                   skrive en bok, publisere tekst, løse skriveoppgaver etisk, men for deg som står
                   fast, trenger noen nye vinklinger, etc., med DIN stemme.
                 </p>
                 <p className="mt-8" style={{ color: "var(--ink-soft)" }}>
                   En tekst på en app kunne nok vært mer formell, men det ville tatt bort poenget
-                  mitt med EKKO. For som jeg hevder: <em className="italic" style={{ color: "var(--moss)" }}>«Din stemme»</em>.
+                  mitt med BRAGR. For som jeg hevder: <em className="italic" style={{ color: "var(--moss)" }}>«Din stemme»</em>.
                 </p>
                 <p
                   className="mt-10 font-serif-display text-3xl md:text-4xl leading-snug"
                   style={{ color: "var(--ink)" }}
                 >
-                  DIN stemme er din. Ekko hjelper deg videre — på dine premisser.
+                  DIN stemme er din. Bragr hjelper deg videre — på dine premisser.
                 </p>
               </div>
 
@@ -145,7 +145,7 @@ export default function Landing() {
             </div>
             <div className="col-span-12 md:col-span-8 md:pl-4 font-editor text-lg md:text-xl leading-[1.85]" style={{ color: "var(--ink)" }}>
               <p>
-                Bruk Ekko — og AI generelt — som en sparringspartner. Ikke for å få ferdige, glatte
+                Bruk Bragr — og AI generelt — som en sparringspartner. Ikke for å få ferdige, glatte
                 tekster ut av en prompt. Verktøyet blir bedre jo lengre du jobber med det.
                 Øvelse over tid. Din stemme, gjentatt.
               </p>
@@ -181,14 +181,14 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Example use cases — hvordan spør du Ekko */}
+      {/* Example use cases — hvordan spør du Bragr */}
       <section>
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16 md:py-20">
           <div className="grid grid-cols-12 gap-6 md:gap-10 items-start">
             <div className="col-span-12 md:col-span-4">
               <div className="label-ui">Sånn spør du</div>
               <h2 className="font-serif-display text-4xl md:text-5xl font-light mt-2" style={{ color: "var(--ink)" }}>
-                Eksempler på når Ekko <em className="italic" style={{ color: "var(--moss)" }}>hjelper</em>.
+                Eksempler på når Bragr <em className="italic" style={{ color: "var(--moss)" }}>hjelper</em>.
               </h2>
               <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
                 Ikke spør «skriv kapittel to for meg». Spør slik du ville spurt en betrodd kollega
@@ -198,7 +198,7 @@ export default function Landing() {
             <div className="col-span-12 md:col-span-8 space-y-6">
               <ExamplePrompt
                 situation="Skrivesperre midt i teksten"
-                prompt="Jeg har skrevet 4 sider, men står fast. Kan Ekko gi meg et tekstforslag for å løsne skrivesperren?"
+                prompt="Jeg har skrevet 4 sider, men står fast. Kan Bragr gi meg et tekstforslag for å løsne skrivesperren?"
               />
               <ExamplePrompt
                 situation="Ny scene i din stemme"

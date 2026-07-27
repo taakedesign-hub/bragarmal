@@ -5,14 +5,14 @@ export default function Footer() {
   return (
     <footer className="hairline-t">
       <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-10 flex items-center justify-between flex-wrap gap-4">
-        <span className="label-ui">EKKO <span className="marker-ornament" /> 2026</span>
+        <span className="label-ui">BRAGR <span className="marker-ornament" /> 2026</span>
         <div className="flex items-center gap-6 flex-wrap">
           <Link to="/manifest" className="label-ui" style={{ color: "var(--ink-mute)" }}>Manifest</Link>
           <Link to="/etikk" className="label-ui" style={{ color: "var(--ink-mute)" }}>Etikk</Link>
           <Link to="/priser" className="label-ui" style={{ color: "var(--ink-mute)" }}>Priser</Link>
           <a
             data-testid={TID.footerContactLink}
-            href="mailto:hei@ekko.no?subject=Hilsen%20fra%20EKKO"
+            href="mailto:hei@bragrapp.no?subject=Hilsen%20fra%20BRAGR"
             className="label-ui"
             style={{ color: "var(--ink-mute)" }}
           >
