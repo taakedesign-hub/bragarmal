@@ -45,6 +45,7 @@ export default function PricingPage() {
   const founderEligible = status?.founder_eligible;
   const isBeta = status?.beta;
   const isActive = status?.active;
+  const isLifetime = status?.plan === "lifetime";
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
@@ -73,7 +74,13 @@ export default function PricingPage() {
           Ingen deler dataene dine.
         </p>
 
-        {isBeta && (
+        {isLifetime && (
+          <div className="mt-6 inline-flex items-center gap-3 px-3 py-1.5" style={{ background: "var(--moss)", color: "white" }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: "white" }} />
+            <span className="font-mono-ui text-xs tracking-wider">LIVSTIDS­MEDLEM · GRATIS FOR ALLTID</span>
+          </div>
+        )}
+        {isBeta && !isLifetime && (
           <div className="mt-6 inline-flex items-center gap-3 px-3 py-1.5" style={{ background: "var(--linen)", color: "var(--ink)" }}>
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--ink)" }} />
             <span className="font-mono-ui text-xs tracking-wider">BETA-MEDLEM · GRATIS I 3 MÅNEDER</span>

@@ -1641,6 +1641,18 @@ async def get_user_subscription_status(user_id: str) -> dict:
     """Return {active, plan, beta, current_period_end}"""
     now = datetime.now(timezone.utc)
     user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+
+    # Lifetime free — configured emails never need to pay
+    if user:
+        lifetime_emails = {
+            e.strip().lower()
+            for e in os.environ.get("LIFETIME_FREE_EMAILS", "").split(",")
+            if e.strip()
+        }
+        email = (user.get("email") or "").strip().lower()
+        if email and email in lifetime_emails:
+            return {"active": True, "plan": "lifetime", "beta": False, "current_period_end": None}
+
     if user and user.get("is_beta_member"):
         expires_at = user.get("beta_expires_at")
         if expires_at:
@@ -1686,13 +1698,16 @@ async def ensure_beta_flag(user_id: str):
 
 
 class CheckoutRequest(BaseModel):
-    lookup_key: str  # "echo_monthly_nok" or "echo_yearly_nok"
+    lookup_key: str  # accepts both "echo_*" and "bragr_*" during rename transition
     origin_url: str
 
 
 @api_router.post("/billing/checkout")
 async def billing_checkout(body: CheckoutRequest, user: User = Depends(get_current_user)):
-    ALL_KEYS = {"echo_monthly_nok", "echo_yearly_nok", "echo_monthly_founder", "echo_yearly_founder"}
+    ALL_KEYS = {
+        "echo_monthly_nok", "echo_yearly_nok", "echo_monthly_founder", "echo_yearly_founder",
+        "bragr_monthly_nok", "bragr_yearly_nok", "bragr_monthly_founder", "bragr_yearly_founder",
+    }
     if body.lookup_key not in ALL_KEYS:
         raise HTTPException(status_code=400, detail="Ukjent plan")
 
@@ -1701,7 +1716,10 @@ async def billing_checkout(body: CheckoutRequest, user: User = Depends(get_curre
         rank = await get_user_rank(user.user_id)
         existing_founder = await db.subscriptions.find_one({
             "user_id": user.user_id,
-            "lookup_key": {"$in": ["echo_monthly_founder", "echo_yearly_founder"]},
+            "lookup_key": {"$in": [
+                "echo_monthly_founder", "echo_yearly_founder",
+                "bragr_monthly_founder", "bragr_yearly_founder",
+            ]},
         }, {"_id": 0})
         if rank > FOUNDER_SLOTS and not existing_founder:
             raise HTTPException(
