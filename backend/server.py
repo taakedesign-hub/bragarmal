@@ -17,6 +17,7 @@ import httpx
 import bcrypt
 import secrets
 import requests
+import stripe
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, UploadFile, File, Form, Query, Header
 from fastapi.responses import StreamingResponse, JSONResponse
 from dotenv import load_dotenv
@@ -43,6 +44,10 @@ db = client[os.environ['DB_NAME']]
 
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 XAI_API_KEY = os.environ.get('XAI_API_KEY')
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+BETA_FREE_SLOTS = 10
+FOUNDER_SLOTS = 100  # First 100 (including the 10 beta) can access founder prices
 
 # ---------- Object Storage ----------
 STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"
@@ -1177,6 +1182,15 @@ class GenerateBody(BaseModel):
 
 @api_router.post("/generate")
 async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
+    # Auto-grant beta if within first N users, then check subscription
+    await ensure_beta_flag(user.user_id)
+    sub = await get_user_subscription_status(user.user_id)
+    if not sub["active"]:
+        raise HTTPException(
+            status_code=402,
+            detail="Ditt medlemskap er ikke aktivt. Åpne betalingssiden for å fortsette å generere tekst.",
+        )
+
     # Resolve model: either built-in or user's own AI helper (helper:<id>)
     api_key_to_use = EMERGENT_LLM_KEY
     helper_persona = ""
@@ -1614,6 +1628,239 @@ async def delete_file(file_id: str, user: User = Depends(get_current_user)):
     if r.matched_count == 0:
         raise HTTPException(status_code=404, detail="Ikke funnet")
     return {"ok": True}
+
+
+async def get_user_rank(user_id: str) -> int:
+    """1-based signup rank (1 = earliest)."""
+    user = await db.users.find_one({"user_id": user_id}, {"_id": 0, "created_at": 1})
+    if not user or not user.get("created_at"):
+        return 999_999
+    created = user["created_at"]
+    cutoff = created if isinstance(created, str) else created.isoformat()
+    earlier = await db.users.count_documents({"created_at": {"$lt": cutoff}})
+    return earlier + 1
+
+
+async def get_user_subscription_status(user_id: str) -> dict:
+    """Return {active, plan, beta, current_period_end}"""
+    # Beta: first N users get free access
+    user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    if user and user.get("is_beta_member"):
+        return {"active": True, "plan": "beta", "beta": True, "current_period_end": None}
+
+    # Any active subscription?
+    sub = await db.subscriptions.find_one(
+        {"user_id": user_id, "status": {"$in": ["active", "trialing"]}},
+        {"_id": 0}, sort=[("current_period_end", -1)]
+    )
+    if not sub:
+        return {"active": False, "plan": None, "beta": False, "current_period_end": None}
+    return {
+        "active": True,
+        "plan": sub.get("lookup_key"),
+        "beta": False,
+        "current_period_end": sub.get("current_period_end"),
+    }
+
+
+async def ensure_beta_flag(user_id: str):
+    """Grant beta ONLY to the first BETA_FREE_SLOTS users."""
+    user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    if not user or user.get("is_beta_member"):
+        return
+    rank = await get_user_rank(user_id)
+    if rank <= BETA_FREE_SLOTS:
+        await db.users.update_one({"user_id": user_id}, {"$set": {"is_beta_member": True}})
+
+
+class CheckoutRequest(BaseModel):
+    lookup_key: str  # "echo_monthly_nok" or "echo_yearly_nok"
+    origin_url: str
+
+
+@api_router.post("/billing/checkout")
+async def billing_checkout(body: CheckoutRequest, user: User = Depends(get_current_user)):
+    ALL_KEYS = {"echo_monthly_nok", "echo_yearly_nok", "echo_monthly_founder", "echo_yearly_founder"}
+    if body.lookup_key not in ALL_KEYS:
+        raise HTTPException(status_code=400, detail="Ukjent plan")
+
+    # Enforce founder eligibility: only ranks 11-100 (or already founder subscribers) can buy founder price
+    if "founder" in body.lookup_key:
+        rank = await get_user_rank(user.user_id)
+        existing_founder = await db.subscriptions.find_one({
+            "user_id": user.user_id,
+            "lookup_key": {"$in": ["echo_monthly_founder", "echo_yearly_founder"]},
+        }, {"_id": 0})
+        if rank > FOUNDER_SLOTS and not existing_founder:
+            raise HTTPException(
+                status_code=403,
+                detail="Grunnleggerprisen er kun for de 100 første brukerne. Velg vanlig pris.",
+            )
+
+    prices = stripe.Price.list(lookup_keys=[body.lookup_key], active=True, limit=1).data
+    if not prices:
+        raise HTTPException(status_code=500, detail="Pris ikke funnet")
+    price = prices[0]
+
+    # Find or create Stripe customer for this user
+    user_doc = await db.users.find_one({"user_id": user.user_id}, {"_id": 0})
+    customer_id = (user_doc or {}).get("stripe_customer_id")
+    if not customer_id:
+        cust = stripe.Customer.create(
+            email=user.email,
+            name=user.name,
+            metadata={"user_id": user.user_id},
+        )
+        customer_id = cust.id
+        await db.users.update_one({"user_id": user.user_id}, {"$set": {"stripe_customer_id": customer_id}})
+
+    session = stripe.checkout.Session.create(
+        customer=customer_id,
+        line_items=[{"price": price.id, "quantity": 1}],
+        mode="subscription",
+        success_url=f"{body.origin_url}/betaling/vellykket?session_id={{CHECKOUT_SESSION_ID}}",
+        cancel_url=f"{body.origin_url}/betaling/avbrutt",
+        metadata={"user_id": user.user_id, "lookup_key": body.lookup_key},
+        managed_payments={"enabled": True},
+        subscription_data={"metadata": {"user_id": user.user_id, "lookup_key": body.lookup_key}},
+    )
+
+    await db.payment_transactions.insert_one({
+        "session_id": session.id,
+        "user_id": user.user_id,
+        "lookup_key": body.lookup_key,
+        "amount": price.unit_amount,
+        "currency": price.currency,
+        "status": "initiated",
+        "payment_status": "pending",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    })
+    return {"checkout_url": session.url, "session_id": session.id}
+
+
+@api_router.get("/billing/status")
+async def billing_status(user: User = Depends(get_current_user)):
+    await ensure_beta_flag(user.user_id)
+    status = await get_user_subscription_status(user.user_id)
+    rank = await get_user_rank(user.user_id)
+    beta_users = await db.users.count_documents({"is_beta_member": True})
+    beta_remaining = max(0, BETA_FREE_SLOTS - beta_users)
+    founder_users = await db.users.count_documents({})
+    founder_remaining = max(0, FOUNDER_SLOTS - founder_users)
+    return {
+        **status,
+        "user_rank": rank,
+        "beta_slots_remaining": beta_remaining,
+        "beta_total": BETA_FREE_SLOTS,
+        "founder_slots_remaining": founder_remaining,
+        "founder_total": FOUNDER_SLOTS,
+        "founder_eligible": rank <= FOUNDER_SLOTS,
+    }
+
+
+@api_router.get("/billing/session/{session_id}")
+async def billing_session_status(session_id: str):
+    record = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
+    if not record:
+        raise HTTPException(status_code=404, detail="Betaling ikke funnet")
+
+    if record.get("payment_status") != "paid":
+        try:
+            s = stripe.checkout.Session.retrieve(session_id)
+            if s.payment_status == "paid" or s.status == "complete":
+                await db.payment_transactions.update_one(
+                    {"session_id": session_id, "payment_status": {"$ne": "paid"}},
+                    {"$set": {
+                        "status": "completed",
+                        "payment_status": "paid",
+                        "stripe_subscription_id": s.subscription,
+                        "updated_at": datetime.now(timezone.utc).isoformat(),
+                    }},
+                )
+                record = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
+        except Exception:
+            pass
+
+    return {
+        "session_id": record["session_id"],
+        "status": record["status"],
+        "payment_status": record["payment_status"],
+    }
+
+
+class PortalRequest(BaseModel):
+    return_url: str
+
+
+@api_router.post("/billing/portal")
+async def billing_portal(body: PortalRequest, user: User = Depends(get_current_user)):
+    user_doc = await db.users.find_one({"user_id": user.user_id}, {"_id": 0})
+    customer_id = (user_doc or {}).get("stripe_customer_id")
+    if not customer_id:
+        raise HTTPException(status_code=400, detail="Ingen kundeprofil ennå")
+    portal = stripe.billing_portal.Session.create(
+        customer=customer_id,
+        return_url=body.return_url,
+    )
+    return {"portal_url": portal.url}
+
+
+@api_router.post("/stripe/webhook")
+async def stripe_webhook(request: Request):
+    payload = await request.body()
+    sig = request.headers.get("stripe-signature", "")
+    try:
+        event = stripe.Webhook.construct_event(payload, sig, STRIPE_WEBHOOK_SECRET)
+    except Exception as e:
+        logger.warning(f"Stripe webhook signature error: {e}")
+        raise HTTPException(status_code=400, detail="Invalid signature")
+
+    t = event["type"]
+    obj = event["data"]["object"]
+    now = datetime.now(timezone.utc).isoformat()
+
+    if t == "checkout.session.completed":
+        await db.payment_transactions.update_one(
+            {"session_id": obj["id"], "payment_status": {"$ne": "paid"}},
+            {"$set": {
+                "status": "completed",
+                "payment_status": obj.get("payment_status", "paid"),
+                "stripe_subscription_id": obj.get("subscription"),
+                "updated_at": now,
+            }},
+        )
+
+    elif t in ("customer.subscription.created", "customer.subscription.updated"):
+        user_id = (obj.get("metadata") or {}).get("user_id")
+        lookup_key = (obj.get("metadata") or {}).get("lookup_key")
+        if not user_id:
+            # Look up by customer
+            user_doc = await db.users.find_one({"stripe_customer_id": obj.get("customer")}, {"_id": 0})
+            user_id = user_doc.get("user_id") if user_doc else None
+        if user_id:
+            await db.subscriptions.update_one(
+                {"stripe_subscription_id": obj["id"]},
+                {"$set": {
+                    "user_id": user_id,
+                    "stripe_subscription_id": obj["id"],
+                    "stripe_customer_id": obj.get("customer"),
+                    "status": obj.get("status"),
+                    "lookup_key": lookup_key or "echo_monthly_nok",
+                    "current_period_end": datetime.fromtimestamp(obj["current_period_end"], tz=timezone.utc).isoformat() if obj.get("current_period_end") else None,
+                    "cancel_at_period_end": obj.get("cancel_at_period_end", False),
+                    "updated_at": now,
+                }},
+                upsert=True,
+            )
+
+    elif t == "customer.subscription.deleted":
+        await db.subscriptions.update_one(
+            {"stripe_subscription_id": obj["id"]},
+            {"$set": {"status": "canceled", "updated_at": now}},
+        )
+
+    return {"received": True}
 
 
 @api_router.get("/")

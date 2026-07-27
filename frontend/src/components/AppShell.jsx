@@ -39,6 +39,7 @@ export default function AppShell({ children }) {
             <NavLink to="/skriv" label="Skriv" tid={TID.navWrite} />
           </nav>
           <div className="flex items-center gap-3">
+            <Link to="/priser" className="label-ui hidden sm:inline" style={{ color: "var(--ink-mute)" }}>Priser</Link>
             {user?.picture && (
               <img
                 src={user.picture}

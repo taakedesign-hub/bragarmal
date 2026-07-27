@@ -17,6 +17,7 @@ export default function Landing() {
           </div>
           <nav className="flex items-center gap-6">
             <span className="label-ui hidden sm:inline">no · nb</span>
+            <Link to="/priser" className="label-ui" style={{ color: "var(--ink-mute)" }}>Priser</Link>
             <button
               data-testid={TID.loginBtn}
               onClick={goLogin}

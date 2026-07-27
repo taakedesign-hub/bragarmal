@@ -4,6 +4,8 @@ import "@/App.css";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import Landing from "@/pages/Landing";
 import LoginPage from "@/pages/LoginPage";
+import PricingPage from "@/pages/PricingPage";
+import PaymentStatusPage from "@/pages/PaymentStatusPage";
 import ManifestPage from "@/pages/ManifestPage";
 import EthicsPage from "@/pages/EthicsPage";
 import AuthCallback from "@/pages/AuthCallback";
@@ -23,6 +25,9 @@ function AppRouter() {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/logg-inn" element={<LoginPage />} />
+      <Route path="/priser" element={<PricingPage />} />
+      <Route path="/betaling/vellykket" element={<PaymentStatusPage variant="success" />} />
+      <Route path="/betaling/avbrutt" element={<PaymentStatusPage variant="cancel" />} />
       <Route path="/manifest" element={<ManifestPage />} />
       <Route path="/etikk" element={<EthicsPage />} />
       <Route path="/dashboard" element={<Protected><AppShell><Dashboard /></AppShell></Protected>} />
