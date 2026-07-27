@@ -81,8 +81,8 @@ export default function Landing() {
                   style={{ color: "var(--ink)", borderLeft: "2px solid var(--moss)" }}
                 >
                   Det viktigst av alt med Echo er ikke at det er et verktøy for deg som bare vil
-                  skrive en bok, men for deg som står fast, trenger noen nye vinklinger, etc.,
-                  med DIN fortellerstemme.
+                  skrive en bok, publisere tekst, løse skriveoppgaver etisk, men for deg som står
+                  fast, trenger noen nye vinklinger, etc., med DIN stemme.
                 </p>
                 <p
                   className="mt-10 font-serif-display text-3xl md:text-4xl leading-snug"
@@ -109,8 +109,44 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Practical entry-points */}
+      {/* Sparringspartner — practice over time */}
       <section>
+        <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16 md:py-20">
+          <div className="grid grid-cols-12 gap-6 md:gap-10 items-start">
+            <div className="col-span-12 md:col-span-4">
+              <div className="label-ui">Filosofi</div>
+              <h2 className="font-serif-display text-4xl md:text-5xl font-light mt-2" style={{ color: "var(--ink)" }}>
+                Sparrings­partner. Ikke <em className="italic" style={{ color: "var(--moss)" }}>tekstautomat</em>.
+              </h2>
+            </div>
+            <div className="col-span-12 md:col-span-8 md:pl-4 font-editor text-lg md:text-xl leading-[1.85]" style={{ color: "var(--ink)" }}>
+              <p>
+                Bruk Echo — og AI generelt — som en sparringspartner. Ikke for å få ferdige, glatte
+                tekster ut av en prompt. Verktøyet blir bedre jo lengre du jobber med det.
+                Øvelse over tid. Din stemme, gjentatt.
+              </p>
+              <p
+                className="mt-8 pl-6 font-serif-display text-xl md:text-2xl italic leading-snug"
+                style={{ color: "var(--ink-soft)", borderLeft: "2px solid var(--rust)" }}
+              >
+                «Jeg har en tendens til å gjenta meg selv, både når jeg prater og når jeg skriver.
+                Dette hjelper AI meg ved å gå gjennom teksten og luke ut.»
+              </p>
+              <p className="mt-8" style={{ color: "var(--ink-soft)" }}>
+                Det er nettopp slik det skal brukes. Ikke som en som skriver for deg, men som en
+                som ser deg. Som luker der du gjentar deg selv. Som stopper opp der du hopper for
+                fort. Som spør: er dette virkelig det du mente?
+              </p>
+              <p className="mt-6" style={{ color: "var(--ink-soft)" }}>
+                Prompten er ikke bestillingen. Prompten er samtalen.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Practical entry-points */}
+      <section className="hairline-t">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16">
           <div className="label-ui">Fire måter å mate inn på</div>
           <h2 className="font-serif-display text-4xl md:text-5xl font-light mt-2" style={{ color: "var(--ink)" }}>

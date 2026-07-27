@@ -482,7 +482,7 @@ async def scan_handwritten(
     if len(data) > 15 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Bildet er for stort (maks 15 MB)")
 
-    const b64 = base64.b64encode(data).decode("utf-8")
+    b64 = base64.b64encode(data).decode("utf-8")
 
     system = (
         "Du er en nøyaktig transkriberer av norsk håndskrift. Din oppgave er å transkribere "
@@ -628,6 +628,141 @@ async def list_categories():
     return [{"id": k, "label": v} for k, v in SAMPLE_CATEGORIES.items()]
 
 
+# ---------- Inspirations (reference authors) ----------
+class InspirationCreate(BaseModel):
+    name: str
+    note: Optional[str] = ""
+
+
+@api_router.get("/inspirations")
+async def list_inspirations(user: User = Depends(get_current_user)):
+    docs = await db.inspirations.find(
+        {"user_id": user.user_id}, {"_id": 0}
+    ).sort("created_at", 1).to_list(100)
+    return docs
+
+
+@api_router.post("/inspirations")
+async def add_inspiration(body: InspirationCreate, user: User = Depends(get_current_user)):
+    name = body.name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Forfatternavn kan ikke være tomt")
+    if len(name) > 120:
+        raise HTTPException(status_code=400, detail="Navnet er for langt")
+    existing = await db.inspirations.find_one(
+        {"user_id": user.user_id, "name_lower": name.lower()}, {"_id": 0}
+    )
+    if existing:
+        raise HTTPException(status_code=400, detail="Denne forfatteren finnes allerede")
+    doc = {
+        "id": str(uuid.uuid4()),
+        "user_id": user.user_id,
+        "name": name,
+        "name_lower": name.lower(),
+        "note": (body.note or "").strip()[:400],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.inspirations.insert_one(doc)
+    doc.pop("name_lower", None)
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.delete("/inspirations/{insp_id}")
+async def delete_inspiration(insp_id: str, user: User = Depends(get_current_user)):
+    r = await db.inspirations.delete_one({"id": insp_id, "user_id": user.user_id})
+    if r.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Ikke funnet")
+    return {"ok": True}
+
+
+# ---------- Custom AI helpers (user's own key + persona) ----------
+HELPER_PROVIDERS = {"openai", "anthropic", "gemini"}
+
+
+class HelperCreate(BaseModel):
+    name: str
+    provider: str
+    model_id: str
+    api_key: str
+    persona_addon: Optional[str] = ""
+
+
+class HelperUpdate(BaseModel):
+    name: Optional[str] = None
+    provider: Optional[str] = None
+    model_id: Optional[str] = None
+    api_key: Optional[str] = None
+    persona_addon: Optional[str] = None
+
+
+def _sanitize_helper(doc: dict) -> dict:
+    d = dict(doc)
+    key = d.get("api_key", "")
+    d["api_key_preview"] = ("…" + key[-4:]) if key and len(key) >= 4 else ""
+    d.pop("api_key", None)
+    d.pop("_id", None)
+    return d
+
+
+@api_router.get("/helpers")
+async def list_helpers(user: User = Depends(get_current_user)):
+    docs = await db.helpers.find(
+        {"user_id": user.user_id}, {"_id": 0}
+    ).sort("created_at", 1).to_list(50)
+    return [_sanitize_helper(d) for d in docs]
+
+
+@api_router.post("/helpers")
+async def create_helper(body: HelperCreate, user: User = Depends(get_current_user)):
+    if body.provider not in HELPER_PROVIDERS:
+        raise HTTPException(status_code=400, detail="Ukjent leverandør. Bruk openai, anthropic eller gemini.")
+    if not body.name.strip() or not body.model_id.strip() or not body.api_key.strip():
+        raise HTTPException(status_code=400, detail="Navn, modell og API-nøkkel er påkrevd")
+    doc = {
+        "id": str(uuid.uuid4()),
+        "user_id": user.user_id,
+        "name": body.name.strip()[:80],
+        "provider": body.provider,
+        "model_id": body.model_id.strip()[:120],
+        "api_key": body.api_key.strip(),
+        "persona_addon": (body.persona_addon or "").strip()[:3000],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.helpers.insert_one(doc)
+    return _sanitize_helper(doc)
+
+
+@api_router.patch("/helpers/{helper_id}")
+async def update_helper(helper_id: str, body: HelperUpdate, user: User = Depends(get_current_user)):
+    existing = await db.helpers.find_one({"id": helper_id, "user_id": user.user_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Ikke funnet")
+    updates = {}
+    if body.name is not None: updates["name"] = body.name.strip()[:80]
+    if body.model_id is not None: updates["model_id"] = body.model_id.strip()[:120]
+    if body.provider is not None:
+        if body.provider not in HELPER_PROVIDERS:
+            raise HTTPException(status_code=400, detail="Ukjent leverandør")
+        updates["provider"] = body.provider
+    if body.api_key is not None and body.api_key.strip():
+        updates["api_key"] = body.api_key.strip()
+    if body.persona_addon is not None:
+        updates["persona_addon"] = body.persona_addon.strip()[:3000]
+    if updates:
+        await db.helpers.update_one({"id": helper_id, "user_id": user.user_id}, {"$set": updates})
+    doc = await db.helpers.find_one({"id": helper_id, "user_id": user.user_id}, {"_id": 0})
+    return _sanitize_helper(doc)
+
+
+@api_router.delete("/helpers/{helper_id}")
+async def delete_helper(helper_id: str, user: User = Depends(get_current_user)):
+    r = await db.helpers.delete_one({"id": helper_id, "user_id": user.user_id})
+    if r.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Ikke funnet")
+    return {"ok": True}
+
+
 # ---------- Voice profile ----------
 @api_router.post("/voice/analyze")
 async def analyze_user_voice(user: User = Depends(get_current_user)):
@@ -759,9 +894,24 @@ class GenerateBody(BaseModel):
 
 @api_router.post("/generate")
 async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
-    if body.model not in ALLOWED_MODELS:
-        raise HTTPException(status_code=400, detail="Ukjent modell")
-    provider, model = ALLOWED_MODELS[body.model]
+    # Resolve model: either built-in or user's own AI helper (helper:<id>)
+    api_key_to_use = EMERGENT_LLM_KEY
+    helper_persona = ""
+    helper_name = ""
+    if body.model.startswith("helper:"):
+        helper_id = body.model.split(":", 1)[1]
+        helper = await db.helpers.find_one({"id": helper_id, "user_id": user.user_id}, {"_id": 0})
+        if not helper:
+            raise HTTPException(status_code=404, detail="AI-hjelper ikke funnet")
+        provider = helper["provider"]
+        model = helper["model_id"]
+        api_key_to_use = helper["api_key"]
+        helper_persona = helper.get("persona_addon", "") or ""
+        helper_name = helper.get("name", "")
+    else:
+        if body.model not in ALLOWED_MODELS:
+            raise HTTPException(status_code=400, detail="Ukjent modell")
+        provider, model = ALLOWED_MODELS[body.model]
 
     profile = await db.voice_profiles.find_one({"user_id": user.user_id}, {"_id": 0})
     all_samples = await db.samples.find({"user_id": user.user_id}, {"_id": 0}).sort("created_at", -1).to_list(30)
@@ -772,6 +922,15 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
     ).sort("created_at", 1).to_list(20)
 
     system = build_voice_system_prompt(profile, samples, inspirations, body.humanize_level)
+
+    if helper_persona:
+        system += (
+            f"\n\n--- BRUKERENS EGEN AI-HJELPER: «{helper_name}» ---\n"
+            "Brukeren har trent opp denne AI-en med en spesifikk arbeids- og tonemåte over tid. "
+            "Nedenstående instruks er lagt til av brukeren. Følg den så lenge den ikke bryter med "
+            "kravene om å bevare brukerens egen stemme fra prøvetekstene:\n"
+            f"{helper_persona}\n"
+        )
 
     length_hint = {
         "kort": "Skriv omtrent 80-150 ord.",
@@ -791,7 +950,7 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
         )
 
     chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
+        api_key=api_key_to_use,
         session_id=f"gen-{user.user_id}-{uuid.uuid4().hex[:6]}",
         system_message=system,
     ).with_model(provider, model)
