@@ -39,11 +39,18 @@ export default function Landing() {
             <h1 className="font-serif-display font-light text-5xl sm:text-6xl md:text-7xl leading-[1.02] tracking-tight" style={{ color: "var(--ink)" }}>
               DIN stemme <em className="italic" style={{ color: "var(--moss)" }}>er din.</em>
             </h1>
+            <p className="mt-6 font-editor text-lg md:text-xl max-w-[62ch]" style={{ color: "var(--ink)" }}>
+              Vi genererer ikke ord. <em className="italic" style={{ color: "var(--moss)" }}>Vi finner din stemme.</em>
+            </p>
             <p className="mt-8 font-editor text-lg md:text-xl max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>
               Ingen rask metode for å publisere. Kun et verktøy som tar deg videre — på dine premisser.
             </p>
             <p className="mt-4 font-editor text-base italic max-w-[62ch]" style={{ color: "var(--moss)" }}>
               Ikke bare for forfattere — for kreativ skriving generelt.
+            </p>
+            <p className="mt-6 font-editor text-sm max-w-[62ch]" style={{ color: "var(--ink-mute)" }}>
+              <span className="font-serif-display text-base" style={{ color: "var(--ink)" }}>Bragr</span>
+              {" "}— norrønt for «diktekunst» og «den fremste». Finn din indre skald.
             </p>
             <div className="mt-10 flex flex-wrap gap-4 items-center">
               <button
