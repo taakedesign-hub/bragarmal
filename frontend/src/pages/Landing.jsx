@@ -1,7 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { TID } from "@/lib/testIds";
 import { Feather, ArrowRight, Camera, Mic, FileText, ScanLine } from "lucide-react";
-
 // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
 function startGoogleLogin() {
   const redirectUrl = window.location.origin + "/dashboard";
@@ -58,7 +57,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* MANIFEST — user's own voice, verbatim */}
+      {/* MANIFEST — teaser, links to full manifest page */}
       <section className="hairline-t hairline-b">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16 md:py-24">
           <div className="grid grid-cols-12 gap-6 md:gap-10">
@@ -75,14 +74,7 @@ export default function Landing() {
                 <p>
                   I tre år har jeg jobbet med samme bok. Dette siste året begynte jeg å teste ut
                   diverse AI for å se om jeg kunne få hjelp med skrivingen. Resultatet har så langt
-                  vært nedslående. De beste forteller hva som fungerer og ikke er bra.
-                </p>
-                <p className="mt-6">
-                  Men dessverre, alt handler om å kunne publisere mest mulig og fortest mulig.
-                  I tillegg testet jeg også AI-detektorer, og selv mine personlige tekster ble
-                  flagget som AI. Fordi AI fungerer på data, matematikk, ord som er matet inn.
-                  Dette gjelder spesielt for akademiske tekster og kreative tekster som er ryddige,
-                  har flyt fra før.
+                  vært nedslående.
                 </p>
                 <p
                   className="mt-8 font-serif-display text-2xl md:text-3xl leading-snug pl-6"
@@ -92,49 +84,25 @@ export default function Landing() {
                   skrive en bok, men for deg som står fast, trenger noen nye vinklinger, etc.,
                   med DIN fortellerstemme.
                 </p>
-                <p className="mt-8">
-                  Gjennom bilder av tekster du har skrevet for hånd, notater, meldinger om du vil,
-                  den boka du begynte på en gang for lenge siden, men aldri skrev ferdig.
-                  Stemme­aktivering for å fange din fortellerstemme muntlig om du har problemer
-                  med skriftspråket, og ikke vil gi fra deg fortellerstemmen din og miste ektheten
-                  som er deg.
-                </p>
-                <p className="mt-6" style={{ color: "var(--moss)" }}>
-                  <em className="italic">
-                    Test den ut nå, mat inn det du har og vil, ta bilder av gamle tekster du har
-                    skrevet på papir, les inn, noter og les gjennom.
-                  </em>
-                </p>
-                <p className="mt-8">
-                  For noen dager siden hadde jeg en prat med AI jeg brukt over tid, og jeg spurte
-                  hvorfor den var blitt så kort og konkret i svarene, til og med diskutert og
-                  kritisert. Vanligvis er AI smiskete og alltid enig, så dette var nytt.
-                </p>
-                <p className="mt-6">
-                  Som sagt, ingen rask metode for å publisere, kun et verktøy som tar deg videre
-                  på dine premisser. Herlig, men overraskende. Svaret jeg fikk var at jeg hadde
-                  to stemmer, en for når jeg var varm og en for når jeg jobbet med noe og bare
-                  ville ha svar. Den siste stemmen var konkret, kald, direkte og uten vissvass.
-                  Jeg ble rett og slett speilet.
-                </p>
-                <p className="mt-6">
-                  Ubehagelig oppdagelse, men understreker poenget mitt med Echo.
-                </p>
                 <p
                   className="mt-10 font-serif-display text-3xl md:text-4xl leading-snug"
                   style={{ color: "var(--ink)" }}
                 >
-                  DIN stemme er din. Og Echo hjelper deg uten at du må bruke lang tid på å trene
-                  opp AI.
+                  DIN stemme er din. Echo hjelper deg videre — på dine premisser.
                 </p>
               </div>
 
-              <div className="rule mt-12" />
+              <div className="rule mt-10" />
               <div className="mt-6 flex items-center justify-between flex-wrap gap-4">
                 <span className="label-ui">— Nina</span>
-                <button onClick={startGoogleLogin} className="btn-primary inline-flex items-center gap-3">
-                  Begynn å mate inn <ArrowRight size={16} strokeWidth={1.6} />
-                </button>
+                <div className="flex items-center gap-4">
+                  <Link to="/manifest" className="btn-ghost inline-flex items-center gap-2">
+                    Les hele manifestet <ArrowRight size={14} strokeWidth={1.6} />
+                  </Link>
+                  <Link to="/etikk" className="label-ui" style={{ color: "var(--moss)" }}>
+                    Etisk AI-skriving →
+                  </Link>
+                </div>
               </div>
             </article>
           </div>
