@@ -117,7 +117,7 @@ export default function PricingPage() {
             note={status ? `${status.beta_slots_remaining} av ${status.beta_total} plasser igjen` : "For de 50 første"}
             features={[
               "Alle funksjoner",
-              "Alle modeller (Claude, GPT, Gemini, Grok)",
+              "Alle modeller (Claude, GPT, Gemini)",
               "Ubegrenset generering",
               "Gratis i 3 måneder — deretter velg plan",
             ]}

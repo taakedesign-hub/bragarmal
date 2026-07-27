@@ -250,7 +250,6 @@ export default function Landing() {
             <span className="chip">GPT 5.2</span>
             <span className="chip">GPT 5.4</span>
             <span className="chip">Gemini 3.1 Pro</span>
-            <span className="chip">Grok</span>
             <Link
               to="/logg-inn"
               className="chip inline-flex items-center gap-1.5"

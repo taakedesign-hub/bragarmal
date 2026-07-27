@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api, BACKEND } from "@/lib/api";
 import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
-import { PenLine, Copy, RefreshCcw, Wand2, Gauge, BookmarkPlus, X } from "lucide-react";
+import { PenLine, Copy, RefreshCcw, Wand2, Gauge, BookmarkPlus, X, Download, Mail } from "lucide-react";
 
 const MODES = [
   { id: "prompt", label: "Fra frø", hint: "Skriv fra et emne, en åpningslinje eller en idé." },
@@ -130,6 +130,30 @@ export default function WritePage() {
       await navigator.clipboard.writeText(output);
       toast("Kopiert");
     } catch { toast("Kunne ikke kopiere"); }
+  };
+
+  const downloadTxt = () => {
+    if (!output.trim()) return;
+    try {
+      const blob = new Blob([output], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const stamp = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `echo-utkast-${stamp}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast("Lastet ned");
+    } catch { toast("Kunne ikke laste ned"); }
+  };
+
+  const emailOut = () => {
+    if (!output.trim()) return;
+    const subject = encodeURIComponent("Utkast fra ECHO");
+    const body = encodeURIComponent(output);
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
 
   const humanizeMore = async () => {
@@ -311,6 +335,22 @@ export default function WritePage() {
               disabled={streaming || !output}
             >
               <BookmarkPlus size={16} strokeWidth={1.5} /> Lagre som prøve
+            </button>
+            <button
+              data-testid={TID.writeDownloadBtn}
+              onClick={downloadTxt}
+              className="btn-ghost inline-flex items-center gap-2"
+              disabled={streaming || !output}
+            >
+              <Download size={16} strokeWidth={1.5} /> Last ned .txt
+            </button>
+            <button
+              data-testid={TID.writeEmailBtn}
+              onClick={emailOut}
+              className="btn-ghost inline-flex items-center gap-2"
+              disabled={streaming || !output}
+            >
+              <Mail size={16} strokeWidth={1.5} /> Send til e-post
             </button>
           </div>
         </div>

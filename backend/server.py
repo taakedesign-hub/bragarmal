@@ -188,8 +188,6 @@ ALLOWED_MODELS = {
     "gpt-5.4": ("openai", "gpt-5.4"),
     "gemini-3-pro": ("gemini", "gemini-3.1-pro-preview"),
     "gemini-3-flash": ("gemini", "gemini-3-flash-preview"),
-    "grok-2": ("xai", "grok-2-latest"),
-    "grok-4": ("xai", "grok-4-latest"),
 }
 
 
@@ -1567,8 +1565,6 @@ async def list_models():
         {"id": "gpt-5.4", "label": "GPT 5.4", "provider": "OpenAI"},
         {"id": "gemini-3-pro", "label": "Gemini 3.1 Pro", "provider": "Google"},
         {"id": "gemini-3-flash", "label": "Gemini 3 Flash", "provider": "Google"},
-        {"id": "grok-2", "label": "Grok 2", "provider": "xAI"},
-        {"id": "grok-4", "label": "Grok 4", "provider": "xAI"},
     ]
 
 
