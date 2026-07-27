@@ -35,7 +35,7 @@ export default function PaymentStatusPage({ variant }) {
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5">
           <Link to="/" className="flex items-center gap-3">
             <Feather size={18} strokeWidth={1.4} />
-            <span className="font-serif-display text-xl tracking-widest">ECHO</span>
+            <span className="font-serif-display text-xl tracking-widest">EKKO</span>
           </Link>
         </div>
       </div>

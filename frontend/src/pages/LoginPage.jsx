@@ -68,7 +68,7 @@ export default function LoginPage() {
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <Feather size={18} strokeWidth={1.4} />
-            <span className="font-serif-display text-xl tracking-widest">ECHO</span>
+            <span className="font-serif-display text-xl tracking-widest">EKKO</span>
           </Link>
           <div className="flex items-center gap-4">
             <InfoMenu align="right" />
@@ -84,7 +84,7 @@ export default function LoginPage() {
         <div className="lg:col-span-6">
           <div className="label-ui">Velkommen</div>
           <h1 className="font-serif-display text-5xl md:text-6xl font-light mt-3" style={{ color: "var(--ink)" }}>
-            Logg inn i <em className="italic" style={{ color: "var(--moss)" }}>Echo</em>.
+            Logg inn i <em className="italic" style={{ color: "var(--moss)" }}>Ekko</em>.
           </h1>
           <p className="font-editor text-lg mt-6 max-w-[48ch]" style={{ color: "var(--ink-soft)" }}>
             Velg den innloggingen du foretrekker. All data — tekster, opptak, stemmeprofil —

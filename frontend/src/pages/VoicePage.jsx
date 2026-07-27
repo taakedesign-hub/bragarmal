@@ -325,7 +325,7 @@ export default function VoicePage() {
           </h2>
           <p className="font-editor mt-4 max-w-[65ch]" style={{ color: "var(--ink-soft)" }}>
             Koble på din egen ChatGPT, Claude eller Gemini — med API-nøkkelen din og persona-instruksene
-            du har finpusset over tid. Echo bruker din AI i stedet for standard-modellene, men bevarer
+            du har finpusset over tid. Ekko bruker din AI i stedet for standard-modellene, men bevarer
             fortsatt din egen stemme fra prøvetekstene som førsteprioritet.
           </p>
         </div>
