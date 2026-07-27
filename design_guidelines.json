@@ -1,0 +1,123 @@
+{
+  "theme": {
+    "mode": "toggle",
+    "default": "light",
+    "description": "Nordic minimalist editorial design emphasizing content, whitespace, and a writer-first intimate feel. Avoids generic SaaS aesthetics."
+  },
+  "typography": {
+    "headings": {
+      "family": "Cormorant Garamond, serif",
+      "weights": ["300", "400", "600"],
+      "usage": "H1-H3, literary titles, quotes",
+      "classes": "font-serif tracking-tight text-gray-900 dark:text-gray-100"
+    },
+    "body_editor": {
+      "family": "Lora, serif",
+      "weights": ["400", "500"],
+      "usage": "The actual writing area, generated text, user text inputs.",
+      "classes": "font-serif leading-relaxed text-gray-800 dark:text-gray-200"
+    },
+    "ui_labels": {
+      "family": "IBM Plex Sans, sans-serif",
+      "weights": ["400", "500"],
+      "usage": "Navigation, buttons, small labels, settings.",
+      "classes": "font-sans tracking-wide uppercase text-xs sm:text-sm text-gray-500 dark:text-gray-400"
+    }
+  },
+  "colors": {
+    "light": {
+      "background": "#F9F9F7",
+      "surface": "#FFFFFF",
+      "text_primary": "#1C1B1A",
+      "text_secondary": "#5C5A56",
+      "border": "#E5E4DF",
+      "accent": "#4A5D4E",
+      "accent_hover": "#3C4B3F"
+    },
+    "dark": {
+      "background": "#141413",
+      "surface": "#1A1A19",
+      "text_primary": "#E8E6E1",
+      "text_secondary": "#9E9C97",
+      "border": "#2E2D2B",
+      "accent": "#657969",
+      "accent_hover": "#788C7C"
+    }
+  },
+  "layouts": {
+    "general": "Whitespace-heavy, bento grid for dashboards (asymmetric). Focus on optical alignment. Editor should be distraction-free (center column max-width 65ch for reading comfort).",
+    "dashboard_grid": "Mode B (High Density) with generous gap-6. Voice analysis widgets use col-span-1 or col-span-2 based on data complexity.",
+    "spacing": "Use Tailwind scale p-6, p-8, p-12 heavily. Avoid cramped p-2/p-4 unless inside small UI controls."
+  },
+  "visual_enhancers": {
+    "borders": "1px solid, low contrast (e.g. border-border/40). Thin, elegant lines separating content rather than full-box cards.",
+    "shadows": "Minimal. Prefer flat design with subtle inner borders for depth rather than drop-shadows.",
+    "textures": "Subtle grain noise overlay on backgrounds to simulate paper/physical space.",
+    "radius": "rounded-sm or rounded-none to maintain editorial/print feel."
+  },
+  "components": {
+    "buttons": "Flat, sharp or slightly rounded (rounded-sm). Accent color for primary. Transparent with thin border for secondary.",
+    "inputs": "Understated. Bottom border only (flair) or very subtle fill (bg-gray-100 dark:bg-gray-800). No heavy focus rings, just color change.",
+    "cards": "Cardless or minimal cards. Use grid dividers (border-b, border-r) instead of separate boxes.",
+    "toasts": "Use `sonner`. Position bottom-center, minimal style matching Nordic theme."
+  },
+  "motion": {
+    "transitions": "Subtle opacity and slight y-axis translation (e.g. 2px). Duration 300ms ease-out.",
+    "hover": "Text color darkens/lightens. Buttons subtle scale down (0.98).",
+    "page_load": "Fade in with stagger on grid items."
+  },
+  "core_features": {
+    "auth": {
+      "description": "Google OAuth and JWT Email/Password. Minimalist split screen with atmospheric Nordic image on one side."
+    },
+    "file_upload": {
+      "description": "Drag & drop zone with dashed border. Supports .txt, .pdf, .docx. Includes text area for manual paste."
+    },
+    "voice_analysis": {
+      "description": "Dashboard showing tone, vocabulary complexity, and sentence structure. Use Recharts with minimalist styling (no grid lines, simple tooltips, accent colors)."
+    },
+    "writer_assistant": {
+      "description": "Editor view. 'Continue my text' button. Dropdown for LLM selection (Claude Sonnet 4.5, GPT 5.2, Gemini 3 Pro). Panel for generated output with 'Regenerate', 'Copy', and 'Humanize more' controls."
+    },
+    "ai_detection_avoidance": {
+      "description": "Toggle or score meter showing 'Human-like' vs 'AI-like'. Built into the writer assistant output panel."
+    }
+  },
+  "language": {
+    "locale": "no-NO",
+    "instruction": "All UI text, placeholders, and tooltips MUST be in Norwegian. Example: 'Logg inn', 'Last opp dokument', 'Fortsett teksten', 'Min stemme'."
+  },
+  "image_urls": [
+    {
+      "category": "auth_background",
+      "url": "https://images.unsplash.com/photo-1760454220974-2f1c834eadac?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHwzfHxub3JkaWMlMjBmb3Jlc3QlMjBtaXN0fGVufDB8fHx8MTc4NTE0MDQwMHww&ixlib=rb-4.1.0&q=85",
+      "description": "Atmospheric Nordic forest mist for the login/signup split screen."
+    },
+    {
+      "category": "empty_state",
+      "url": "https://images.unsplash.com/photo-1554757387-fa0367573d09?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzR8MHwxfHNlYXJjaHwyfHx3cml0ZXIlMjBub3RlYm9vayUyMGFlc3RoZXRpY3xlbnwwfHx8fDE3ODUxNDA0MDZ8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Minimalist open notebook for empty states or placeholder content."
+    }
+  ],
+  "accessibility": {
+    "focus": "Custom focus rings (ring-1 ring-offset-1 ring-accent).",
+    "contrast": "Ensure APCA compliant contrast. Minimalist text MUST be readable, avoid overly light gray text.",
+    "testing": "All interactive elements MUST include data-testid attributes formatted as role-based kebab-case."
+  },
+  "instructions_to_main_agent": [
+    "Strictly use Norwegian language across all UI elements.",
+    "DO NOT use generic Shadcn Card layouts. Use border-collapse and subtle dividers to create an editorial grid feel.",
+    "Use Lora for the actual text editor/writing areas to mimic a literary environment, and Cormorant Garamond for main headers.",
+    "Ensure LLM selection (Claude Sonnet 4.5, GPT 5.2, Gemini 3 Pro) is prominently available in the writing view via custom select/dropdown.",
+    "Implement the 'Humanize more' (Gjør mer menneskelig) and AI-detection avoidance features in the generation panel.",
+    "Use standard HTML inputs customized via Tailwind for complex form states, avoiding deep component abstraction if it hinders editorial styling.",
+    "Add data-testid to all buttons, inputs, toggles, and main semantic sections."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Do not use transparent backgrounds for dropdowns or fixed headers.",
+    "Avoid the generic 'AI slop' aesthetic (no emojis). Use refined SVG icons (lucide-react).",
+    "Never use `transition: all`. Target specific properties like `transition-colors` or `transition-opacity`.",
+    "Maintain strict optical alignment.",
+    "Files are .js, not .tsx. Do not output TypeScript interfaces."
+  ]
+}
