@@ -5,42 +5,42 @@ const CORE_QUESTIONS = [
   {
     n: "01",
     title: "Hvem eier teksten?",
-    body: "Hvis AI genererer store deler av innholdet, og forfatteren bare justerer litt, er det fortsatt forfatterens verk? Etisk sett bør den som bærer ansvaret for innholdet også være den som har gjort de avgjørende valgene.",
+    body: "Hvis AI genererer store deler av innholdet, og forfatteren bare justerer litt, er det ikke lenger forfatterens verk. Den som bærer ansvaret må også ha gjort de avgjørende valgene. Uten det: ingen eierskap.",
   },
   {
     n: "02",
     title: "Blir stemmen bevart eller erstattet?",
-    body: "Det er forskjell på å få hjelp til å komme videre i egen formulering, og å få servert ferdige setninger som «høres bra ut». Den første styrker forfatteren. Den andre kan svekke over tid — motstanden i skrivingen, det som tvinger frem egne formuleringer, blir borte.",
+    body: "Det er forskjell på å få hjelp til å komme videre i egen formulering, og å få servert ferdige setninger som «høres bra ut». Det første styrker forfatteren. Det andre svekker over tid, fordi motstanden i skrivingen — det som tvinger frem egne formuleringer — blir borte.",
   },
   {
     n: "03",
     title: "Er bruken transparent?",
-    body: "Overfor leseren, forlaget, eller seg selv. Skjult bruk av genererende AI skaper en form for falskhet, spesielt i skjønnlitteratur, personlige tekster og akademisk arbeid. Åpenhet er mer ærlig enn å late som teksten er skrevet helt alene.",
+    body: "Overfor leseren, forlaget, deg selv. Skjult bruk av genererende AI er falskhet. Særlig i skjønnlitteratur, personlige tekster og akademisk arbeid. Åpenhet er ærligere enn å late som teksten er skrevet helt alene.",
   },
   {
     n: "04",
     title: "Hvem blir hjulpet, og hvem blir forbigått?",
-    body: "AI kan senke terskelen for folk med dysleksi, funksjonsnedsettelser eller andre skriveutfordringer. Samtidig kan det forsterke presset om rask produksjon og gjøre det vanskeligere for dem som skriver sakte og grundig.",
+    body: "AI kan senke terskelen for folk med dysleksi og andre skriveutfordringer. Det er bra. Men det forsterker også presset om rask produksjon, og gjør det vanskeligere for dem som skriver sakte og grundig. Begge deler er sant samtidig.",
   },
 ];
 
 const APPROACH_TABLE = [
-  { approach: "AI genererer ferdig tekst", risk: "høy", verdict: "Høy risiko for tap av eierskap og stemme.", example: "«Skriv kapittel 3 for meg»" },
-  { approach: "AI foreslår retninger og formuleringer", risk: "medium", verdict: "Mer forsvarlig hvis mennesket velger og omskriver.", example: "«Jeg står fast — foreslå tre veier videre i min stil»" },
-  { approach: "AI til struktur, research, korrektur", risk: "lav", verdict: "Vanligvis uproblematisk.", example: "Outline, faktasjekk, rettskriving" },
-  { approach: "AI trent på forfatterens eget materiale", risk: "lav", verdict: "Sterkere vern av personlig stemme.", example: "Stilgjenkjenning fra egne gamle tekster" },
+  { approach: "AI genererer ferdig tekst", risk: "høy", verdict: "Eierskap og stemme tapt.", example: "«Skriv kapittel 3 for meg»" },
+  { approach: "AI foreslår retninger", risk: "medium", verdict: "Forsvarlig hvis du velger og omskriver.", example: "«Foreslå tre veier videre i min stil»" },
+  { approach: "AI til struktur, research, korrektur", risk: "lav", verdict: "Uproblematisk.", example: "Outline, faktasjekk, rettskriving" },
+  { approach: "AI trent på ditt eget materiale", risk: "lav", verdict: "Sterkeste vernet av personlig stemme.", example: "Stilgjenkjenning fra egne tekster" },
 ];
 
 const RULES = [
-  "AI kan foreslå retninger, struktur, alternative formuleringer og peke på svakheter.",
-  "AI skal ikke skrive ferdige avsnitt eller kapitler som du bare godtar.",
-  "Du beholder alltid siste redigering — og ansvaret for hvert valg.",
-  "Du trener systemet på ditt materiale (gamle tekster, høytlesning, tidligere utkast), ikke bare generelle modeller.",
+  "AI kan foreslå retninger, struktur og alternative formuleringer. AI kan peke på svakheter.",
+  "AI skriver ikke ferdige avsnitt eller kapitler som du bare godtar.",
+  "Du beholder alltid siste redigering. Og ansvaret for hvert valg.",
+  "Du trener systemet på ditt materiale — gamle tekster, høytlesning, tidligere utkast. Ikke bare generelle modeller.",
 ];
 
 const WORKFLOW = [
-  { n: "01", title: "Du skriver først", body: "Selv om det er klønete eller ufullstendig." },
-  { n: "02", title: "AI hjelper når du står fast", body: "Foreslår vinklinger, spørsmål eller alternative veier videre i din stil." },
+  { n: "01", title: "Du skriver først", body: "Selv om det er klønete. Selv om det er ufullstendig." },
+  { n: "02", title: "AI hjelper når du står fast", body: "Foreslår vinklinger og alternative veier videre. I din stil." },
   { n: "03", title: "Du velger og omskriver", body: "Tar det som passer, stryker resten, formulerer på nytt med egne ord." },
   { n: "04", title: "Siste runde er menneskelig", body: "Ingen AI-generert tekst går rett inn i det ferdige manuset uten bearbeidelse." },
 ];
@@ -52,12 +52,12 @@ const CHECKS = [
 ];
 
 const ECHO_DESIGN = [
-  { label: "Stilgjenkjenning på ditt eget materiale", detail: "Jo mer Echo kjenner din stemme — gamle tekster, OCR, høytlesning — desto mindre generisk blir forslagene." },
-  { label: "Forslag, ikke ferdige kapitler", detail: "Retninger, spørsmål og korte formuleringer — ikke hele avsnitt klare til kopiering." },
+  { label: "Stilgjenkjenning på ditt eget materiale", detail: "Jo mer Echo kjenner din stemme — gamle tekster, håndskrift, høytlesning — desto mindre generisk blir forslagene." },
+  { label: "Forslag, ikke ferdige kapitler", detail: "Retninger og korte formuleringer. Ikke hele avsnitt klare til kopiering." },
   { label: "Tydelig merking", detail: "Din tekst og AI-forslag holdes visuelt adskilt. Ingen skjult blanding." },
-  { label: "Ingen skjult generering", detail: "«Skriv ferdig dette kapittelet» finnes ikke uten at du aktivt må jobbe videre med resultatet." },
-  { label: "Stemme og fragmenter", detail: "Les inn, fotografer gamle notater, jobb videre derfra. Senk terskelen uten å overta skrivingen." },
-  { label: "Personvern og eierskap", detail: "Stemmeopptak og personlige tekster er dine. Alt er scoped til din innlogging, ingen deler dine data." },
+  { label: "Ingen skjult generering", detail: "«Skriv ferdig dette kapittelet» finnes ikke. Du jobber alltid videre med det Echo leverer." },
+  { label: "Stemme og fragmenter", detail: "Les inn, fotografer gamle notater, jobb videre derfra. Ingen overtar skrivingen." },
+  { label: "Personvern og eierskap", detail: "Stemmeopptak og personlige tekster er dine. Alt låst til din innlogging. Ingen deler dine data." },
 ];
 
 export default function EthicsPage() {
@@ -82,9 +82,9 @@ export default function EthicsPage() {
           Etisk AI-skriving.
         </h1>
         <p className="mt-6 font-editor text-lg md:text-xl max-w-[68ch]" style={{ color: "var(--ink-soft)" }}>
-          Etisk AI-skriving handler ikke primært om teknologien, men om
+          Etisk AI-skriving handler ikke om teknologien. Den handler om
           <em className="italic" style={{ color: "var(--moss)" }}> makt, eierskap og ansvar</em>.
-          Når en maskin hjelper til med tekst, oppstår det spørsmål som går utover
+          Når en maskin hjelper til med tekst, blir spørsmålene større enn
           «er dette lovlig?» eller «blir det detektert?».
         </p>
       </section>
@@ -154,8 +154,8 @@ export default function EthicsPage() {
                 Sett klare regler for deg selv.
               </h2>
               <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
-                Før du bruker noe verktøy. Skriv dem gjerne ned — det gjør det lettere å holde
-                seg til dem når man blir fristet av raske resultater.
+                Før du bruker noe verktøy. Skriv dem ned. Da er det lettere å holde seg til dem
+                når du blir fristet av raske resultater.
               </p>
             </div>
             <div className="lg:col-span-8">
@@ -224,9 +224,9 @@ export default function EthicsPage() {
             Vær ærlig — også overfor deg selv.
           </h2>
           <p className="font-editor mt-6 max-w-[68ch]" style={{ color: "var(--ink-soft)" }}>
-            Den største etiske fellen er selvbedrag. Det er lett å fortelle seg selv at
+            Den største etiske fellen er selvbedrag. Det er lett å si til seg selv at
             «jeg bare brukte AI til idéer», mens man i praksis har latt den skrive det meste.
-            En enkel sjekk:
+            Tre spørsmål å sjekke med:
           </p>
           <ul className="mt-8 max-w-[70ch]">
             {CHECKS.map((c, i) => (
@@ -251,7 +251,7 @@ export default function EthicsPage() {
           </h2>
           <p className="font-editor mt-6 max-w-[62ch] mx-auto text-lg" style={{ color: "var(--ink-soft)" }}>
             Etisk AI-skriving er ikke den raskeste metoden. Den er laget for dem som er villige
-            til å beholde ansvaret og stemmen — også når det koster tid og motstand.
+            til å beholde ansvaret og stemmen. Også når det koster tid og motstand.
             Det er nettopp derfor den passer til folk som må skrive.
             Ikke bare de som vil ha en bok ferdig.
           </p>
