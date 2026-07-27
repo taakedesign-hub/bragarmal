@@ -9,7 +9,7 @@ export default function Footer() {
           <Link to="/manifest" className="label-ui" style={{ color: "var(--ink-mute)" }}>Manifest</Link>
           <Link to="/etikk" className="label-ui" style={{ color: "var(--ink-mute)" }}>Etikk</Link>
           <Link to="/priser" className="label-ui" style={{ color: "var(--ink-mute)" }}>Priser</Link>
-          <span className="label-ui">et verktøy for forfattere</span>
+          <span className="label-ui">et verktøy for kreativ skriving</span>
         </div>
       </div>
     </footer>

@@ -42,6 +42,9 @@ export default function Landing() {
             <p className="mt-8 font-editor text-lg md:text-xl max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>
               Ingen rask metode for å publisere. Kun et verktøy som tar deg videre — på dine premisser.
             </p>
+            <p className="mt-4 font-editor text-base italic max-w-[62ch]" style={{ color: "var(--moss)" }}>
+              Ikke bare for forfattere — for kreativ skriving generelt.
+            </p>
             <div className="mt-10 flex flex-wrap gap-4 items-center">
               <button
                 data-testid={TID.ctaGetStarted}
