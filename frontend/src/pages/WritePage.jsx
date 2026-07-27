@@ -177,30 +177,33 @@ export default function WritePage() {
         });
       } catch {}
 
-      // Watermark on background — centred, low opacity
+      // Pre-scale logo variants to keep PDF small
+      let watermarkData = null;
+      let headerData = null;
       if (logoImg) {
         try {
-          const canvas = document.createElement("canvas");
-          canvas.width = logoImg.naturalWidth;
-          canvas.height = logoImg.naturalHeight;
-          const ctx = canvas.getContext("2d");
-          ctx.globalAlpha = 0.07;
-          ctx.drawImage(logoImg, 0, 0);
-          const dataUrl = canvas.toDataURL("image/png");
-          const wmW = pageW * 0.55;
-          const wmH = wmW * (logoImg.naturalHeight / logoImg.naturalWidth);
-          pdf.addImage(dataUrl, "PNG", (pageW - wmW) / 2, (pageH - wmH) / 2, wmW, wmH);
+          // Watermark — 400px wide, 7% opacity
+          const wmCanvas = document.createElement("canvas");
+          const wmScale = 400 / logoImg.naturalWidth;
+          wmCanvas.width = 400;
+          wmCanvas.height = Math.round(logoImg.naturalHeight * wmScale);
+          const wctx = wmCanvas.getContext("2d");
+          wctx.globalAlpha = 0.07;
+          wctx.drawImage(logoImg, 0, 0, wmCanvas.width, wmCanvas.height);
+          watermarkData = wmCanvas.toDataURL("image/png");
+
+          // Header — 200px wide, full opacity
+          const hCanvas = document.createElement("canvas");
+          hCanvas.width = 200;
+          hCanvas.height = Math.round(logoImg.naturalHeight * (200 / logoImg.naturalWidth));
+          hCanvas.getContext("2d").drawImage(logoImg, 0, 0, hCanvas.width, hCanvas.height);
+          headerData = hCanvas.toDataURL("image/png");
         } catch {}
       }
 
-      // Header logo (small, top-left)
-      if (logoImg) {
-        try {
-          const headerW = 70;
-          const headerH = headerW * (logoImg.naturalHeight / logoImg.naturalWidth);
-          pdf.addImage(logoImg, "PNG", margin, margin - 32, headerW, headerH);
-        } catch {}
-      }
+      const wmRatio = logoImg ? logoImg.naturalHeight / logoImg.naturalWidth : 0.6;
+      const wmW = pageW * 0.55;
+      const wmH = wmW * wmRatio;
 
       // Body text
       pdf.setFont("times", "normal");
@@ -210,10 +213,22 @@ export default function WritePage() {
       const lines = pdf.splitTextToSize(output, textWidth);
       pdf.text(lines, margin, margin + 40, { lineHeightFactor: 1.55 });
 
-      // Footer on every page
+      // Watermark, header + footer on every page
       const pageCount = pdf.internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         pdf.setPage(i);
+        if (watermarkData) {
+          try {
+            pdf.addImage(watermarkData, "PNG", (pageW - wmW) / 2, (pageH - wmH) / 2, wmW, wmH);
+          } catch {}
+        }
+        if (headerData) {
+          try {
+            const headerW = 70;
+            const headerH = headerW * wmRatio;
+            pdf.addImage(headerData, "PNG", margin, margin - 32, headerW, headerH);
+          } catch {}
+        }
         pdf.setFontSize(8);
         pdf.setTextColor(122, 118, 110);
         pdf.text(`Bragr · bragrapp.no · ${stamp}`, margin, pageH - margin / 2);
