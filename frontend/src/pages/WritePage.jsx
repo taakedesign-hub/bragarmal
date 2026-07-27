@@ -460,6 +460,85 @@ export default function WritePage() {
               {detection.personal_style.reason}
             </div>
           )}
+
+          {/* Sentence-level highlighting */}
+          {detection.highlights && detection.highlights.length > 0 && (
+            <div className="py-8">
+              <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
+                <div>
+                  <div className="label-ui">Fremhevet</div>
+                  <h4 className="font-serif-display text-2xl mt-1" style={{ color: "var(--ink)" }}>
+                    Setninger fremmed fra din stemme
+                  </h4>
+                </div>
+                <div className="flex items-center gap-4 label-ui">
+                  <span className="inline-flex items-center gap-2">
+                    <span className="inline-block w-3 h-3" style={{ background: "rgba(74,93,78,0.18)" }} />
+                    Din stemme
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <span className="inline-block w-3 h-3" style={{ background: "rgba(184,114,74,0.22)" }} />
+                    Blandet
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <span className="inline-block w-3 h-3" style={{ background: "rgba(161,58,58,0.22)" }} />
+                    Fremmed
+                  </span>
+                </div>
+              </div>
+
+              <div className="paper p-6 md:p-8 font-editor text-[1.05rem] leading-[1.85]" style={{ color: "var(--ink)" }}>
+                {detection.highlights.map((h, i) => {
+                  const bg =
+                    h.similarity >= 60
+                      ? "rgba(74,93,78,0.14)"
+                      : h.similarity >= 40
+                      ? "rgba(184,114,74,0.18)"
+                      : "rgba(161,58,58,0.18)";
+                  return (
+                    <span
+                      key={i}
+                      title={`Likhet ${h.similarity}/100${h.ai_marker_hit ? " · AI-frase funnet" : ""}${h.foreign_words?.length ? " · fremmede ord: " + h.foreign_words.join(", ") : ""}`}
+                      style={{
+                        background: bg,
+                        padding: "0 4px",
+                        marginRight: "4px",
+                        borderRadius: "1px",
+                        cursor: "help",
+                        textDecoration: h.ai_marker_hit ? "underline wavy rgba(161,58,58,0.6)" : "none",
+                      }}
+                    >
+                      {h.sentence}
+                    </span>
+                  );
+                })}
+              </div>
+
+              {/* Foreign word list — aggregated */}
+              {(() => {
+                const all = [];
+                const seen = new Set();
+                for (const h of detection.highlights) {
+                  for (const w of (h.foreign_words || [])) {
+                    if (!seen.has(w)) { seen.add(w); all.push(w); }
+                  }
+                }
+                if (all.length === 0) return null;
+                return (
+                  <div className="mt-6">
+                    <div className="label-ui mb-3">Ord som skiller seg mest ut</div>
+                    <div className="flex flex-wrap gap-2">
+                      {all.slice(0, 30).map((w, i) => (
+                        <span key={i} className="chip" style={{ background: "rgba(161,58,58,0.08)" }}>
+                          {w}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
         </div>
       )}
     </div>

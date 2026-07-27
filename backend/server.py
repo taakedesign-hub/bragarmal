@@ -859,6 +859,12 @@ async def detect_ai(body: DetectBody, user: User = Depends(get_current_user)):
     # Compare text against the user's HUMAN samples using function-word + top-word fingerprint.
     personal = await compute_personal_style_score(user.user_id, text, words)
 
+    # ---- Sentence-level highlighting: which sentences feel most foreign ----
+    highlights = []
+    if personal.get("available"):
+        profile = await db.voice_profiles.find_one({"user_id": user.user_id}, {"_id": 0})
+        highlights = compute_sentence_highlights(text, profile)
+
     return {
         "score": round(score, 1),
         "label": label,
@@ -867,7 +873,93 @@ async def detect_ai(body: DetectBody, user: User = Depends(get_current_user)):
         "avg_sentence_length": round(sum(sent_lens) / len(sent_lens), 2) if sent_lens else 0,
         "ai_markers": hits_list,
         "personal_style": personal,
+        "highlights": highlights,
     }
+
+
+def compute_sentence_highlights(text: str, profile: dict) -> List[dict]:
+    """
+    Score each sentence in the text against the user's voice profile.
+    Returns list of {index, sentence, similarity (0..100), foreign (bool), foreign_words[]}.
+    """
+    if not profile:
+        return []
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text.strip()) if s.strip()]
+    if not sentences:
+        return []
+
+    # Precompute profile fingerprints
+    profile_fw = {f["word"]: f["per_1000"] for f in (profile.get("function_word_frequencies") or [])}
+    profile_top = set(w["word"] for w in (profile.get("top_words") or [])[:30])
+    profile_avg_sl = profile.get("avg_sentence_length") or 0
+
+    # Vocab from all profile samples: we approximate "known words" = signature + function words
+    known_vocab = set(profile_fw.keys()) | profile_top
+
+    ai_marker_res = [re.compile(pat, re.IGNORECASE) for pat in AI_MARKERS]
+
+    results = []
+    for idx, s in enumerate(sentences):
+        s_words = re.findall(r"[A-Za-zÆØÅæøå']+", s)
+        n = max(len(s_words), 1)
+        s_lower = [w.lower() for w in s_words]
+
+        # Function-word cosine (per-sentence, using absolute counts scaled)
+        if profile_fw:
+            counts = {}
+            for w in s_lower:
+                if w in profile_fw:
+                    counts[w] = counts.get(w, 0) + 1
+            per_1000 = 1000.0 / n
+            s_fw = {w: c * per_1000 for w, c in counts.items()}
+            keys = set(profile_fw.keys()) | set(s_fw.keys())
+            dot = sum(profile_fw.get(k, 0) * s_fw.get(k, 0) for k in keys)
+            na = sum(v * v for v in profile_fw.values()) ** 0.5
+            nb = sum(v * v for v in s_fw.values()) ** 0.5
+            fw_cos = (dot / (na * nb)) if (na and nb) else 0
+        else:
+            fw_cos = 0
+
+        # Signature overlap
+        overlap = sum(1 for w in s_lower if w in profile_top) / n
+
+        # Sentence length delta
+        if profile_avg_sl > 0:
+            delta = abs(n - profile_avg_sl) / max(profile_avg_sl, 1)
+            length_sim = max(0.0, 1.0 - min(delta, 1.0))
+        else:
+            length_sim = 0.5
+
+        # AI marker in sentence => strong penalty
+        ai_hit = any(rx.search(s) for rx in ai_marker_res)
+
+        blended = (0.55 * fw_cos + 0.20 * overlap + 0.25 * length_sim) * 100
+        if ai_hit:
+            blended = max(0.0, blended - 25)
+        blended = round(max(0.0, min(100.0, blended)), 1)
+
+        # Foreign words in this sentence: content words not in known_vocab and appearing rarely
+        foreign_words = []
+        for w in s_words:
+            wl = w.lower()
+            if len(wl) < 5:
+                continue
+            if wl in NORWEGIAN_STOPWORDS or wl in known_vocab:
+                continue
+            if wl not in foreign_words:
+                foreign_words.append(wl)
+        foreign_words = foreign_words[:6]
+
+        results.append({
+            "index": idx,
+            "sentence": s,
+            "similarity": blended,
+            "foreign": blended < 45,
+            "foreign_words": foreign_words,
+            "ai_marker_hit": ai_hit,
+        })
+
+    return results
 
 
 async def compute_personal_style_score(user_id: str, text: str, words: List[str]) -> dict:
