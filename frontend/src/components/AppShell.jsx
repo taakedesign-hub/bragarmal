@@ -32,7 +32,7 @@ export default function AppShell({ children }) {
       <header className="hairline-b sticky top-0 z-30" style={{ background: "var(--bg)" }}>
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-4 flex items-center justify-between gap-4">
           <Link to="/" className="flex items-center">
-            <Logo size={40} />
+            <Logo size={52} />
           </Link>
           <nav className="flex items-center gap-1 md:gap-2">
             <NavLink to="/dashboard" label="Hjem" tid={TID.navHome} />

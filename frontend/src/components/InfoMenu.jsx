@@ -4,8 +4,13 @@ import { ChevronDown } from "lucide-react";
 
 const ITEMS = [
   { to: "/manifest", label: "Manifest", desc: "Original + AI-redigert side om side" },
+  { to: "/eksempler", label: "Eksempler", desc: "Når hjelper Bragarmål deg — seks scenarier" },
   { to: "/etikk", label: "Etikk", desc: "Etisk AI-skriving. Regler, arbeidsflyt, selvsjekk" },
   { to: "/priser", label: "Priser", desc: "Beta, Grunnlegger, Ordinær — alt i NOK" },
+  { to: "/prover", label: "Prøver", desc: "Lim inn, last opp fil, foto av håndskrift, høytlesning" },
+  { to: "/stemme", label: "Stemmeprofil", desc: "Analyser rytme, tone og signaturord" },
+  { to: "/skriv", label: "Skriv", desc: "Skrivepulten — sparr med Bragarmål i din stemme" },
+  { to: "/dashboard", label: "Din side", desc: "Alle verktøy og hjelpemidler samlet" },
 ];
 
 export default function InfoMenu({ align = "right" }) {

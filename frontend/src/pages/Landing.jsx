@@ -44,7 +44,7 @@ export default function Landing() {
       <div className="hairline-b">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <Logo size={40} />
+            <Logo size={52} />
           </Link>
           <nav className="flex items-center gap-2 md:gap-6">
             <InfoMenu align="right" />
@@ -104,15 +104,15 @@ export default function Landing() {
             </ul>
           </div>
 
-          {/* Box 2 — WHITE: Når hjelper Bragarmål deg? — top-right */}
+          {/* Box 2 — WHITE: Når hjelper Bragarmål deg? — top-left, left-aligned */}
           <Link
             to="/eksempler"
             data-testid="hero-box-examples"
-            className="aspect-square flex flex-col justify-start items-end text-right p-6 md:p-8 group transition-all hover:bg-neutral-50 relative"
+            className="aspect-square flex flex-col justify-start items-start text-left p-6 md:p-8 group transition-all hover:bg-neutral-50 relative"
             style={{ background: "#ffffff", color: "#0f0e0d" }}
           >
-            <div className="absolute top-6 md:top-8 left-6 md:left-8 font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">02</div>
-            <div className="mt-1">
+            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">02</div>
+            <div className="mt-4">
               <div className="font-serif-display text-2xl md:text-3xl leading-tight">
                 Når hjelper Bragarmål deg?
               </div>
