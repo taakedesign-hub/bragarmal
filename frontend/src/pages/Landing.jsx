@@ -64,39 +64,39 @@ export default function Landing() {
       <section className="max-w-[1400px] mx-auto px-6 md:px-10 pt-10 md:pt-14 pb-12">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
 
-          {/* Box 1 — BLACK: pricing bullets */}
+          {/* Box 1 — BLACK: pricing bullets — text higher, slightly larger */}
           <div
             data-testid="hero-box-pricing"
-            className="aspect-square flex flex-col justify-between p-6 md:p-8"
+            className="aspect-square flex flex-col p-6 md:p-8"
             style={{ background: "#0f0e0d", color: "#ffffff" }}
           >
             <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-70">01</div>
-            <ul className="space-y-2 md:space-y-3">
+            <ul className="mt-6 md:mt-8 space-y-3 md:space-y-4">
               <li>
                 <button
                   data-testid="hero-cta-trial"
                   onClick={startTrial}
-                  className="text-left font-serif-display text-sm md:text-base leading-snug hover:underline underline-offset-4"
+                  className="text-left font-serif-display text-base md:text-lg leading-snug hover:underline underline-offset-4"
                 >
                   Prøv gratis i 2 uker
-                  <span className="block font-editor text-[10px] md:text-xs opacity-70 mt-0.5">deretter automatisk 149 kr/mnd</span>
+                  <span className="block font-editor text-[11px] md:text-xs opacity-70 mt-0.5">deretter automatisk 149 kr/mnd</span>
                 </button>
               </li>
               <li>
                 <button
                   data-testid={TID.ctaGetStarted}
                   onClick={goLogin}
-                  className="text-left font-serif-display text-sm md:text-base leading-snug hover:underline underline-offset-4"
+                  className="text-left font-serif-display text-base md:text-lg leading-snug hover:underline underline-offset-4"
                 >
                   Beta-versjon — gratis i 3 mnd
-                  <span className="block font-editor text-[10px] md:text-xs opacity-70 mt-0.5">for de 10 første som registrerer seg</span>
+                  <span className="block font-editor text-[11px] md:text-xs opacity-70 mt-0.5">for de 10 første som registrerer seg</span>
                 </button>
               </li>
               <li>
                 <Link
                   to="/priser"
                   data-testid="hero-cta-pricing"
-                  className="text-left font-serif-display text-sm md:text-base leading-snug hover:underline underline-offset-4 inline-flex items-center gap-1"
+                  className="text-left font-serif-display text-base md:text-lg leading-snug hover:underline underline-offset-4 inline-flex items-center gap-1"
                 >
                   Priser <ArrowRight size={12} strokeWidth={1.6} />
                 </Link>
@@ -104,7 +104,7 @@ export default function Landing() {
             </ul>
           </div>
 
-          {/* Box 2 — WHITE: sparring partner tagline + examples link */}
+          {/* Box 2 — WHITE: sparring partner — uppercase block */}
           <Link
             to="/eksempler"
             data-testid="hero-box-examples"
@@ -113,7 +113,7 @@ export default function Landing() {
           >
             <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">02</div>
             <div>
-              <div className="font-serif-display text-xl md:text-2xl leading-tight">
+              <div className="font-mono-ui font-semibold text-lg md:text-xl leading-tight tracking-wide uppercase">
                 Din sparringspartner.<br/>Din stemme.
               </div>
               <div className="mt-3 font-editor text-xs md:text-sm inline-flex items-center gap-1 hover:underline underline-offset-4" style={{ color: "#c8432c" }}>
@@ -122,7 +122,7 @@ export default function Landing() {
             </div>
           </Link>
 
-          {/* Box 3 — RED: MANIFEST link */}
+          {/* Box 3 — RED: MANIFEST — bottom-left */}
           <Link
             to="/manifest"
             data-testid="hero-box-manifest"
@@ -138,7 +138,7 @@ export default function Landing() {
             </div>
           </Link>
 
-          {/* Box 4 — Image: ink + fountain pen with red Ethics link */}
+          {/* Box 4 — Image with transparent bg: full ink+pen visible, ethics link */}
           <Link
             to="/etikk"
             data-testid="hero-box-image"
@@ -146,23 +146,23 @@ export default function Landing() {
             style={{ background: "#ffffff" }}
           >
             <img
-              src="/ink-pen.jpg"
+              src="/ink-pen.png"
               alt="Blekkhus og fyllepenn"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain p-4"
               draggable={false}
             />
             <div className="absolute inset-x-0 bottom-0 p-4 md:p-5 flex items-center justify-between">
-              <span className="font-mono-ui text-[10px] md:text-xs tracking-widest" style={{ color: "#0f0e0d", background: "#ffffff", padding: "2px 6px" }}>04</span>
+              <span className="font-mono-ui text-[10px] md:text-xs tracking-widest" style={{ color: "#0f0e0d" }}>04</span>
               <span
-                className="font-editor text-sm md:text-base font-semibold inline-flex items-center gap-1 hover:underline underline-offset-4"
-                style={{ color: "#c8432c", background: "#ffffff", padding: "6px 10px" }}
+                className="font-mono-ui font-semibold text-base md:text-lg tracking-wide uppercase inline-flex items-center gap-2 hover:underline underline-offset-4"
+                style={{ color: "#c8432c" }}
               >
-                Etikk <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
+                Etikk <ArrowRight size={14} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
               </span>
             </div>
           </Link>
 
-          {/* Box 5 — BLACK: link to personal tools */}
+          {/* Box 5 — BLACK: tools — centered bottom, uppercase title, italic serif link */}
           <Link
             to="/dashboard"
             data-testid="hero-box-tools"
@@ -170,34 +170,34 @@ export default function Landing() {
             style={{ background: "#0f0e0d", color: "#ffffff" }}
           >
             <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-70">05</div>
-            <div>
-              <div className="font-serif-display text-lg md:text-xl leading-snug">
+            <div className="flex flex-col items-center text-center">
+              <div className="font-mono-ui font-semibold text-sm md:text-base leading-snug tracking-wide uppercase">
                 Din egen personlige side<br/>med alle hjelpemidler og verktøy
               </div>
-              <div className="mt-3 font-editor text-xs md:text-sm opacity-70 flex items-center gap-2">
+              <div className="mt-3 font-serif-display italic text-sm md:text-base opacity-80 flex items-center gap-2">
                 Til verktøyene <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
               </div>
             </div>
           </Link>
 
-          {/* Box 6 — WHITE: register CTA (red accent) */}
+          {/* Box 6 — WHITE: register CTA — text moved to top */}
           <button
             data-testid="hero-box-register"
             onClick={goLogin}
             className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:bg-neutral-50 text-left"
             style={{ background: "#ffffff", color: "#0f0e0d" }}
           >
-            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">06</div>
             <div>
-              <div className="font-serif-display text-xl md:text-2xl leading-tight">
+              <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">06</div>
+              <div className="mt-4 font-serif-display text-xl md:text-2xl leading-tight">
                 Kom i gang —<br/>registrer deg nå
               </div>
               <div className="mt-3 font-editor text-[11px] md:text-xs opacity-70 max-w-[24ch]">
                 Du beholder alle dine data — også hvis du senere pauser abonnementet.
               </div>
-              <div className="mt-3 font-editor text-xs md:text-sm flex items-center gap-2" style={{ color: "#c8432c" }}>
-                Logg inn <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
-              </div>
+            </div>
+            <div className="font-editor text-xs md:text-sm flex items-center gap-2" style={{ color: "#c8432c" }}>
+              Logg inn <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
             </div>
           </button>
 
