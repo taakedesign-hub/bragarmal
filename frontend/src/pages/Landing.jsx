@@ -159,7 +159,7 @@ export default function Landing() {
               <div className="font-editor text-lg md:text-xl leading-[1.85]" style={{ color: "var(--ink)" }}>
                 <p>
                   Etter utallige påbegynte prosjekt og perioder med skrivesperre, sendte mitt
-                  nåværende bokprosjekt over 3 år med ut på jakt etter skrivehjelp. Seriøse aktører
+                  nåværende bokprosjekt over 3 år meg ut på jakt etter skrivehjelp. Seriøse aktører
                   ble for dyre, og AI tok bort det menneskelige aspektet som endret min egenart og
                   fortellerstemme. Det ble rett og slett altfor glatt og perfeksjonert.
                 </p>
@@ -172,8 +172,8 @@ export default function Landing() {
                   className="mt-10 font-serif-display text-2xl md:text-3xl leading-snug pl-6"
                   style={{ color: "var(--ink)", borderLeft: "2px solid var(--moss)" }}
                 >
-                  Bragarmål er en AI-basert tjeneste som ikke genererer AI-basert tekst til deg,
-                  men som hjelper deg videre når du står fast. Jo mer du legger inn, jo bedre
+                  Bragarmål er en AI-basert tjeneste, men den genererer ikke AI-basert tekst til
+                  deg — den hjelper deg videre når du står fast. Jo mer du legger inn, jo bedre
                   resultat får du.
                 </p>
                 <p className="mt-6 font-editor text-lg md:text-xl leading-[1.85]" style={{ color: "var(--ink)" }}>
@@ -181,12 +181,14 @@ export default function Landing() {
                   stil, etc.), legg inn bilder av gamle håndskrevne tekster, last opp filer, skriv
                   notater og mer.
                 </p>
-                <p className="mt-8" style={{ color: "var(--ink)" }}>
-                  Bragarmål er ikke tekst for en enkel AI-prompt som skriver boken (eller
-                  prosjektet) for deg. Bragarmål er for deg som forstår at det tar tid å bearbeide
-                  fortellingen — teksten din — men vil ha veiledning og drahjelp når det låser
-                  seg. Eller bare har en idé og trenger hjelp til å komme i gang —
-                  {" "}<em className="italic" style={{ color: "var(--moss)" }}>med DIN stemme intakt.</em>
+                <p className="mt-8 font-serif-display text-xl md:text-2xl" style={{ color: "var(--ink)" }}>
+                  Bragarmål er ikke en kjapp løsning som skriver boken (eller prosjektet) for deg.
+                </p>
+                <p className="mt-6" style={{ color: "var(--ink)" }}>
+                  Bragarmål er for deg som forstår at det tar tid å bearbeide fortellingen,
+                  teksten din, rytmen — men vil ha veiledning og drahjelp når det låser seg. Eller
+                  hjelp til å komme i gang —
+                  {" "}<em className="italic" style={{ color: "var(--moss)" }}>med DIN fortellerstemme intakt.</em>
                 </p>
                 <p className="mt-10 font-serif-display text-2xl md:text-3xl" style={{ color: "var(--moss)" }}>
                   En sparringspartner. Ikke tekstautomat.
