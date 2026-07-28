@@ -77,6 +77,10 @@ export default function PricingPage() {
           Fair pris. <em className="italic" style={{ color: "var(--moss)" }}>Ingen skjulte grenser</em>.
         </h1>
         <p className="mt-6 font-editor text-lg max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>
+          Bragarmål er en AI-basert tjeneste, som ivaretar fortellerstemmen din og hjelper
+          deg videre når du står fast. Jo mer du legger inn, jo bedre resultat får du.
+        </p>
+        <p className="mt-3 font-editor text-lg max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>
           Alle modeller. Alle prøver. Ubegrenset generering. Alt lagret kun på din konto —
           slett når du vil.
         </p>
