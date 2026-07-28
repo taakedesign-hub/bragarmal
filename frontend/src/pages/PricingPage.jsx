@@ -143,12 +143,24 @@ export default function PricingPage() {
               Alle modeller, ubegrenset generering, du styrer dataene dine.
             </p>
 
+            {/* Trial frame */}
+            <div
+              className="mt-6 p-3 flex items-center gap-3"
+              style={{ border: "1px solid var(--moss)", background: "var(--linen)" }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--moss)" }} />
+              <span className="font-mono-ui text-[11px] tracking-widest" style={{ color: "var(--ink)" }}>
+                2 UKER GRATIS PRØVETID · TREKKES AUTOMATISK ETTERPÅ
+              </span>
+            </div>
+
             {/* Four purchase options — monthly / 3mo / 6mo / yearly */}
             <div className="mt-6 grid grid-cols-1 gap-3">
               {options.map((opt) => {
                 const equivMonthly = Math.round(opt.price / opt.months);
                 const saved = baseMonthly * opt.months - opt.price;
                 const isYearly = opt.months === 12;
+                const isMonthly = opt.months === 1;
                 return (
                   <button
                     key={opt.key}
@@ -174,9 +186,16 @@ export default function PricingPage() {
                         </span>
                       )}
                     </span>
-                    <span className="flex items-baseline gap-1 shrink-0 ml-3">
-                      <span className="font-serif-display text-2xl md:text-3xl" style={{ color: "var(--ink)" }}>{opt.price}</span>
-                      <span className="font-editor text-sm" style={{ color: "var(--ink-mute)" }}>kr</span>
+                    <span className="flex flex-col items-end shrink-0 ml-3">
+                      <span className="flex items-baseline gap-1">
+                        <span className="font-serif-display text-2xl md:text-3xl" style={{ color: "var(--ink)" }}>{opt.price}</span>
+                        <span className="font-editor text-sm" style={{ color: "var(--ink-mute)" }}>kr{isMonthly ? " / mnd" : ""}</span>
+                      </span>
+                      {isMonthly && (
+                        <span className="font-editor text-xs mt-1" style={{ color: "var(--moss)" }}>
+                          2 uker gratis prøvetid automatisk
+                        </span>
+                      )}
                     </span>
                   </button>
                 );
