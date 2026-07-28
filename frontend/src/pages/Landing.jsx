@@ -85,7 +85,7 @@ export default function Landing() {
             to="/eksempler"
             data-testid="hero-box-examples"
             className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:bg-neutral-50"
-            style={{ background: "#ffffff", color: "#0f0e0d", border: "1px solid #e5e5e5" }}
+            style={{ background: "#ffffff", color: "#0f0e0d" }}
           >
             <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">02</div>
             <div>
@@ -114,11 +114,12 @@ export default function Landing() {
             </div>
           </Link>
 
-          {/* Box 4 — Image: ink + fountain pen */}
-          <div
+          {/* Box 4 — Image: ink + fountain pen with red Ethics link */}
+          <Link
+            to="/etikk"
             data-testid="hero-box-image"
-            className="aspect-square overflow-hidden"
-            style={{ background: "#ffffff", border: "1px solid #e5e5e5" }}
+            className="aspect-square overflow-hidden relative group block"
+            style={{ background: "#ffffff" }}
           >
             <img
               src="/ink-pen.jpg"
@@ -126,7 +127,16 @@ export default function Landing() {
               className="w-full h-full object-cover"
               draggable={false}
             />
-          </div>
+            <div className="absolute inset-x-0 bottom-0 p-4 md:p-5 flex items-center justify-between">
+              <span className="font-mono-ui text-[10px] md:text-xs tracking-widest" style={{ color: "#0f0e0d", background: "#ffffff", padding: "2px 6px" }}>04</span>
+              <span
+                className="font-serif-display text-sm md:text-base inline-flex items-center gap-1 hover:underline underline-offset-4"
+                style={{ color: "#c8432c", background: "#ffffff", padding: "6px 10px" }}
+              >
+                Etikk <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
+              </span>
+            </div>
+          </Link>
 
           {/* Box 5 — BLACK: link to personal tools */}
           <Link
@@ -151,7 +161,7 @@ export default function Landing() {
             data-testid="hero-box-register"
             onClick={goLogin}
             className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:bg-neutral-50 text-left"
-            style={{ background: "#ffffff", color: "#0f0e0d", border: "1px solid #e5e5e5" }}
+            style={{ background: "#ffffff", color: "#0f0e0d" }}
           >
             <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">06</div>
             <div>
