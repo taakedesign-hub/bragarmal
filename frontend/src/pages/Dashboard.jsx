@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { ArrowRight, BookOpen, PenLine, WandSparkles } from "lucide-react";
+import { ArrowRight, BookOpen, PenLine, WandSparkles, FileText, ScanLine, Camera, Mic } from "lucide-react";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -81,7 +81,49 @@ export default function Dashboard() {
           delay="stagger-3"
         />
       </div>
+
+      {/* Tools — fire måter å mate inn */}
+      <div className="mt-16 md:mt-20">
+        <h2 className="font-serif-display text-3xl md:text-4xl font-light" style={{ color: "var(--ink)" }}>
+          Alt du har, i din stemme.
+        </h2>
+        <p className="font-editor text-base md:text-lg mt-3 max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>
+          Jo mer materiale du mater inn, jo mer nøyaktig blir
+          {" "}<em className="italic" style={{ color: "var(--moss)" }}>«din stemme»-lakmusen</em>.
+        </p>
+
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+          <ToolBox n="01" icon={<FileText size={22} strokeWidth={1.4} />} title="Lim inn" body="Kladder, meldinger, avsnitt du har liggende — bare kopier og lim." to="/prover" />
+          <ToolBox n="02" icon={<ScanLine size={22} strokeWidth={1.4} />} title="Last opp fil" body=".txt, .md, .pdf, .docx. Nedskrevet materiale du har fra før." to="/prover" />
+          <ToolBox n="03" icon={<Camera size={22} strokeWidth={1.4} />} title="Foto av håndskrift" body="Fotografer gamle notatbøker og brev. Håndskriften blir tekst." to="/prover" />
+          <ToolBox n="04" icon={<Mic size={22} strokeWidth={1.4} />} title="Høytlesning" body="Les direkte inn, eller last opp opptak. Muntlig fortellerstemme bevart." to="/prover" />
+        </div>
+      </div>
     </div>
+  );
+}
+
+function ToolBox({ n, icon, title, body, to }) {
+  return (
+    <Link
+      to={to}
+      className="p-6 md:p-7 group transition-all hover:bg-neutral-50 flex flex-col"
+      style={{ border: "1px solid var(--line)" }}
+    >
+      <div className="flex items-start justify-between">
+        <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--ink-mute)" }}>{n}</div>
+        <div style={{ color: "var(--moss)" }}>{icon}</div>
+      </div>
+      <h3 className="font-serif-display text-xl md:text-2xl mt-6 leading-snug" style={{ color: "var(--ink)" }}>
+        {title}
+      </h3>
+      <p className="font-editor text-sm md:text-base mt-3 leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+        {body}
+      </p>
+      <div className="mt-6 inline-flex items-center gap-2 label-ui" style={{ color: "var(--moss)" }}>
+        Åpne <ArrowRight size={14} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
+      </div>
+    </Link>
   );
 }
 

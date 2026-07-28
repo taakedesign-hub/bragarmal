@@ -183,22 +183,22 @@ export default function Landing() {
             </div>
           </Link>
 
-          {/* Box 6 — WHITE: register CTA — bottom-left */}
+          {/* Box 6 — WHITE: register CTA — bottom-right */}
           <button
             data-testid="hero-box-register"
             onClick={goLogin}
-            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:bg-neutral-50 text-left"
+            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:bg-neutral-50 text-right"
             style={{ background: "#ffffff", color: "#0f0e0d" }}
           >
-            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">06</div>
-            <div>
+            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60 text-left">06</div>
+            <div className="ml-auto">
               <div className="font-serif-display text-xl md:text-2xl leading-tight">
                 Kom i gang —<br/>registrer deg nå
               </div>
-              <div className="mt-3 font-editor text-[11px] md:text-xs opacity-70 max-w-[24ch]">
+              <div className="mt-3 font-editor text-[11px] md:text-xs opacity-70 max-w-[24ch] ml-auto">
                 Du beholder alle dine data — også hvis du senere pauser abonnementet.
               </div>
-              <div className="mt-3 font-editor text-xs md:text-sm inline-flex items-center gap-2" style={{ color: "#c8432c" }}>
+              <div className="mt-3 font-editor text-xs md:text-sm inline-flex items-center gap-2 justify-end" style={{ color: "#c8432c" }}>
                 Logg inn <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
               </div>
             </div>
