@@ -261,8 +261,8 @@ export default function Landing() {
                   className="mt-10 font-serif-display text-2xl md:text-3xl leading-snug pl-6"
                   style={{ color: "var(--ink)", borderLeft: "2px solid var(--moss)" }}
                 >
-                  Bragarmål er en AI-basert tjeneste, men den genererer ikke AI-basert tekst til
-                  deg — den hjelper deg videre når du står fast. Jo mer du legger inn, jo bedre
+                  Bragarmål er en AI-basert tjeneste, som ivaretar fortellerstemmen din og
+                  hjelper deg videre når du står fast. Jo mer du legger inn, jo bedre
                   resultat får du.
                 </p>
                 <p className="mt-6 font-editor text-lg md:text-xl leading-[1.85]" style={{ color: "var(--ink)" }}>
