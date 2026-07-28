@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Logo from "@/components/Logo";
 import { Link, useNavigate } from "react-router-dom";
-import { Feather, ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
@@ -39,7 +39,6 @@ export default function PricingPage() {
     }
   };
 
-  const founderEligible = status?.founder_eligible;
   const isBeta = status?.beta;
   const isActive = status?.active;
   const isLifetime = status?.plan === "lifetime";
@@ -55,7 +54,7 @@ export default function PricingPage() {
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Seo
         title="Priser — fair pris, ingen skjulte grenser"
-        description="Bragarmål-medlemskap fra 99 kr/mnd. Beta-plasser gratis i 3 måneder for de 10 første. Alle modeller, ubegrenset generering."
+        description="Bragarmål-medlemskap fra 149 kr/mnd. Beta-plasser gratis i 3 måneder for de 10 første. Alle modeller, ubegrenset generering."
         path="/priser"
       />
       <div className="hairline-b">
