@@ -112,11 +112,42 @@
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap" rel="stylesheet" />
+
+        <!-- Preload critical logo asset -->
+        <link rel="preload" as="image" href="%PUBLIC_URL%/bragr-logo.png" />
+
+        <!-- Initial paint style — logo loader shown until React mounts -->
+        <style>
+          html, body { margin: 0; padding: 0; background: #ffffff; }
+          #bragr-boot {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            z-index: 9999;
+            transition: opacity 0.35s ease-out;
+          }
+          #bragr-boot img {
+            width: 220px;
+            height: auto;
+            opacity: 0;
+            animation: bragr-fade 1.6s ease-in-out infinite;
+          }
+          @keyframes bragr-fade {
+            0%   { opacity: 0.35; transform: scale(0.98); }
+            50%  { opacity: 1;    transform: scale(1); }
+            100% { opacity: 0.35; transform: scale(0.98); }
+          }
+          #bragr-boot.hide { opacity: 0; pointer-events: none; }
+        </style>
         <script>window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);</script>
         <script src="https://assets.emergent.sh/scripts/emergent-main.js"></script>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
+        <div id="bragr-boot"><img src="%PUBLIC_URL%/bragr-logo.png" alt="Bragarmål" /></div>
         <div id="root"></div>
         <!--
       This HTML file is a template.

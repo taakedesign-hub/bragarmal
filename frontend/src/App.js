@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import { HelmetProvider } from "react-helmet-async";
+import { useEffect } from "react";
 import "@/App.css";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import Landing from "@/pages/Landing";
@@ -56,6 +57,15 @@ function Protected({ children }) {
 }
 
 export default function App() {
+  useEffect(() => {
+    // Fade out the boot loader once React has mounted
+    const boot = document.getElementById("bragr-boot");
+    if (boot) {
+      boot.classList.add("hide");
+      setTimeout(() => boot.remove(), 400);
+    }
+  }, []);
+
   return (
     <HelmetProvider>
       <BrowserRouter>

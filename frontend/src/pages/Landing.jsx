@@ -215,10 +215,17 @@ export default function Landing() {
           <p className="mt-4 font-editor text-base md:text-lg" style={{ color: "var(--ink-soft)" }}>
             Ingen rask metode for å publisere. Kun et verktøy som tar deg videre — på dine premisser.
           </p>
-          <p className="mt-4 font-editor text-sm" style={{ color: "var(--ink-mute)" }}>
-            <span className="font-serif-display text-base" style={{ color: "var(--ink)" }}>Bragarmål</span>
-            {" "}— norrønt for «skaldens språk» og «den fremste diktekunst». Finn ditt eget.
-          </p>
+          <div
+            className="mt-8 pl-5 py-2"
+            style={{ borderLeft: "3px solid var(--moss)" }}
+          >
+            <p className="font-serif-display text-xl md:text-2xl leading-snug" style={{ color: "var(--ink)" }}>
+              <span className="font-serif-display" style={{ color: "var(--moss)" }}>Bragarmål</span>
+              {" "}er norrønt og står for
+              {" "}<em className="italic">skaldens språk</em>
+              {" "}— den fremste diktekunst.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -268,12 +275,6 @@ export default function Landing() {
                   teksten din, rytmen — men vil ha veiledning og drahjelp når det låser seg. Eller
                   hjelp til å komme i gang —
                   {" "}<em className="italic" style={{ color: "var(--moss)" }}>med DIN fortellerstemme intakt.</em>
-                </p>
-                <p
-                  className="mt-10 font-serif-display text-3xl md:text-4xl leading-snug"
-                  style={{ color: "var(--ink)" }}
-                >
-                  DIN stemme er din. Bragarmål sender deg tilbake til deg selv.
                 </p>
               </div>
 
