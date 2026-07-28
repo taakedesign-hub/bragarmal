@@ -9,4 +9,4 @@ Disallow: /skriv
 Disallow: /auth-callback
 Disallow: /betaling/
 
-Sitemap: https://bragrapp.no/sitemap.xml
+Sitemap: https://bragarmål.no/sitemap.xml

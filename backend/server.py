@@ -1742,12 +1742,27 @@ async def billing_checkout(body: CheckoutRequest, user: User = Depends(get_curre
         customer_id = cust.id
         await db.users.update_one({"user_id": user.user_id}, {"$set": {"stripe_customer_id": customer_id}})
 
+    # Stripe requires ASCII URLs — encode IDN hostnames (bragarmål.no → xn--bragarml-b1a.no)
+    def _ascii_url(url: str) -> str:
+        try:
+            from urllib.parse import urlsplit, urlunsplit
+            parts = urlsplit(url)
+            host = parts.hostname or ""
+            ascii_host = host.encode("idna").decode("ascii") if host else host
+            if parts.port:
+                ascii_host = f"{ascii_host}:{parts.port}"
+            return urlunsplit((parts.scheme, ascii_host, parts.path, parts.query, parts.fragment))
+        except Exception:
+            return url
+
+    origin_ascii = _ascii_url(body.origin_url)
+
     session = stripe.checkout.Session.create(
         customer=customer_id,
         line_items=[{"price": price.id, "quantity": 1}],
         mode="subscription",
-        success_url=f"{body.origin_url}/betaling/vellykket?session_id={{CHECKOUT_SESSION_ID}}",
-        cancel_url=f"{body.origin_url}/betaling/avbrutt",
+        success_url=f"{origin_ascii}/betaling/vellykket?session_id={{CHECKOUT_SESSION_ID}}",
+        cancel_url=f"{origin_ascii}/betaling/avbrutt",
         metadata={"user_id": user.user_id, "lookup_key": body.lookup_key},
         managed_payments={"enabled": True},
         subscription_data={"metadata": {"user_id": user.user_id, "lookup_key": body.lookup_key}},

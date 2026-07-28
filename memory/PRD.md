@@ -5,7 +5,7 @@ An app that detects the user's unique writing voice and helps them overcome writ
 
 ## Branding
 - **App name**: Bragr (Norwegian for "poetic art" / "the foremost", from Norse mythology)
-- **Domain**: bragrapp.no (purchased Feb 2026)
+- **Domain**: bragarmål.no (purchased Feb 2026)
 - **Tagline**: "Vi genererer ikke ord. Vi finner din stemme."
 - **Sub-tagline**: "Finn din indre skald."
 - **Language**: Norwegian (all UI + user interactions)
@@ -49,7 +49,7 @@ An app that detects the user's unique writing voice and helps them overcome writ
 ## Deployment Status
 - Preview URL: https://echo-writer-2.preview.emergentagent.com
 - **Ready to deploy** via Emergent Deploy button
-- User owns bragrapp.no — pending domain link via Emergent → Entri
+- User owns bragarmål.no — pending domain link via Emergent → Entri
 
 ## Backlog (P1)
 - Add paginering to /api/samples, /api/voice/analyze, /api/generate (perf opt after lansering)
@@ -58,5 +58,5 @@ An app that detects the user's unique writing voice and helps them overcome writ
 
 ## Backlog (P2)
 - Modularize server.py (~1900 lines → split into auth/billing/samples/generation modules)
-- Custom domain landing (bragrapp.no)
+- Custom domain landing (bragarmål.no)
 - Norwegian SEO optimization

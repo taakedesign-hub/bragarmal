@@ -41,37 +41,23 @@ export default function Landing() {
       <section className="max-w-[1400px] mx-auto px-6 md:px-10 pt-10 md:pt-14 pb-12">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
 
-          {/* Box 1 — BLACK: MANIFEST link */}
+          {/* Box 1 — WHITE: MANIFEST link */}
           <Link
             to="/manifest"
             data-testid="hero-box-manifest"
-            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:opacity-90"
-            style={{ background: "#0f0e0d", color: "#ffffff" }}
+            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:bg-neutral-50"
+            style={{ background: "#ffffff", color: "#0f0e0d", border: "1px solid #e5e5e5" }}
           >
-            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-70">01</div>
+            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">01</div>
             <div>
               <div className="font-serif-display text-3xl md:text-5xl leading-none tracking-tight">MANIFEST</div>
-              <div className="mt-3 font-editor text-xs md:text-sm opacity-70 flex items-center gap-2">
+              <div className="mt-3 font-editor text-xs md:text-sm flex items-center gap-2" style={{ color: "var(--moss)" }}>
                 Les hele <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
               </div>
             </div>
           </Link>
 
-          {/* Box 2 — WHITE: ink + fountain pen photo */}
-          <div
-            data-testid="hero-box-image"
-            className="aspect-square overflow-hidden"
-            style={{ background: "#ffffff", border: "1px solid #e5e5e5" }}
-          >
-            <img
-              src="/ink-pen.jpg"
-              alt="Blekkhus og fyllepenn"
-              className="w-full h-full object-cover"
-              draggable={false}
-            />
-          </div>
-
-          {/* Box 3 — RED: Examples link */}
+          {/* Box 2 — RED: Examples link (moved to middle) */}
           <Link
             to="/eksempler"
             data-testid="hero-box-examples"
@@ -89,13 +75,27 @@ export default function Landing() {
             </div>
           </Link>
 
-          {/* Box 4 — WHITE with black text: pricing bullets */}
+          {/* Box 3 — WHITE: ink + fountain pen photo */}
+          <div
+            data-testid="hero-box-image"
+            className="aspect-square overflow-hidden"
+            style={{ background: "#ffffff", border: "1px solid #e5e5e5" }}
+          >
+            <img
+              src="/ink-pen.jpg"
+              alt="Blekkhus og fyllepenn"
+              className="w-full h-full object-cover"
+              draggable={false}
+            />
+          </div>
+
+          {/* Box 4 — BLACK: pricing bullets */}
           <div
             data-testid="hero-box-pricing"
             className="aspect-square flex flex-col justify-between p-6 md:p-8"
-            style={{ background: "#ffffff", border: "1px solid #e5e5e5", color: "#0f0e0d" }}
+            style={{ background: "#0f0e0d", color: "#ffffff" }}
           >
-            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">03</div>
+            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-70">03</div>
             <ul className="space-y-2 md:space-y-3">
               <li>
                 <button
@@ -128,32 +128,32 @@ export default function Landing() {
             </ul>
           </div>
 
-          {/* Box 5 — BLACK: link to personal tools */}
+          {/* Box 5 — WHITE: link to personal tools */}
           <Link
             to="/dashboard"
             data-testid="hero-box-tools"
-            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:opacity-90"
-            style={{ background: "#0f0e0d", color: "#ffffff" }}
+            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:bg-neutral-50"
+            style={{ background: "#ffffff", color: "#0f0e0d", border: "1px solid #e5e5e5" }}
           >
-            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-70">04</div>
+            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">04</div>
             <div>
               <div className="font-serif-display text-lg md:text-xl leading-snug">
                 Din egen personlige side<br/>med alle hjelpemidler og verktøy
               </div>
-              <div className="mt-3 font-editor text-xs md:text-sm opacity-70 flex items-center gap-2">
+              <div className="mt-3 font-editor text-xs md:text-sm flex items-center gap-2" style={{ color: "var(--moss)" }}>
                 Til verktøyene <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
               </div>
             </div>
           </Link>
 
-          {/* Box 6 — WHITE: register CTA */}
+          {/* Box 6 — BLACK: register CTA */}
           <button
             data-testid="hero-box-register"
             onClick={goLogin}
-            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:bg-neutral-50 text-left"
-            style={{ background: "#ffffff", color: "#0f0e0d", border: "1px solid #e5e5e5" }}
+            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:opacity-90 text-left"
+            style={{ background: "#0f0e0d", color: "#ffffff" }}
           >
-            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">05</div>
+            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-70">05</div>
             <div>
               <div className="font-serif-display text-xl md:text-2xl leading-tight">
                 Kom i gang —<br/>registrer deg nå
@@ -161,7 +161,7 @@ export default function Landing() {
               <div className="mt-3 font-editor text-[11px] md:text-xs opacity-70 max-w-[24ch]">
                 Du beholder alle dine data — også hvis du senere pauser abonnementet.
               </div>
-              <div className="mt-3 font-editor text-xs md:text-sm flex items-center gap-2" style={{ color: "var(--moss)" }}>
+              <div className="mt-3 font-editor text-xs md:text-sm opacity-90 flex items-center gap-2">
                 Logg inn <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
               </div>
             </div>

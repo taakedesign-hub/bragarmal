@@ -230,7 +230,7 @@ export default function WritePage() {
       }
       pdf.setFontSize(8);
       pdf.setTextColor(122, 118, 110);
-      pdf.text(`Bragarmål · bragrapp.no · ${stamp}`, margin, pageH - margin / 2);
+      pdf.text(`Bragarmål · bragarmål.no · ${stamp}`, margin, pageH - margin / 2);
       pdf.text(`${i} / ${pageCount}`, pageW - margin, pageH - margin / 2, { align: "right" });
     }
 
@@ -259,7 +259,7 @@ export default function WritePage() {
         await navigator.share({
           files: [file],
           title: "Utkast fra Bragarmål",
-          text: "Skrevet med Bragarmål — bragrapp.no",
+          text: "Skrevet med Bragarmål — bragarmål.no",
         });
         toast("Delt");
       } else {
