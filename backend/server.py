@@ -1742,7 +1742,7 @@ async def billing_checkout(body: CheckoutRequest, user: User = Depends(get_curre
         customer_id = cust.id
         await db.users.update_one({"user_id": user.user_id}, {"$set": {"stripe_customer_id": customer_id}})
 
-    # Stripe requires ASCII URLs — encode IDN hostnames (bragarmål.no → xn--bragarml-b1a.no)
+    # Stripe requires ASCII URLs — encode IDN hostnames (bragarmål.no → xn--bragarml-g0a.no)
     def _ascii_url(url: str) -> str:
         try:
             from urllib.parse import urlsplit, urlunsplit
