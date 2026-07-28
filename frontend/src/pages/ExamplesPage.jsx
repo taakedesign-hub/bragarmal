@@ -91,6 +91,42 @@ export default function ExamplesPage() {
           ))}
         </div>
 
+        {/* Prompt eksempler — sånn spør du */}
+        <div className="mt-16 md:mt-20 grid grid-cols-12 gap-6 md:gap-10 items-start">
+          <div className="col-span-12 md:col-span-4">
+            <div className="label-ui">Sånn spør du</div>
+            <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
+              Eksempler på når Bragarmål <em className="italic" style={{ color: "var(--moss)" }}>hjelper</em>.
+            </h2>
+            <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
+              Ikke spør «skriv kapittel to for meg». Spør slik du ville spurt en betrodd kollega
+              — konkret, med kontekst.
+            </p>
+          </div>
+          <div className="col-span-12 md:col-span-8 space-y-6">
+            <ExamplePrompt
+              situation="Skrivesperre midt i teksten"
+              prompt="Jeg har skrevet 4 sider, men står fast. Kan Bragarmål gi meg et tekstforslag for å løsne skrivesperren?"
+            />
+            <ExamplePrompt
+              situation="Ny scene i din stemme"
+              prompt="Skriv en åpning på et kapittel der Ellen kommer inn på minilageret for siste gang — mørkt, kort, i min stemme."
+            />
+            <ExamplePrompt
+              situation="Vei videre fra et fragment"
+              prompt="Her er en dialogsnutt jeg har liggende. Foreslå tre retninger scenen kan gå videre — jeg velger selv."
+            />
+            <ExamplePrompt
+              situation="Sjekk om det lyder som deg"
+              prompt="Sjekk denne teksten mot stemmeprofilen min. Hvilke setninger skiller seg mest ut, og hvorfor?"
+            />
+            <ExamplePrompt
+              situation="Bearbeide gammelt materiale"
+              prompt="Jeg har fotografert en side fra dagboka mi fra 2003. Transkriber, og foreslå hvordan den kan brukes som scene i romanen."
+            />
+          </div>
+        </div>
+
         <div className="hairline-t mt-16 pt-8 flex items-center justify-between flex-wrap gap-4">
           <div>
             <p className="font-serif-display text-2xl md:text-3xl" style={{ color: "var(--moss)" }}>
@@ -107,6 +143,20 @@ export default function ExamplesPage() {
       </section>
 
       <Footer />
+    </div>
+  );
+}
+
+function ExamplePrompt({ situation, prompt }) {
+  return (
+    <div className="paper p-6 md:p-7" style={{ background: "#fafafa" }}>
+      <div className="label-ui" style={{ color: "var(--moss)" }}>{situation}</div>
+      <p
+        className="mt-3 font-editor text-base md:text-lg leading-relaxed italic"
+        style={{ color: "var(--ink)" }}
+      >
+        «{prompt}»
+      </p>
     </div>
   );
 }

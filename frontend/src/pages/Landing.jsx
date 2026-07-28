@@ -104,19 +104,24 @@ export default function Landing() {
             </ul>
           </div>
 
-          {/* Box 2 — WHITE: sparring partner — centered */}
+          {/* Box 2 — WHITE: Når hjelper Bragarmål deg? — top-right */}
           <Link
             to="/eksempler"
             data-testid="hero-box-examples"
-            className="aspect-square flex flex-col items-center justify-center text-center p-6 md:p-8 group transition-all hover:bg-neutral-50 relative"
+            className="aspect-square flex flex-col justify-start items-end text-right p-6 md:p-8 group transition-all hover:bg-neutral-50 relative"
             style={{ background: "#ffffff", color: "#0f0e0d" }}
           >
             <div className="absolute top-6 md:top-8 left-6 md:left-8 font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">02</div>
-            <div className="font-serif-display text-xl md:text-2xl leading-tight">
-              Din sparringspartner.<br/>Din stemme.
-            </div>
-            <div className="mt-3 font-editor text-xs md:text-sm inline-flex items-center gap-1 hover:underline underline-offset-4" style={{ color: "#c8432c" }}>
-              Hvordan Bragarmål hjelper deg <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
+            <div className="mt-1">
+              <div className="font-serif-display text-2xl md:text-3xl leading-tight">
+                Når hjelper Bragarmål deg?
+              </div>
+              <p className="mt-3 font-serif-display italic text-sm md:text-base leading-snug max-w-[32ch]" style={{ color: "var(--ink-soft)" }}>
+                Seks konkrete situasjoner der Bragarmål tar deg videre — uten å ta over.
+              </p>
+              <div className="mt-4 font-mono-ui text-sm md:text-base tracking-wide uppercase inline-flex items-center gap-2 hover:underline underline-offset-4" style={{ color: "#c8432c" }}>
+                Vis eksempler <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
+              </div>
             </div>
           </Link>
 
@@ -160,7 +165,7 @@ export default function Landing() {
             </div>
           </Link>
 
-          {/* Box 5 — BLACK: tools — centered bottom, uppercase title (not bold), italic serif link */}
+          {/* Box 5 — BLACK: tools — bottom-left, uppercase title, italic serif link */}
           <Link
             to="/dashboard"
             data-testid="hero-box-tools"
@@ -168,9 +173,9 @@ export default function Landing() {
             style={{ background: "#0f0e0d", color: "#ffffff" }}
           >
             <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-70">05</div>
-            <div className="flex flex-col items-center text-center">
+            <div>
               <div className="font-mono-ui text-sm md:text-base leading-snug tracking-wide uppercase">
-                Din egen personlige side<br/>med alle hjelpemidler og verktøy
+                Personlig side med alle<br/>hjelpemidler og verktøy
               </div>
               <div className="mt-3 font-serif-display italic text-sm md:text-base opacity-80 flex items-center gap-2">
                 Til verktøyene <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
@@ -178,22 +183,22 @@ export default function Landing() {
             </div>
           </Link>
 
-          {/* Box 6 — WHITE: register CTA — text at bottom-right (opposite of Box 3 bottom-left) */}
+          {/* Box 6 — WHITE: register CTA — bottom-left */}
           <button
             data-testid="hero-box-register"
             onClick={goLogin}
-            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:bg-neutral-50 text-right"
+            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:bg-neutral-50 text-left"
             style={{ background: "#ffffff", color: "#0f0e0d" }}
           >
-            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60 text-left">06</div>
+            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">06</div>
             <div>
               <div className="font-serif-display text-xl md:text-2xl leading-tight">
                 Kom i gang —<br/>registrer deg nå
               </div>
-              <div className="mt-3 font-editor text-[11px] md:text-xs opacity-70 max-w-[24ch] ml-auto">
+              <div className="mt-3 font-editor text-[11px] md:text-xs opacity-70 max-w-[24ch]">
                 Du beholder alle dine data — også hvis du senere pauser abonnementet.
               </div>
-              <div className="mt-3 font-editor text-xs md:text-sm inline-flex items-center gap-2 justify-end" style={{ color: "#c8432c" }}>
+              <div className="mt-3 font-editor text-xs md:text-sm inline-flex items-center gap-2" style={{ color: "#c8432c" }}>
                 Logg inn <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
               </div>
             </div>
@@ -341,46 +346,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Example use cases — hvordan spør du Bragarmål */}
-      <section>
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16 md:py-20">
-          <div className="grid grid-cols-12 gap-6 md:gap-10 items-start">
-            <div className="col-span-12 md:col-span-4">
-              <div className="label-ui">Sånn spør du</div>
-              <h2 className="font-serif-display text-4xl md:text-5xl font-light mt-2" style={{ color: "var(--ink)" }}>
-                Eksempler på når Bragarmål <em className="italic" style={{ color: "var(--moss)" }}>hjelper</em>.
-              </h2>
-              <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
-                Ikke spør «skriv kapittel to for meg». Spør slik du ville spurt en betrodd kollega
-                — konkret, med kontekst.
-              </p>
-            </div>
-            <div className="col-span-12 md:col-span-8 space-y-6">
-              <ExamplePrompt
-                situation="Skrivesperre midt i teksten"
-                prompt="Jeg har skrevet 4 sider, men står fast. Kan Bragarmål gi meg et tekstforslag for å løsne skrivesperren?"
-              />
-              <ExamplePrompt
-                situation="Ny scene i din stemme"
-                prompt="Skriv en åpning på et kapittel der Ellen kommer inn på minilageret for siste gang — mørkt, kort, i min stemme."
-              />
-              <ExamplePrompt
-                situation="Vei videre fra et fragment"
-                prompt="Her er en dialogsnutt jeg har liggende. Foreslå tre retninger scenen kan gå videre — jeg velger selv."
-              />
-              <ExamplePrompt
-                situation="Sjekk om det lyder som deg"
-                prompt="Sjekk denne teksten mot stemmeprofilen min. Hvilke setninger skiller seg mest ut, og hvorfor?"
-              />
-              <ExamplePrompt
-                situation="Bearbeide gammelt materiale"
-                prompt="Jeg har fotografert en side fra dagboka mi fra 2003. Transkriber, og foreslå hvordan den kan brukes som scene i romanen."
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Practical entry-points */}
       <section className="hairline-t">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16">
@@ -440,16 +405,3 @@ function EntryTile({ n, icon, title, body, bordered }) {
   );
 }
 
-function ExamplePrompt({ situation, prompt }) {
-  return (
-    <div className="paper p-6 md:p-7">
-      <div className="label-ui" style={{ color: "var(--moss)" }}>{situation}</div>
-      <p
-        className="mt-3 font-editor text-base md:text-lg leading-relaxed italic"
-        style={{ color: "var(--ink)" }}
-      >
-        «{prompt}»
-      </p>
-    </div>
-  );
-}
