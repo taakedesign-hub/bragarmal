@@ -180,7 +180,7 @@ export default function WritePage() {
         const img = new Image();
         img.onload = () => res(img);
         img.onerror = rej;
-        img.src = "/bragarmal-logo.png";
+        img.src = "/bragr-logo.png";
       });
     } catch {}
 
