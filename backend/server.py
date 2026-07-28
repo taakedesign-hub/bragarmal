@@ -1761,9 +1761,22 @@ async def billing_checkout(body: CheckoutRequest, user: User = Depends(get_curre
 
     # Build subscription_data with optional trial
     subscription_data = {"metadata": {"user_id": user.user_id, "lookup_key": body.lookup_key}}
-    if body.trial_days and body.trial_days > 0:
+
+    # Server-enforced 14-day trial for ordinary NOK plans, only for first-time subscribers
+    NOK_PLANS = {"bragr_monthly_nok", "bragr_3mo_nok", "bragr_6mo_nok", "bragr_yearly_nok"}
+    auto_trial_days = 0
+    if body.lookup_key in NOK_PLANS:
+        prior_sub = await db.subscriptions.find_one(
+            {"user_id": user.user_id, "status": {"$in": ["active", "trialing", "past_due", "canceled"]}},
+            {"_id": 0, "id": 1},
+        )
+        if not prior_sub:
+            auto_trial_days = 14
+
+    trial_days = body.trial_days if (body.trial_days and body.trial_days > 0) else auto_trial_days
+    if trial_days and trial_days > 0:
         # Safety cap — trials over 60 days are almost certainly abuse
-        subscription_data["trial_period_days"] = min(body.trial_days, 60)
+        subscription_data["trial_period_days"] = min(trial_days, 60)
         # Auto-charge with saved payment method after trial ends
         subscription_data["trial_settings"] = {
             "end_behavior": {"missing_payment_method": "cancel"}

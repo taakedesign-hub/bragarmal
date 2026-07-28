@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Logo from "@/components/Logo";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
@@ -167,7 +167,7 @@ export default function PricingPage() {
                     data-testid={`tier-${opt.key}-btn`}
                     onClick={() => checkout(opt.key)}
                     disabled={busy || isActive}
-                    className="flex items-baseline justify-between p-4 text-left hover:bg-neutral-50 transition-all relative"
+                    className="group flex items-center justify-between p-4 text-left hover:bg-neutral-50 transition-all relative w-full disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                     style={{ border: isYearly ? "2px solid var(--moss)" : "1px solid var(--line)" }}
                   >
                     {opt.save > 0 && (
@@ -186,9 +186,17 @@ export default function PricingPage() {
                         </span>
                       )}
                     </span>
-                    <span className="flex items-baseline gap-1 shrink-0 ml-3">
-                      <span className="font-serif-display text-2xl md:text-3xl" style={{ color: "var(--ink)" }}>{opt.price}</span>
-                      <span className="font-editor text-sm" style={{ color: "var(--ink-mute)" }}>kr{isMonthly ? " / mnd" : ""}</span>
+                    <span className="flex items-center gap-3 shrink-0 ml-3">
+                      <span className="flex items-baseline gap-1">
+                        <span className="font-serif-display text-2xl md:text-3xl" style={{ color: "var(--ink)" }}>{opt.price}</span>
+                        <span className="font-editor text-sm" style={{ color: "var(--ink-mute)" }}>kr{isMonthly ? " / mnd" : ""}</span>
+                      </span>
+                      <ArrowRight
+                        size={18}
+                        strokeWidth={1.5}
+                        className="transition-transform group-hover:translate-x-1"
+                        style={{ color: "var(--moss)" }}
+                      />
                     </span>
                   </button>
                 );
