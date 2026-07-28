@@ -104,21 +104,19 @@ export default function Landing() {
             </ul>
           </div>
 
-          {/* Box 2 — WHITE: sparring partner — uppercase block */}
+          {/* Box 2 — WHITE: sparring partner — centered */}
           <Link
             to="/eksempler"
             data-testid="hero-box-examples"
-            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:bg-neutral-50"
+            className="aspect-square flex flex-col items-center justify-center text-center p-6 md:p-8 group transition-all hover:bg-neutral-50 relative"
             style={{ background: "#ffffff", color: "#0f0e0d" }}
           >
-            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">02</div>
-            <div>
-              <div className="font-mono-ui font-semibold text-lg md:text-xl leading-tight tracking-wide uppercase">
-                Din sparringspartner.<br/>Din stemme.
-              </div>
-              <div className="mt-3 font-editor text-xs md:text-sm inline-flex items-center gap-1 hover:underline underline-offset-4" style={{ color: "#c8432c" }}>
-                Hvordan Bragarmål hjelper deg <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
-              </div>
+            <div className="absolute top-6 md:top-8 left-6 md:left-8 font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">02</div>
+            <div className="font-serif-display text-xl md:text-2xl leading-tight">
+              Din sparringspartner.<br/>Din stemme.
+            </div>
+            <div className="mt-3 font-editor text-xs md:text-sm inline-flex items-center gap-1 hover:underline underline-offset-4" style={{ color: "#c8432c" }}>
+              Hvordan Bragarmål hjelper deg <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
             </div>
           </Link>
 
