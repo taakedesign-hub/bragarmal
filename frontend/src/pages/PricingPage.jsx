@@ -76,7 +76,7 @@ export default function PricingPage() {
           Fair pris. <em className="italic" style={{ color: "var(--moss)" }}>Ingen skjulte grenser</em>.
         </h1>
         <p className="mt-6 font-editor text-lg max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>
-          Alle modeller. Alle prøver. Ubegrenset generering. Alt scoped kun til din konto.
+          Alle modeller. Alle prøver. Ubegrenset generering. Alt lagret kun på din konto.
           Ingen deler dataene dine.
         </p>
 
@@ -120,7 +120,7 @@ export default function PricingPage() {
 
       {/* Tier cards */}
       <section className="max-w-[1400px] mx-auto px-6 md:px-10 pb-24">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[900px]">
           <Tier
             badge="BETA"
             badgeColor="var(--linen)"
@@ -137,26 +137,6 @@ export default function PricingPage() {
             cta={isBeta ? "Du er beta-medlem" : "Kun for de 10 første"}
             disabled
             highlight={isBeta}
-          />
-          <Tier
-            badge="GRUNNLEGGER"
-            badgeColor="var(--sky)"
-            title="Grunnlegger"
-            price={FOUNDER[cycle].price}
-            unit={` kr/${FOUNDER[cycle].per}`}
-            alt={cycle === "monthly" ? `Årlig: ${FOUNDER.yearly.price} kr/år · spar 2 mnd` : `Månedlig: ${FOUNDER.monthly.price} kr/mnd`}
-            note={status ? `${status.founder_slots_remaining} av ${status.founder_total} grunnleggerplasser igjen` : "For bruker 51-100"}
-            features={[
-              "Alle funksjoner",
-              "Alle modeller",
-              "Ubegrenset generering",
-              "Låst pris for alltid",
-              "Tidlig tilgang til nye funksjoner",
-            ]}
-            cta={busy === FOUNDER[cycle].key ? "Sender til Stripe…" : (isActive ? "Aktiv" : "Bli grunnlegger")}
-            onClick={() => checkout(FOUNDER[cycle].key)}
-            disabled={busy || (!founderEligible && !isBeta) || isActive}
-            highlight={founderEligible && !isBeta && !isActive}
           />
           <Tier
             badge="ORDINÆR"
