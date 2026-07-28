@@ -150,7 +150,7 @@ export default function PricingPage() {
             >
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--moss)" }} />
               <span className="font-mono-ui text-[11px] tracking-widest" style={{ color: "var(--ink)" }}>
-                2 UKER GRATIS PRØVETID · TREKKES AUTOMATISK ETTERPÅ
+                AUTOMATISK 2 UKERS PRØVETID VED FØRSTE GANGS REGISTRERING
               </span>
             </div>
 
@@ -186,16 +186,9 @@ export default function PricingPage() {
                         </span>
                       )}
                     </span>
-                    <span className="flex flex-col items-end shrink-0 ml-3">
-                      <span className="flex items-baseline gap-1">
-                        <span className="font-serif-display text-2xl md:text-3xl" style={{ color: "var(--ink)" }}>{opt.price}</span>
-                        <span className="font-editor text-sm" style={{ color: "var(--ink-mute)" }}>kr{isMonthly ? " / mnd" : ""}</span>
-                      </span>
-                      {isMonthly && (
-                        <span className="font-editor text-xs mt-1" style={{ color: "var(--moss)" }}>
-                          2 uker gratis prøvetid automatisk
-                        </span>
-                      )}
+                    <span className="flex items-baseline gap-1 shrink-0 ml-3">
+                      <span className="font-serif-display text-2xl md:text-3xl" style={{ color: "var(--ink)" }}>{opt.price}</span>
+                      <span className="font-editor text-sm" style={{ color: "var(--ink-mute)" }}>kr{isMonthly ? " / mnd" : ""}</span>
                     </span>
                   </button>
                 );
