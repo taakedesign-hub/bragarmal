@@ -152,7 +152,7 @@ export default function Landing() {
             <div className="absolute inset-x-0 bottom-0 p-4 md:p-5 flex items-center justify-between">
               <span className="font-mono-ui text-[10px] md:text-xs tracking-widest" style={{ color: "#0f0e0d" }}>04</span>
               <span
-                className="font-mono-ui font-semibold text-base md:text-lg tracking-wide uppercase inline-flex items-center gap-2 hover:underline underline-offset-4"
+                className="font-mono-ui text-base md:text-lg tracking-wide uppercase inline-flex items-center gap-2 hover:underline underline-offset-4"
                 style={{ color: "#c8432c" }}
               >
                 Etikk <ArrowRight size={14} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
@@ -160,7 +160,7 @@ export default function Landing() {
             </div>
           </Link>
 
-          {/* Box 5 — BLACK: tools — centered bottom, uppercase title, italic serif link */}
+          {/* Box 5 — BLACK: tools — centered bottom, uppercase title (not bold), italic serif link */}
           <Link
             to="/dashboard"
             data-testid="hero-box-tools"
@@ -169,7 +169,7 @@ export default function Landing() {
           >
             <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-70">05</div>
             <div className="flex flex-col items-center text-center">
-              <div className="font-mono-ui font-semibold text-sm md:text-base leading-snug tracking-wide uppercase">
+              <div className="font-mono-ui text-sm md:text-base leading-snug tracking-wide uppercase">
                 Din egen personlige side<br/>med alle hjelpemidler og verktøy
               </div>
               <div className="mt-3 font-serif-display italic text-sm md:text-base opacity-80 flex items-center gap-2">
@@ -178,24 +178,24 @@ export default function Landing() {
             </div>
           </Link>
 
-          {/* Box 6 — WHITE: register CTA — text moved to top */}
+          {/* Box 6 — WHITE: register CTA — text at bottom-right (opposite of Box 3 bottom-left) */}
           <button
             data-testid="hero-box-register"
             onClick={goLogin}
-            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:bg-neutral-50 text-left"
+            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:bg-neutral-50 text-right"
             style={{ background: "#ffffff", color: "#0f0e0d" }}
           >
+            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60 text-left">06</div>
             <div>
-              <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">06</div>
-              <div className="mt-4 font-serif-display text-xl md:text-2xl leading-tight">
+              <div className="font-serif-display text-xl md:text-2xl leading-tight">
                 Kom i gang —<br/>registrer deg nå
               </div>
-              <div className="mt-3 font-editor text-[11px] md:text-xs opacity-70 max-w-[24ch]">
+              <div className="mt-3 font-editor text-[11px] md:text-xs opacity-70 max-w-[24ch] ml-auto">
                 Du beholder alle dine data — også hvis du senere pauser abonnementet.
               </div>
-            </div>
-            <div className="font-editor text-xs md:text-sm flex items-center gap-2" style={{ color: "#c8432c" }}>
-              Logg inn <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
+              <div className="mt-3 font-editor text-xs md:text-sm inline-flex items-center gap-2 justify-end" style={{ color: "#c8432c" }}>
+                Logg inn <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
+              </div>
             </div>
           </button>
 
