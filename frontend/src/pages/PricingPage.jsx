@@ -54,7 +54,7 @@ export default function PricingPage() {
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Seo
         title="Priser — fair pris, ingen skjulte grenser"
-        description="Bragarmål-medlemskap fra 149 kr/mnd. Beta-plasser gratis i 3 måneder for de 10 første. Alle modeller, ubegrenset generering."
+        description="Bragarmål-medlemskap fra 249 kr/mnd — 14 dagers gratis prøvetid ved førstegangsregistrering. Månedlig, 3, 6 eller 12 måneder. Alle modeller, ubegrenset generering."
         path="/priser"
       />
       <div className="hairline-b">
