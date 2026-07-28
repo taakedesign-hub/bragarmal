@@ -104,19 +104,19 @@ export default function Landing() {
             </ul>
           </div>
 
-          {/* Box 2 — WHITE: Når hjelper Bragarmål deg? — top-left, left-aligned */}
+          {/* Box 2 — WHITE: Når hjelper Bragarmål deg? — top-right, right-aligned */}
           <Link
             to="/eksempler"
             data-testid="hero-box-examples"
-            className="aspect-square flex flex-col justify-start items-start text-left p-6 md:p-8 group transition-all hover:bg-neutral-50 relative"
+            className="aspect-square flex flex-col justify-start items-end text-right p-6 md:p-8 group transition-all hover:bg-neutral-50 relative"
             style={{ background: "#ffffff", color: "#0f0e0d" }}
           >
-            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">02</div>
-            <div className="mt-4">
+            <div className="absolute top-6 md:top-8 left-6 md:left-8 font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">02</div>
+            <div className="mt-1">
               <div className="font-serif-display text-2xl md:text-3xl leading-tight">
                 Når hjelper Bragarmål deg?
               </div>
-              <p className="mt-3 font-serif-display italic text-sm md:text-base leading-snug max-w-[32ch]" style={{ color: "var(--ink-soft)" }}>
+              <p className="mt-3 font-serif-display italic text-sm md:text-base leading-snug max-w-[32ch] ml-auto" style={{ color: "var(--ink-soft)" }}>
                 Seks konkrete situasjoner der Bragarmål tar deg videre — uten å ta over.
               </p>
               <div className="mt-4 font-mono-ui text-sm md:text-base tracking-wide uppercase inline-flex items-center gap-2 hover:underline underline-offset-4" style={{ color: "#c8432c" }}>
@@ -165,7 +165,7 @@ export default function Landing() {
             </div>
           </Link>
 
-          {/* Box 5 — BLACK: tools — bottom-left, uppercase title, italic serif link */}
+          {/* Box 5 — BLACK: tools — bottom-left, serif-display title (like MANIFEST), italic serif link */}
           <Link
             to="/dashboard"
             data-testid="hero-box-tools"
@@ -174,7 +174,7 @@ export default function Landing() {
           >
             <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-70">05</div>
             <div>
-              <div className="font-mono-ui text-sm md:text-base leading-snug tracking-wide uppercase">
+              <div className="font-serif-display text-2xl md:text-3xl leading-tight">
                 Personlig side med alle<br/>hjelpemidler og verktøy
               </div>
               <div className="mt-3 font-serif-display italic text-sm md:text-base opacity-80 flex items-center gap-2">
