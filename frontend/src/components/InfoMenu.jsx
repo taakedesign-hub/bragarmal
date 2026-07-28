@@ -11,6 +11,7 @@ const ITEMS = [
   { to: "/stemme", label: "Stemmeprofil", desc: "Analyser rytme, tone og signaturord" },
   { to: "/skriv", label: "Skriv", desc: "Skrivepulten — sparr med Bragarmål i din stemme" },
   { to: "/dashboard", label: "Din side", desc: "Alle verktøy og hjelpemidler samlet" },
+  { href: "mailto:hei@bragarmål.no?subject=Hilsen%20fra%20BRAGARMÅL", label: "Kontakt", desc: "Send oss en e-post — hei@bragarmål.no" },
 ];
 
 export default function InfoMenu({ align = "right" }) {
@@ -44,18 +45,39 @@ export default function InfoMenu({ align = "right" }) {
             boxShadow: "0 12px 40px var(--paper-shadow)",
           }}
         >
-          {ITEMS.map((it, i) => (
-            <Link
-              key={it.to}
-              to={it.to}
-              onClick={() => setOpen(false)}
-              className={`block p-4 ${i < ITEMS.length - 1 ? "hairline-b" : ""}`}
-              style={{ color: "var(--ink)" }}
-            >
-              <div className="font-serif-display text-lg">{it.label}</div>
-              <div className="font-editor text-xs mt-1" style={{ color: "var(--ink-soft)" }}>{it.desc}</div>
-            </Link>
-          ))}
+          {ITEMS.map((it, i) => {
+            const cls = `block p-4 ${i < ITEMS.length - 1 ? "hairline-b" : ""}`;
+            const content = (
+              <>
+                <div className="font-serif-display text-lg">{it.label}</div>
+                <div className="font-editor text-xs mt-1" style={{ color: "var(--ink-soft)" }}>{it.desc}</div>
+              </>
+            );
+            if (it.href) {
+              return (
+                <a
+                  key={it.href}
+                  href={it.href}
+                  onClick={() => setOpen(false)}
+                  className={cls}
+                  style={{ color: "var(--ink)" }}
+                >
+                  {content}
+                </a>
+              );
+            }
+            return (
+              <Link
+                key={it.to}
+                to={it.to}
+                onClick={() => setOpen(false)}
+                className={cls}
+                style={{ color: "var(--ink)" }}
+              >
+                {content}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
