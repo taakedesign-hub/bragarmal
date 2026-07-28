@@ -107,11 +107,11 @@ export default function Landing() {
                 </div>
               </div>
 
-              {/* Cell 3 — Papyrus with fountain-pen quote */}
+              {/* Cell 3 — White with fountain-pen quote */}
               <div
                 data-testid="hero-tile-quote"
                 className="aspect-square flex items-center justify-center p-4"
-                style={{ background: "var(--linen)" }}
+                style={{ background: "#ffffff", border: "1px solid #e8dfd1" }}
               >
                 <p className="font-serif-display italic text-center text-sm md:text-base leading-snug" style={{ color: "var(--ink)" }}>
                   «Skaldens språk<br/>er ditt eget.»
@@ -158,37 +158,38 @@ export default function Landing() {
             <article className="col-span-12 md:col-span-9 md:pl-4 fade-in stagger-2">
               <div className="font-editor text-lg md:text-xl leading-[1.85]" style={{ color: "var(--ink)" }}>
                 <p>
-                  Publisert forfatter er jeg ikke <em className="italic" style={{ color: "var(--moss)" }}>enda</em>,
-                  men har utallige påbegynte prosjekter over flere år. Legg merke til at jeg skrev
-                  «ikke enda» — for det er nettopp derfor jeg laget denne appen, til meg selv,
-                  men deler den slik at andre også kan få tilgang.
+                  Etter utallige påbegynte prosjekt og perioder med skrivesperre, sendte mitt
+                  nåværende bokprosjekt over 3 år med ut på jakt etter skrivehjelp. Seriøse aktører
+                  ble for dyre, og AI tok bort det menneskelige aspektet som endret min egenart og
+                  fortellerstemme. Det ble rett og slett altfor glatt og perfeksjonert.
                 </p>
                 <p className="mt-8">
-                  I tre år har jeg jobbet med samme bok. Dette siste året begynte jeg å teste ut
-                  diverse AI for å se om jeg kunne få hjelp med skrivingen. Resultatet har så langt
-                  vært nedslående.
+                  Derfor lagde jeg <em className="italic" style={{ color: "var(--moss)" }}>Bragarmål</em>:
+                  for å få den beste hjelpen mulig, til en overkommelig pris — på mine premisser,
+                  med min stemme intakt.
                 </p>
                 <p
-                  className="mt-8 font-serif-display text-2xl md:text-3xl leading-snug pl-6"
+                  className="mt-10 font-serif-display text-2xl md:text-3xl leading-snug pl-6"
                   style={{ color: "var(--ink)", borderLeft: "2px solid var(--moss)" }}
                 >
-                  Det viktigst av alt med Bragarmål er ikke at det er et verktøy for deg som bare vil
-                  skrive en bok, publisere tekst, løse skriveoppgaver etisk, men for deg som står
-                  fast, trenger noen nye vinklinger, etc., med <em className="italic" style={{ color: "var(--moss)" }}>DIN stemme</em>
-                  {" "}— gjennom bilder av tekster du har skrevet for hånd, notater, meldinger om
-                  du vil, den boka du begynte på en gang for lenge siden, men aldri skreiv ferdig.
+                  Bragarmål er en AI-basert tjeneste som ikke genererer AI-basert tekst til deg,
+                  men som hjelper deg videre når du står fast. Jo mer du legger inn, jo bedre
+                  resultat får du.
                 </p>
                 <p className="mt-6 font-editor text-lg md:text-xl leading-[1.85]" style={{ color: "var(--ink)" }}>
-                  Stemmeaktivering for å fange din fortellerstemme muntlig om du har problemer med
-                  skriftspråket, og ikke vil gi fra deg fortellerstemmen din og miste ektheten som
-                  er deg.
+                  Bruk stemmen din ved å lese inn (fint for skrivevansker og for å fange rytme,
+                  stil, etc.), legg inn bilder av gamle håndskrevne tekster, last opp filer, skriv
+                  notater og mer.
                 </p>
-                <p className="mt-8 font-serif-display text-xl md:text-2xl" style={{ color: "var(--moss)" }}>
-                  Sparringspartner. Ikke tekstautomat.
+                <p className="mt-8" style={{ color: "var(--ink)" }}>
+                  Bragarmål er ikke tekst for en enkel AI-prompt som skriver boken (eller
+                  prosjektet) for deg. Bragarmål er for deg som forstår at det tar tid å bearbeide
+                  fortellingen — teksten din — men vil ha veiledning og drahjelp når det låser
+                  seg. Eller bare har en idé og trenger hjelp til å komme i gang —
+                  {" "}<em className="italic" style={{ color: "var(--moss)" }}>med DIN stemme intakt.</em>
                 </p>
-                <p className="mt-8" style={{ color: "var(--ink-soft)" }}>
-                  En tekst på en app kunne nok vært mer formell, men det ville tatt bort poenget
-                  mitt med BRAGARMÅL. For som jeg hevder: <em className="italic" style={{ color: "var(--moss)" }}>«Din stemme»</em>.
+                <p className="mt-10 font-serif-display text-2xl md:text-3xl" style={{ color: "var(--moss)" }}>
+                  En sparringspartner. Ikke tekstautomat.
                 </p>
                 <p
                   className="mt-10 font-serif-display text-3xl md:text-4xl leading-snug"
