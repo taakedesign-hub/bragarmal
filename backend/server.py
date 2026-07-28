@@ -1791,6 +1791,8 @@ async def billing_checkout(body: CheckoutRequest, user: User = Depends(get_curre
         metadata={"user_id": user.user_id, "lookup_key": body.lookup_key},
         managed_payments={"enabled": True},
         subscription_data=subscription_data,
+        automatic_tax={"enabled": False},
+        adaptive_pricing={"enabled": False},
     )
 
     await db.payment_transactions.insert_one({
