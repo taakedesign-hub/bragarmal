@@ -36,6 +36,14 @@ export default function Dashboard() {
             ? "Start med å legge til noen tekstprøver. Det er slik jeg lærer stemmen din."
             : "Bygg videre på biblioteket ditt, oppdater stemmeprofilen, eller åpne skrivepulten."}
         </p>
+        <div
+          className="mt-6 max-w-[60ch] px-4 py-3 font-editor text-sm"
+          style={{ background: "#fafafa", border: "1px solid #e5e5e5", color: "var(--ink)" }}
+        >
+          Du beholder alle dine data — også hvis abonnementet ditt utløper eller ikke fornyes.
+          Arbeidet ditt stopper i den perioden, men fortsetter sømløst når du fornyer eller
+          betaler igjen.
+        </div>
       </div>
 
       {/* Stats — no cards, just a divider grid */}

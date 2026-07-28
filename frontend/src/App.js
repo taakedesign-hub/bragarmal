@@ -9,6 +9,7 @@ import PricingPage from "@/pages/PricingPage";
 import PaymentStatusPage from "@/pages/PaymentStatusPage";
 import ManifestPage from "@/pages/ManifestPage";
 import EthicsPage from "@/pages/EthicsPage";
+import ExamplesPage from "@/pages/ExamplesPage";
 import AuthCallback from "@/pages/AuthCallback";
 import Dashboard from "@/pages/Dashboard";
 import SamplesPage from "@/pages/SamplesPage";
@@ -31,6 +32,7 @@ function AppRouter() {
       <Route path="/betaling/avbrutt" element={<PaymentStatusPage variant="cancel" />} />
       <Route path="/manifest" element={<ManifestPage />} />
       <Route path="/etikk" element={<EthicsPage />} />
+      <Route path="/eksempler" element={<ExamplesPage />} />
       <Route path="/dashboard" element={<Protected><AppShell><Dashboard /></AppShell></Protected>} />
       <Route path="/prover" element={<Protected><AppShell><SamplesPage /></AppShell></Protected>} />
       <Route path="/stemme" element={<Protected><AppShell><VoicePage /></AppShell></Protected>} />

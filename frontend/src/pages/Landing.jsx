@@ -37,109 +37,165 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* Hero — mosaic grid inspired by literary editorial templates */}
-      <section className="max-w-[1400px] mx-auto px-6 md:px-10 pt-12 md:pt-16 pb-8">
-        <div className="grid grid-cols-12 gap-4 md:gap-6 items-stretch">
-          {/* LEFT column — main heading + descriptions (spans 7 cols) */}
-          <div className="col-span-12 md:col-span-7 fade-in">
-            <div className="label-ui mb-6">Manifest <span className="marker-ornament" /> for deg som står fast</div>
-            <h1 className="font-serif-display font-light text-5xl sm:text-6xl md:text-7xl leading-[1.02] tracking-tight" style={{ color: "var(--ink)" }}>
-              DIN stemme <em className="italic" style={{ color: "var(--moss)" }}>er din.</em>
-            </h1>
-            <p className="mt-6 font-editor text-lg md:text-xl max-w-[52ch]" style={{ color: "var(--ink)" }}>
-              Vi genererer ikke ord. <em className="italic" style={{ color: "var(--moss)" }}>Vi finner din stemme.</em>
-            </p>
-            <p className="mt-6 font-editor text-base md:text-lg max-w-[52ch]" style={{ color: "var(--ink-soft)" }}>
-              Ingen rask metode for å publisere. Kun et verktøy som tar deg videre — på dine premisser.
-            </p>
-            <p className="mt-4 font-editor text-sm italic max-w-[52ch]" style={{ color: "var(--moss)" }}>
-              Ikke bare for forfattere — for kreativ skriving generelt.
-            </p>
-            <p className="mt-6 font-editor text-sm max-w-[52ch]" style={{ color: "var(--ink-mute)" }}>
-              <span className="font-serif-display text-base" style={{ color: "var(--ink)" }}>Bragarmål</span>
-              {" "}— norrønt for «skaldens språk» og «den fremste diktekunst». Finn ditt eget.
-            </p>
-          </div>
+      {/* Hero — 6-box grid */}
+      <section className="max-w-[1400px] mx-auto px-6 md:px-10 pt-10 md:pt-14 pb-12">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
 
-          {/* RIGHT column — mosaic 2x2 (spans 5 cols) */}
-          <div className="col-span-12 md:col-span-5">
-            <div className="grid grid-cols-2 gap-3 md:gap-4 h-full">
-
-              {/* Cell 1 — Black box with initial "B" */}
-              <div
-                data-testid="hero-tile-mark"
-                className="aspect-square flex items-center justify-center"
-                style={{ background: "#1c1b1a" }}
-              >
-                <span className="font-serif-display text-6xl md:text-7xl" style={{ color: "#f5f0e8" }}>B</span>
-              </div>
-
-              {/* Cell 2 — RED box with 3 CTA links */}
-              <div
-                data-testid="hero-tile-cta"
-                className="aspect-square flex flex-col justify-between p-4 md:p-5"
-                style={{ background: "#c8432c", color: "#f5f0e8" }}
-              >
-                <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-80">KOM I GANG</div>
-                <div className="flex flex-col gap-2 md:gap-3">
-                  <button
-                    data-testid={TID.ctaGetStarted}
-                    onClick={goLogin}
-                    className="text-left font-serif-display text-sm md:text-base leading-tight hover:underline underline-offset-4"
-                  >
-                    Beta gratis i 3 mnd
-                    <span className="block font-editor text-[10px] md:text-xs opacity-80 mt-0.5">de 10 første som registrerer seg</span>
-                  </button>
-                  <button
-                    data-testid="hero-cta-trial"
-                    onClick={goLogin}
-                    className="text-left font-serif-display text-sm md:text-base leading-tight hover:underline underline-offset-4"
-                  >
-                    Prøv gratis i 1 uke
-                  </button>
-                  <Link
-                    to="/priser"
-                    data-testid="hero-cta-pricing"
-                    className="text-left font-serif-display text-sm md:text-base leading-tight hover:underline underline-offset-4"
-                  >
-                    Se priser →
-                  </Link>
-                </div>
-              </div>
-
-              {/* Cell 3 — White with fountain-pen quote */}
-              <div
-                data-testid="hero-tile-quote"
-                className="aspect-square flex items-center justify-center p-4"
-                style={{ background: "#ffffff", border: "1px solid #e8dfd1" }}
-              >
-                <p className="font-serif-display italic text-center text-sm md:text-base leading-snug" style={{ color: "var(--ink)" }}>
-                  «Skaldens språk<br/>er ditt eget.»
-                </p>
-              </div>
-
-              {/* Cell 4 — Dark box with logo mark */}
-              <div
-                data-testid="hero-tile-logo"
-                className="aspect-square flex items-center justify-center p-6"
-                style={{ background: "#2d2b28" }}
-              >
-                <img src="/bragr-logo-dark.png" alt="Bragarmål" className="w-full h-auto opacity-90" />
+          {/* Box 1 — BLACK: MANIFEST link */}
+          <Link
+            to="/manifest"
+            data-testid="hero-box-manifest"
+            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:opacity-90"
+            style={{ background: "#0f0e0d", color: "#ffffff" }}
+          >
+            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-70">01</div>
+            <div>
+              <div className="font-serif-display text-3xl md:text-5xl leading-none tracking-tight">MANIFEST</div>
+              <div className="mt-3 font-editor text-xs md:text-sm opacity-70 flex items-center gap-2">
+                Les hele <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
               </div>
             </div>
+          </Link>
+
+          {/* Box 2 — WHITE: ink + fountain pen illustration (no background) */}
+          <div
+            data-testid="hero-box-image"
+            className="aspect-square flex items-center justify-center p-6"
+            style={{ background: "transparent" }}
+          >
+            <svg viewBox="0 0 200 200" className="w-full h-auto max-w-[180px]" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              {/* Ink bottle */}
+              <g stroke="#0f0e0d" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M55 155 L55 115 Q55 108 62 108 L98 108 Q105 108 105 115 L105 155 Q105 165 95 165 L65 165 Q55 165 55 155 Z" />
+                <line x1="55" y1="130" x2="105" y2="130" />
+                <rect x="70" y="98" width="20" height="10" rx="1" />
+                {/* Ink inside */}
+                <path d="M58 155 L58 135 L102 135 L102 155 Q102 162 95 162 L65 162 Q58 162 58 155 Z" fill="#0f0e0d" stroke="none" />
+              </g>
+              {/* Fountain pen — diagonal from top-right to bottom-center */}
+              <g stroke="#0f0e0d" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="180" y1="20" x2="115" y2="120" />
+                <path d="M115 120 L110 128 L118 132 Z" fill="#0f0e0d" />
+                <line x1="112" y1="124" x2="116" y2="130" strokeWidth="1" />
+                <circle cx="150" cy="70" r="4" fill="#ffffff" />
+              </g>
+            </svg>
           </div>
+
+          {/* Box 3 — RED: Examples link */}
+          <Link
+            to="/eksempler"
+            data-testid="hero-box-examples"
+            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:opacity-90"
+            style={{ background: "#c8432c", color: "#ffffff" }}
+          >
+            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-90">02</div>
+            <div>
+              <div className="font-serif-display text-xl md:text-2xl leading-tight">
+                Eksempler på når<br/>Bragarmål hjelper
+              </div>
+              <div className="mt-3 font-editor text-xs md:text-sm opacity-90 flex items-center gap-2">
+                Se scenarier <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
+              </div>
+            </div>
+          </Link>
+
+          {/* Box 4 — WHITE with black text: pricing bullets */}
+          <div
+            data-testid="hero-box-pricing"
+            className="aspect-square flex flex-col justify-between p-6 md:p-8"
+            style={{ background: "#ffffff", border: "1px solid #e5e5e5", color: "#0f0e0d" }}
+          >
+            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">03</div>
+            <ul className="space-y-2 md:space-y-3">
+              <li>
+                <button
+                  data-testid="hero-cta-trial"
+                  onClick={goLogin}
+                  className="text-left font-serif-display text-sm md:text-base leading-snug hover:underline underline-offset-4"
+                >
+                  Test gratis i 2 uker
+                </button>
+              </li>
+              <li>
+                <button
+                  data-testid={TID.ctaGetStarted}
+                  onClick={goLogin}
+                  className="text-left font-serif-display text-sm md:text-base leading-snug hover:underline underline-offset-4"
+                >
+                  Beta-versjon — gratis i 3 mnd
+                  <span className="block font-editor text-[10px] md:text-xs opacity-70 mt-0.5">for de 10 første som registrerer seg</span>
+                </button>
+              </li>
+              <li>
+                <Link
+                  to="/priser"
+                  data-testid="hero-cta-pricing"
+                  className="text-left font-serif-display text-sm md:text-base leading-snug hover:underline underline-offset-4 inline-flex items-center gap-1"
+                >
+                  Priser <ArrowRight size={12} strokeWidth={1.6} />
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Box 5 — BLACK: link to personal tools */}
+          <Link
+            to="/dashboard"
+            data-testid="hero-box-tools"
+            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:opacity-90"
+            style={{ background: "#0f0e0d", color: "#ffffff" }}
+          >
+            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-70">04</div>
+            <div>
+              <div className="font-serif-display text-lg md:text-xl leading-snug">
+                Din egen personlige side<br/>med alle hjelpemidler og verktøy
+              </div>
+              <div className="mt-3 font-editor text-xs md:text-sm opacity-70 flex items-center gap-2">
+                Til verktøyene <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
+              </div>
+            </div>
+          </Link>
+
+          {/* Box 6 — BLACK: register CTA */}
+          <button
+            data-testid="hero-box-register"
+            onClick={goLogin}
+            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:opacity-90 text-left"
+            style={{ background: "#0f0e0d", color: "#ffffff" }}
+          >
+            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-70">05</div>
+            <div>
+              <div className="font-serif-display text-xl md:text-2xl leading-tight">
+                Kom i gang —<br/>registrer deg nå
+              </div>
+              <div className="mt-3 font-editor text-[11px] md:text-xs opacity-70 max-w-[24ch]">
+                Du beholder alle dine data — også hvis du senere pauser abonnementet.
+              </div>
+              <div className="mt-3 font-editor text-xs md:text-sm opacity-90 flex items-center gap-2">
+                Logg inn <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
+              </div>
+            </div>
+          </button>
+
         </div>
 
-        {/* Secondary CTA row */}
-        <div className="mt-10 flex flex-wrap gap-4 items-center">
-          <button
-            data-testid="hero-primary-cta"
-            onClick={goLogin}
-            className="btn-primary inline-flex items-center gap-3"
-          >
-            Test den ut nå <ArrowRight size={16} strokeWidth={1.6} />
-          </button>
-          <span className="label-ui">Velg innlogging med Google eller e-post</span>
+        {/* Hero heading below grid */}
+        <div className="mt-14 md:mt-16 max-w-[62ch]">
+          <div className="label-ui mb-4">For deg som står fast</div>
+          <h1 className="font-serif-display font-light text-4xl sm:text-5xl md:text-6xl leading-[1.05] tracking-tight" style={{ color: "var(--ink)" }}>
+            DIN stemme <em className="italic" style={{ color: "var(--moss)" }}>er din.</em>
+          </h1>
+          <p className="mt-6 font-editor text-lg md:text-xl" style={{ color: "var(--ink)" }}>
+            Vi genererer ikke ord. <em className="italic" style={{ color: "var(--moss)" }}>Vi finner din stemme.</em>
+          </p>
+          <p className="mt-4 font-editor text-base md:text-lg" style={{ color: "var(--ink-soft)" }}>
+            Ingen rask metode for å publisere. Kun et verktøy som tar deg videre — på dine premisser.
+          </p>
+          <p className="mt-4 font-editor text-sm" style={{ color: "var(--ink-mute)" }}>
+            <span className="font-serif-display text-base" style={{ color: "var(--ink)" }}>Bragarmål</span>
+            {" "}— norrønt for «skaldens språk» og «den fremste diktekunst». Finn ditt eget.
+          </p>
         </div>
       </section>
 

@@ -1,0 +1,45 @@
+{
+  "summary": "Frontend verification for Bragarmål 6-box grid redesign at desktop 1920x1200. All 14 checks PASS. Landing hero is a clean 3-col x 2-row grid (aspect-square tiles), all boxes route as spec'd, /eksempler page renders 6 scenarios, dashboard shows the new retention notice, and every page (Landing, /eksempler, /priser, /dashboard) uses pure white (#FFFFFF) background. No '1 uke' leftover. Priser still shows 10 beta slots.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Landing hero grid — Box 2 (ink+pen SVG)",
+        "issues": [
+          "Box 2 uses background:transparent so on the pure-white page it visually reads as an empty gap next to the black/red tiles. Design intent (per PRD) is 'WHITE with ink+pen SVG', which matches — but consider adding a subtle hairline border (border: 1px solid var(--line)) to give it the same visual weight as Box 4 (which does have a border). Currently Box 2 has no border and Box 4 does, making the two 'white' tiles look inconsistent."
+        ]
+      },
+      {
+        "screen": "Dashboard header",
+        "issues": [
+          "Welcome heading shows the raw registration name (e.g. 'Velkommen, boxgrid_1785245166.') because it splits on space and the auto-generated fallback uses the email prefix when name is not supplied. Not part of this iteration's scope, but worth noting — the same fallback logic would show ugly emails as first names for any user who signs up without a proper name."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_3.json",
+    "/app/test_reports/iteration_4.json"
+  ],
+  "action_items": [
+    "(Optional polish) Add a matching hairline border to Box 2 (hero-box-image) so the two white tiles look consistent side-by-side with Box 4.",
+    "(Optional) On Dashboard, when user.name equals the email prefix (contains no space), fall back to 'forfatter' instead of showing '<email_prefix>' as the welcome greeting."
+  ],
+  "critical_code_review_comments": [
+    "index.css --bg is correctly set to #FFFFFF and body inherits it — all four pages tested render rgb(255,255,255) as computed body background. No papyrus/linen leftover.",
+    "Landing.jsx uses a clean 6-tile CSS grid with data-testid on every tile (hero-box-manifest, hero-box-image, hero-box-examples, hero-box-pricing, hero-box-tools, hero-box-register) plus separate testids on Box-4's three sub-CTAs (hero-cta-trial, landing-cta-get-started, hero-cta-pricing) — excellent testability.",
+    "ExamplesPage.jsx renders 6 scenarios with sequential data-testid example-1..6 — all present and populated with real Norwegian copy. Route /eksempler is correctly wired in App.js.",
+    "Dashboard retention notice is rendered above the stats grid, uses inline styles (bg #fafafa, 1px solid #e5e5e5) so it visually pops on the white bg without adding new CSS variables. Copy matches PRD verbatim.",
+    "Landing Box-4 trial button text is 'Test gratis i 2 uker' — the '1 uke' string does not exist anywhere in the current HTML. Priser page fallback still reads '10 første' and no '50 første' anywhere. All slot-count copy is consistent with backend BETA_FREE_SLOTS=10."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "not tested (frontend only)", "frontend": "100% (14/14 checks pass)" },
+  "test_credentials": "Registered fresh user for dashboard check: boxgrid_1785245166@example.com / TestPassword123! (open registration, timestamped — safe to leave in DB).",
+  "seed_data_creation": "One transient test user via /api/auth/register to reach protected /dashboard route.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "6-box grid redesign is verified end-to-end at 1920x1200. Grid: cols=[426px, 426px, 426px] (3 columns), 2 rows, aspect-square tiles. Box backgrounds: Box1=rgb(15,14,13) black, Box2=transparent, Box3=rgb(200,67,44) red #c8432c, Box4=white with border, Box5=black, Box6=black. All 6 navigations work (Box1→/manifest, Box3→/eksempler, Box4-trial→/logg-inn, Box4-beta→/logg-inn, Box4-priser→/priser, Box5→/dashboard which redirects to / when not authed, Box6→/logg-inn). /eksempler renders 6 numbered scenarios (01-06) with data-testid example-1..6. Dashboard retention notice appears above stats grid with correct Norwegian copy. AI/writing flows were NOT re-tested per request.",
+  "rca of the issue": "No blocking issues found. Two optional polish items noted under design_issues — neither blocks release."
+}
