@@ -57,29 +57,18 @@ export default function Landing() {
             </div>
           </Link>
 
-          {/* Box 2 — WHITE: ink + fountain pen illustration */}
+          {/* Box 2 — WHITE: ink + fountain pen photo */}
           <div
             data-testid="hero-box-image"
-            className="aspect-square flex items-center justify-center p-6"
+            className="aspect-square overflow-hidden"
             style={{ background: "#ffffff", border: "1px solid #e5e5e5" }}
           >
-            <svg viewBox="0 0 200 200" className="w-full h-auto max-w-[180px]" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              {/* Ink bottle */}
-              <g stroke="#0f0e0d" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M55 155 L55 115 Q55 108 62 108 L98 108 Q105 108 105 115 L105 155 Q105 165 95 165 L65 165 Q55 165 55 155 Z" />
-                <line x1="55" y1="130" x2="105" y2="130" />
-                <rect x="70" y="98" width="20" height="10" rx="1" />
-                {/* Ink inside */}
-                <path d="M58 155 L58 135 L102 135 L102 155 Q102 162 95 162 L65 162 Q58 162 58 155 Z" fill="#0f0e0d" stroke="none" />
-              </g>
-              {/* Fountain pen — diagonal from top-right to bottom-center */}
-              <g stroke="#0f0e0d" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="180" y1="20" x2="115" y2="120" />
-                <path d="M115 120 L110 128 L118 132 Z" fill="#0f0e0d" />
-                <line x1="112" y1="124" x2="116" y2="130" strokeWidth="1" />
-                <circle cx="150" cy="70" r="4" fill="#ffffff" />
-              </g>
-            </svg>
+            <img
+              src="/ink-pen.jpg"
+              alt="Blekkhus og fyllepenn"
+              className="w-full h-full object-cover"
+              draggable={false}
+            />
           </div>
 
           {/* Box 3 — RED: Examples link */}
@@ -157,14 +146,14 @@ export default function Landing() {
             </div>
           </Link>
 
-          {/* Box 6 — BLACK: register CTA */}
+          {/* Box 6 — WHITE: register CTA */}
           <button
             data-testid="hero-box-register"
             onClick={goLogin}
-            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:opacity-90 text-left"
-            style={{ background: "#0f0e0d", color: "#ffffff" }}
+            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:bg-neutral-50 text-left"
+            style={{ background: "#ffffff", color: "#0f0e0d", border: "1px solid #e5e5e5" }}
           >
-            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-70">05</div>
+            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">05</div>
             <div>
               <div className="font-serif-display text-xl md:text-2xl leading-tight">
                 Kom i gang —<br/>registrer deg nå
@@ -172,7 +161,7 @@ export default function Landing() {
               <div className="mt-3 font-editor text-[11px] md:text-xs opacity-70 max-w-[24ch]">
                 Du beholder alle dine data — også hvis du senere pauser abonnementet.
               </div>
-              <div className="mt-3 font-editor text-xs md:text-sm opacity-90 flex items-center gap-2">
+              <div className="mt-3 font-editor text-xs md:text-sm flex items-center gap-2" style={{ color: "var(--moss)" }}>
                 Logg inn <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
               </div>
             </div>
