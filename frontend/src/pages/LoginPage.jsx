@@ -55,6 +55,24 @@ export default function LoginPage() {
         : { email: email.trim(), password };
       const r = await api.post(url, body);
       setUser(r.data);
+
+      // If user came from "Prøv gratis i 2 uker" — initiate trial checkout
+      let trialIntent = false;
+      try {
+        trialIntent = localStorage.getItem("bragr:trial_intent") === "1";
+        if (trialIntent) localStorage.removeItem("bragr:trial_intent");
+      } catch {}
+      if (trialIntent) {
+        try {
+          const co = await api.post("/billing/checkout", {
+            lookup_key: "bragr_monthly_nok",
+            origin_url: window.location.origin,
+            trial_days: 14,
+          });
+          if (co?.data?.checkout_url) { window.location.href = co.data.checkout_url; return; }
+        } catch { /* fall through to dashboard */ }
+      }
+
       nav("/dashboard", { replace: true });
     } catch (err) {
       toast(formatDetail(err?.response?.data?.detail) || "Innlogging feilet");
@@ -74,7 +92,7 @@ export default function LoginPage() {
       <div className="hairline-b">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <Logo size={28} />
+            <Logo size={40} />
           </Link>
           <div className="flex items-center gap-4">
             <InfoMenu align="right" />

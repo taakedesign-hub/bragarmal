@@ -1,11 +1,15 @@
 import { Link } from "react-router-dom";
+import Logo from "@/components/Logo";
 import { TID } from "@/lib/testIds";
 
 export default function Footer() {
   return (
     <footer className="hairline-t">
       <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-10 flex items-center justify-between flex-wrap gap-4">
-        <span className="label-ui">BRAGARMÅL <span className="marker-ornament" /> 2026</span>
+        <div className="flex items-center gap-4">
+          <Logo size={22} />
+          <span className="label-ui" style={{ color: "var(--ink-mute)" }}>2026</span>
+        </div>
         <div className="flex items-center gap-6 flex-wrap">
           <Link to="/manifest" className="label-ui" style={{ color: "var(--ink-mute)" }}>Manifest</Link>
           <Link to="/etikk" className="label-ui" style={{ color: "var(--ink-mute)" }}>Etikk</Link>

@@ -1700,6 +1700,7 @@ async def ensure_beta_flag(user_id: str):
 class CheckoutRequest(BaseModel):
     lookup_key: str
     origin_url: str
+    trial_days: Optional[int] = None
 
 
 @api_router.post("/billing/checkout")
@@ -1757,6 +1758,16 @@ async def billing_checkout(body: CheckoutRequest, user: User = Depends(get_curre
 
     origin_ascii = _ascii_url(body.origin_url)
 
+    # Build subscription_data with optional trial
+    subscription_data = {"metadata": {"user_id": user.user_id, "lookup_key": body.lookup_key}}
+    if body.trial_days and body.trial_days > 0:
+        # Safety cap — trials over 60 days are almost certainly abuse
+        subscription_data["trial_period_days"] = min(body.trial_days, 60)
+        # Auto-charge with saved payment method after trial ends
+        subscription_data["trial_settings"] = {
+            "end_behavior": {"missing_payment_method": "cancel"}
+        }
+
     session = stripe.checkout.Session.create(
         customer=customer_id,
         line_items=[{"price": price.id, "quantity": 1}],
@@ -1765,7 +1776,7 @@ async def billing_checkout(body: CheckoutRequest, user: User = Depends(get_curre
         cancel_url=f"{origin_ascii}/betaling/avbrutt",
         metadata={"user_id": user.user_id, "lookup_key": body.lookup_key},
         managed_payments={"enabled": True},
-        subscription_data={"metadata": {"user_id": user.user_id, "lookup_key": body.lookup_key}},
+        subscription_data=subscription_data,
     )
 
     await db.payment_transactions.insert_one({

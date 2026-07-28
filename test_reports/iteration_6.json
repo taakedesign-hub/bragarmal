@@ -1,0 +1,46 @@
+{
+  "summary": "Iteration 6 verifies (a) 14-day free trial flow: 'Prøv gratis i 2 uker' CTA + /api/billing/checkout trial_days=14 + post-registration auto-redirect to Stripe; (b) Box 02 copy change from 'Eksempler på når Bragarmål hjelper' → 'Din sparringspartner. Din stemme.' with red 'Hvordan Bragarmål hjelper deg' link; (c) 'En sparringspartner. Ikke tekstautomat.' moved from Landing manifesto → Eksempler footer (rust/moss #c8432c); (d) Header logo enlarged to 40px on all 8 pages, footer keeps small 22px logo. Backend: 7/7 trial_days tests passed. Frontend: end-to-end trial flow verified — anonymous click sets localStorage bragr:trial_intent=1, redirects to /logg-inn; fresh registration then auto-redirects to https://checkout.stripe.com/... IMPORTANT LIMITATION: Stripe's subscription_data.trial_period_days is a WRITE-ONLY parameter on Checkout Session API — it is NOT retrievable via Session.retrieve. End-to-end verification of trial_period_days=14 requires either browser card submission OR backend log inspection; from external API-only testing we can only confirm that (1) the checkout call returns 200, (2) the Session is valid (cs_test_...), (3) the code path at server.py:1763-1769 correctly sets subscription_data['trial_period_days']=min(trial_days,60) and adds trial_settings.end_behavior.missing_payment_method='cancel'. Mark trial_period_days=14 assertion as 'unverified: post-checkout-only' via external API.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "/api/billing/checkout",
+        "issue": "unverified: post-checkout-only — Stripe's subscription_data.trial_period_days cannot be read back via Session.retrieve after creation. Successful 200 response + code review at server.py:1763-1769 is our only external evidence that trial_days=14 is being forwarded to Stripe. True end-to-end verification requires either (a) completing the checkout with a test card via browser, (b) inspecting Stripe's request logs (dashboard only), or (c) adding a debug field to the response like 'applied_trial_days'."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_billing_trial.py",
+    "/app/backend/tests/test_billing_idn.py",
+    "/app/test_reports/pytest/pytest_billing_trial.xml"
+  ],
+  "action_items": [
+    "OPTIONAL: To make trial_period_days verifiable via automated tests, add 'trial_days_applied' to the /api/billing/checkout response (mirrors the value the backend sent to Stripe, capped). This costs one dict field and unblocks all future automated regression tests for trial changes."
+  ],
+  "critical_code_review_comments": [
+    "server.py:1700-1793 — CheckoutRequest now correctly accepts optional trial_days: Optional[int]. Trial logic (lines 1761-1769) guards with 'if body.trial_days and body.trial_days > 0' and caps at min(60), plus sets trial_settings.end_behavior.missing_payment_method='cancel' — a sensible auto-cancel on failed capture after trial. subscription_data.metadata is preserved.",
+    "Landing.jsx:17-34 — startTrial() correctly handles anonymous case (localStorage.setItem + nav('/logg-inn')) and authenticated case (POST /billing/checkout with trial_days=14, redirect via window.location.href). Uses try/catch around localStorage (private-browsing safe). Error toast fallback present.",
+    "LoginPage.jsx:59-74 — Trial-intent post-auth handoff is correct: reads localStorage AFTER successful login/register, removes it BEFORE the checkout POST (idempotent). On checkout failure, falls through to /dashboard silently — good UX (user isn't stuck).",
+    "Footer.jsx:10 — Small Logo (size 22) added before '2026' label. All 8 header logos use size={40} consistently (verified via grep + DOM inspection: Landing, Login, Manifest, Etikk, Priser, Payment, Eksempler, Dashboard/AppShell).",
+    "ExamplesPage.jsx:95-101 — 'En sparringspartner. Ikke tekstautomat.' text placed just before the CTA button at page bottom, styled with var(--moss) rust color (rgb(200,67,44), verified via computed style).",
+    "MINOR: Landing.jsx still contains a 'Sparrings-partner. Ikke tekstautomat' H2 in the Filosofi section (line 303-305) — this is the philosophy/sparring section with two <em> quotes, NOT the compact manifest tagline. The review request said 'no longer contains En sparringspartner. Ikke tekstautomat.' — this exact string is indeed absent; only the philosophical section header 'Sparringspartner. Ikke tekstautomat.' (without the leading 'En') remains, which is a different sentence. If E1 intended to remove the philosophical section too, this remains. Otherwise it's correct."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_billing_trial.py (new — 7 tests covering trial_days=14 happy path, no-trial regression, trial=0 no-op, cap at 60, yearly plan trial, 400/401 error paths)"
+  ],
+  "success_rate": {
+    "backend": "100% (7/7 test_billing_trial.py tests pass; all four trial-related asserts pass at HTTP layer; trial_period_days=14 verification via Stripe API is impossible externally — see LIMITATION note)",
+    "frontend": "100% (trial CTA text OK, Box02 copy OK, /eksempler footer text OK, Landing manifesto text removed OK, header logo 40px on 7 pages verified + Dashboard route auth-gated redirects to /, footer logo 22px OK, end-to-end anonymous→register→Stripe checkout flow WORKS)"
+  },
+  "test_credentials": "Fresh Playwright registration: trial.playwright.<ts>@example.com / TestPass123! (created via /auth/register). Backend tests use direct MongoDB seeded users (trial.test.<ts>@example.com) with auto-cleanup.",
+  "seed_data_creation": "Backend: fixture creates 1 test user per module in MongoDB (users + user_sessions collections), auto-cleaned. Frontend: 1 real registration via UI (persists in DB — cleanup requires manual or scheduled purge of trial.playwright.* prefix). Stripe: 5-6 test-mode checkout sessions + 5-6 test customers created — these expire unused within 24h and cost nothing.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "The 14-day trial flow is verified end-to-end at every layer EXCEPT the actual trial_period_days=14 value inside Stripe (Stripe SDK write-only limitation). Code path is correct at server.py:1763-1769. To close this gap in future iterations, either (1) add 'trial_days_applied' field to POST /api/billing/checkout response, or (2) use Playwright to submit test card 4242 4242 4242 4242 into the Stripe Checkout page (requires cross-origin handling). Both Landing.jsx trial CTA and LoginPage.jsx post-auth Stripe redirect confirmed via Playwright — flow works. All 8 pages: header 40px, footer 22px (except PaymentStatus which doesn't render Footer). One Landing.jsx text (line 303-305) still uses 'Sparringspartner. Ikke tekstautomat.' as a philosophical section H2 — flag to main agent to confirm if that's the intended state; the tagline WITH leading 'En' has been correctly removed.",
+  "rca of the issue": "No blocking bugs. Only limitation: Stripe's Checkout Session API keeps subscription_data write-only — reproducible with `stripe.checkout.Session.retrieve(id, expand=['subscription_data'])` which returns 200 but omits the field. See Stripe API keys enumeration: id, object, adaptive_pricing, ..., subscription (None until paid), success_url — no subscription_data. Confirmed via 3 independent tests using both stripe-python SDK and raw REST API. Mitigation options listed in action_items."
+}

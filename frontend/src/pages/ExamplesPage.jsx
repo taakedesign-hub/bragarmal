@@ -49,7 +49,7 @@ export default function ExamplesPage() {
       <div className="hairline-b">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <Logo size={28} />
+            <Logo size={40} />
           </Link>
           <nav className="flex items-center gap-6">
             <InfoMenu align="right" />
@@ -92,9 +92,14 @@ export default function ExamplesPage() {
         </div>
 
         <div className="hairline-t mt-16 pt-8 flex items-center justify-between flex-wrap gap-4">
-          <p className="font-serif-display text-xl md:text-2xl" style={{ color: "var(--ink)" }}>
-            Klar til å prøve?
-          </p>
+          <div>
+            <p className="font-serif-display text-2xl md:text-3xl" style={{ color: "var(--moss)" }}>
+              En sparringspartner. Ikke tekstautomat.
+            </p>
+            <p className="mt-3 font-editor text-base md:text-lg" style={{ color: "var(--ink)" }}>
+              Klar til å prøve?
+            </p>
+          </div>
           <Link to="/logg-inn" className="btn-primary inline-flex items-center gap-3" data-testid="examples-cta">
             Kom i gang <ArrowRight size={14} strokeWidth={1.6} />
           </Link>

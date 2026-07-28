@@ -5,10 +5,33 @@ import { Feather, ArrowRight, Camera, Mic, FileText, ScanLine } from "lucide-rea
 import InfoMenu from "@/components/InfoMenu";
 import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
+import { useAuth } from "@/lib/auth";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 export default function Landing() {
   const nav = useNavigate();
+  const { user } = useAuth();
   const goLogin = () => nav("/logg-inn");
+
+  const startTrial = async () => {
+    if (!user) {
+      // Save intent, redirect to login/register
+      try { localStorage.setItem("bragr:trial_intent", "1"); } catch {}
+      nav("/logg-inn");
+      return;
+    }
+    try {
+      const { data } = await api.post("/billing/checkout", {
+        lookup_key: "bragr_monthly_nok",
+        origin_url: window.location.origin,
+        trial_days: 14,
+      });
+      if (data?.checkout_url) window.location.href = data.checkout_url;
+    } catch (e) {
+      toast(e?.response?.data?.detail || "Kunne ikke starte prøveperioden");
+    }
+  };
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
@@ -21,7 +44,7 @@ export default function Landing() {
       <div className="hairline-b">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <Logo size={28} />
+            <Logo size={40} />
           </Link>
           <nav className="flex items-center gap-2 md:gap-6">
             <InfoMenu align="right" />
@@ -52,10 +75,11 @@ export default function Landing() {
               <li>
                 <button
                   data-testid="hero-cta-trial"
-                  onClick={goLogin}
+                  onClick={startTrial}
                   className="text-left font-serif-display text-sm md:text-base leading-snug hover:underline underline-offset-4"
                 >
-                  Test gratis i 2 uker
+                  Prøv gratis i 2 uker
+                  <span className="block font-editor text-[10px] md:text-xs opacity-70 mt-0.5">deretter automatisk 149 kr/mnd</span>
                 </button>
               </li>
               <li>
@@ -80,7 +104,7 @@ export default function Landing() {
             </ul>
           </div>
 
-          {/* Box 2 — WHITE: Examples link (red accent) */}
+          {/* Box 2 — WHITE: sparring partner tagline + examples link */}
           <Link
             to="/eksempler"
             data-testid="hero-box-examples"
@@ -90,10 +114,10 @@ export default function Landing() {
             <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">02</div>
             <div>
               <div className="font-serif-display text-xl md:text-2xl leading-tight">
-                Eksempler på når<br/>Bragarmål hjelper
+                Din sparringspartner.<br/>Din stemme.
               </div>
-              <div className="mt-3 font-editor text-xs md:text-sm flex items-center gap-2" style={{ color: "#c8432c" }}>
-                Se scenarier <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
+              <div className="mt-3 font-editor text-xs md:text-sm inline-flex items-center gap-1 hover:underline underline-offset-4" style={{ color: "#c8432c" }}>
+                Hvordan Bragarmål hjelper deg <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
               </div>
             </div>
           </Link>
@@ -130,7 +154,7 @@ export default function Landing() {
             <div className="absolute inset-x-0 bottom-0 p-4 md:p-5 flex items-center justify-between">
               <span className="font-mono-ui text-[10px] md:text-xs tracking-widest" style={{ color: "#0f0e0d", background: "#ffffff", padding: "2px 6px" }}>04</span>
               <span
-                className="font-serif-display text-sm md:text-base inline-flex items-center gap-1 hover:underline underline-offset-4"
+                className="font-editor text-sm md:text-base font-semibold inline-flex items-center gap-1 hover:underline underline-offset-4"
                 style={{ color: "#c8432c", background: "#ffffff", padding: "6px 10px" }}
               >
                 Etikk <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
@@ -244,9 +268,6 @@ export default function Landing() {
                   teksten din, rytmen — men vil ha veiledning og drahjelp når det låser seg. Eller
                   hjelp til å komme i gang —
                   {" "}<em className="italic" style={{ color: "var(--moss)" }}>med DIN fortellerstemme intakt.</em>
-                </p>
-                <p className="mt-10 font-serif-display text-2xl md:text-3xl" style={{ color: "var(--moss)" }}>
-                  En sparringspartner. Ikke tekstautomat.
                 </p>
                 <p
                   className="mt-10 font-serif-display text-3xl md:text-4xl leading-snug"

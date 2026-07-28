@@ -35,7 +35,7 @@ export default function PaymentStatusPage({ variant }) {
       <div className="hairline-b absolute top-0 left-0 right-0">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5">
           <Link to="/" className="flex items-center">
-            <Logo size={28} />
+            <Logo size={40} />
           </Link>
         </div>
       </div>
