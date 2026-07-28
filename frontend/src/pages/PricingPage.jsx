@@ -10,8 +10,10 @@ import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
 
 const REGULAR = {
-  monthly: { key: "bragr_monthly_nok", price: 149, per: "mnd" },
-  yearly:  { key: "bragr_yearly_nok",  price: 1290, per: "år" },
+  monthly: { key: "bragr_monthly_nok", price: 249, months: 1,  label: "Månedlig",   save: 0  },
+  q3:      { key: "bragr_3mo_nok",     price: 710, months: 3,  label: "3 måneder",  save: 5  },
+  q6:      { key: "bragr_6mo_nok",     price: 1345, months: 6, label: "6 måneder",  save: 10 },
+  yearly:  { key: "bragr_yearly_nok",  price: 2092, months: 12, label: "12 måneder", save: 30 },
 };
 
 export default function PricingPage() {
@@ -43,12 +45,10 @@ export default function PricingPage() {
   const isActive = status?.active;
   const isLifetime = status?.plan === "lifetime";
 
-  // Yearly savings math
-  const monthlyPrice = REGULAR.monthly.price;
-  const yearlyPrice = REGULAR.yearly.price;
-  const yearlyEquivMonthly = Math.round(yearlyPrice / 12);
-  const savedPerYear = monthlyPrice * 12 - yearlyPrice;
-  const savedMonths = Math.round(savedPerYear / monthlyPrice);
+  // Monthly baseline for "you save" math
+  const baseMonthly = REGULAR.monthly.price;
+
+  const options = [REGULAR.monthly, REGULAR.q3, REGULAR.q6, REGULAR.yearly];
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
@@ -77,8 +77,8 @@ export default function PricingPage() {
           Fair pris. <em className="italic" style={{ color: "var(--moss)" }}>Ingen skjulte grenser</em>.
         </h1>
         <p className="mt-6 font-editor text-lg max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>
-          Alle modeller. Alle prøver. Ubegrenset generering. Alt lagret kun på din konto.
-          Ingen deler dataene dine.
+          Alle modeller. Alle prøver. Ubegrenset generering. Alt lagret kun på din konto —
+          slett når du vil.
         </p>
 
         {isLifetime && (
@@ -136,45 +136,47 @@ export default function PricingPage() {
               Ordinært medlemskap
             </h2>
             <p className="font-editor text-sm mt-3" style={{ color: "var(--ink-soft)" }}>
-              Alle modeller, ubegrenset generering, dine data forblir dine.
+              Alle modeller, ubegrenset generering, du styrer dataene dine.
             </p>
 
-            {/* Two purchase options side by side */}
+            {/* Four purchase options — monthly / 3mo / 6mo / yearly */}
             <div className="mt-6 grid grid-cols-1 gap-3">
-              <button
-                data-testid="tier-monthly-btn"
-                onClick={() => checkout(REGULAR.monthly.key)}
-                disabled={busy || isActive}
-                className="flex items-baseline justify-between p-4 text-left hover:bg-neutral-50 transition-all"
-                style={{ border: "1px solid var(--line)" }}
-              >
-                <span className="font-serif-display text-xl" style={{ color: "var(--ink)" }}>Månedlig</span>
-                <span className="flex items-baseline gap-1">
-                  <span className="font-serif-display text-2xl md:text-3xl" style={{ color: "var(--ink)" }}>{monthlyPrice}</span>
-                  <span className="font-editor text-sm" style={{ color: "var(--ink-mute)" }}>kr/mnd</span>
-                </span>
-              </button>
-              <button
-                data-testid="tier-yearly-btn"
-                onClick={() => checkout(REGULAR.yearly.key)}
-                disabled={busy || isActive}
-                className="flex items-baseline justify-between p-4 text-left hover:bg-neutral-50 transition-all relative"
-                style={{ border: "2px solid var(--moss)" }}
-              >
-                <span className="absolute -top-2.5 left-4 px-2 py-0.5 font-mono-ui text-[10px] tracking-widest" style={{ background: "var(--moss)", color: "white" }}>
-                  SPAR {savedPerYear} KR
-                </span>
-                <span className="font-serif-display text-xl" style={{ color: "var(--ink)" }}>
-                  Årlig
-                  <span className="block font-editor text-xs mt-1" style={{ color: "var(--moss)" }}>
-                    tilsvarer {yearlyEquivMonthly} kr/mnd · gratis i {savedMonths} måneder
-                  </span>
-                </span>
-                <span className="flex items-baseline gap-1">
-                  <span className="font-serif-display text-2xl md:text-3xl" style={{ color: "var(--ink)" }}>{yearlyPrice}</span>
-                  <span className="font-editor text-sm" style={{ color: "var(--ink-mute)" }}>kr/år</span>
-                </span>
-              </button>
+              {options.map((opt) => {
+                const equivMonthly = Math.round(opt.price / opt.months);
+                const saved = baseMonthly * opt.months - opt.price;
+                const isYearly = opt.months === 12;
+                return (
+                  <button
+                    key={opt.key}
+                    data-testid={`tier-${opt.key}-btn`}
+                    onClick={() => checkout(opt.key)}
+                    disabled={busy || isActive}
+                    className="flex items-baseline justify-between p-4 text-left hover:bg-neutral-50 transition-all relative"
+                    style={{ border: isYearly ? "2px solid var(--moss)" : "1px solid var(--line)" }}
+                  >
+                    {opt.save > 0 && (
+                      <span
+                        className="absolute -top-2.5 left-4 px-2 py-0.5 font-mono-ui text-[10px] tracking-widest"
+                        style={{ background: "var(--moss)", color: "white" }}
+                      >
+                        SPAR {opt.save}%
+                      </span>
+                    )}
+                    <span className="font-serif-display text-xl" style={{ color: "var(--ink)" }}>
+                      {opt.label}
+                      {opt.save > 0 && (
+                        <span className="block font-editor text-xs mt-1" style={{ color: "var(--moss)" }}>
+                          tilsvarer {equivMonthly} kr/mnd · du sparer {saved} kr
+                        </span>
+                      )}
+                    </span>
+                    <span className="flex items-baseline gap-1 shrink-0 ml-3">
+                      <span className="font-serif-display text-2xl md:text-3xl" style={{ color: "var(--ink)" }}>{opt.price}</span>
+                      <span className="font-editor text-sm" style={{ color: "var(--ink-mute)" }}>kr</span>
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
             {busy && (
@@ -209,8 +211,8 @@ export default function PricingPage() {
             og fornyes ikke etter det. Ingen refusjon for allerede påbegynte perioder.
           </p>
           <p>
-            Ved oppsigelse beholder du all data — prøver, stemmeprofil, filer — men kan ikke
-            generere ny tekst før medlemskapet er aktivt igjen.
+            Du kan slette dine data — prøver, stemmeprofil, filer — når du ønsker det selv, direkte
+            fra kontoen din.
           </p>
         </div>
       </section>

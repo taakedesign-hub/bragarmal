@@ -1706,7 +1706,8 @@ class CheckoutRequest(BaseModel):
 @api_router.post("/billing/checkout")
 async def billing_checkout(body: CheckoutRequest, user: User = Depends(get_current_user)):
     ALL_KEYS = {
-        "bragr_monthly_nok", "bragr_yearly_nok", "bragr_monthly_founder", "bragr_yearly_founder",
+        "bragr_monthly_nok", "bragr_3mo_nok", "bragr_6mo_nok", "bragr_yearly_nok",
+        "bragr_monthly_founder", "bragr_yearly_founder",
     }
     if body.lookup_key not in ALL_KEYS:
         raise HTTPException(status_code=400, detail="Ukjent plan")

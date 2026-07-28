@@ -40,9 +40,9 @@ export default function Dashboard() {
           className="mt-6 max-w-[60ch] px-4 py-3 font-editor text-sm"
           style={{ background: "#fafafa", border: "1px solid #e5e5e5", color: "var(--ink)" }}
         >
-          Du beholder alle dine data — også hvis abonnementet ditt utløper eller ikke fornyes.
-          Arbeidet ditt stopper i den perioden, men fortsetter sømløst når du fornyer eller
-          betaler igjen.
+          Dine data — prøver, stemmeprofil, filer — er dine. Du kan slette dem når du selv
+          ønsker det. Ved pause i abonnementet stopper arbeidet ditt, men fortsetter sømløst
+          når du fornyer.
         </div>
       </div>
 

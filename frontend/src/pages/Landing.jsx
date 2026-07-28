@@ -196,7 +196,7 @@ export default function Landing() {
                 Kom i gang —<br/>registrer deg nå
               </div>
               <div className="mt-3 font-editor text-[11px] md:text-xs opacity-70 max-w-[24ch] ml-auto">
-                Du beholder alle dine data — også hvis du senere pauser abonnementet.
+                Dine data er dine. Slett når du selv ønsker det.
               </div>
               <div className="mt-3 font-editor text-xs md:text-sm inline-flex items-center gap-2 justify-end" style={{ color: "#c8432c" }}>
                 Logg inn <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
