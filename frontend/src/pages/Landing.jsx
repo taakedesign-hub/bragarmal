@@ -44,7 +44,7 @@ export default function Landing() {
       <div className="hairline-b">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <Logo size={52} />
+            <Logo size={70} />
           </Link>
           <nav className="flex items-center gap-2 md:gap-6">
             <InfoMenu align="right" />

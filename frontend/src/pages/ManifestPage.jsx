@@ -37,7 +37,7 @@ export default function ManifestPage() {
       <div className="hairline-b">
         <div className="max-w-[1500px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <Logo size={52} />
+            <Logo size={70} />
           </Link>
           <div className="flex items-center gap-4">
             <InfoMenu align="right" />
