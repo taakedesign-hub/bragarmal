@@ -57,11 +57,11 @@ export default function Landing() {
             </div>
           </Link>
 
-          {/* Box 2 — WHITE: ink + fountain pen illustration (no background) */}
+          {/* Box 2 — WHITE: ink + fountain pen illustration */}
           <div
             data-testid="hero-box-image"
             className="aspect-square flex items-center justify-center p-6"
-            style={{ background: "transparent" }}
+            style={{ background: "#ffffff", border: "1px solid #e5e5e5" }}
           >
             <svg viewBox="0 0 200 200" className="w-full h-auto max-w-[180px]" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               {/* Ink bottle */}
