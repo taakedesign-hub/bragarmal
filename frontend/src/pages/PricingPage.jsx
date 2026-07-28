@@ -53,7 +53,7 @@ export default function PricingPage() {
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Seo
         title="Priser — fair pris, ingen skjulte grenser"
-        description="Bragr-medlemskap fra 99 kr/mnd. Beta-plasser gratis i 3 måneder for de 50 første. Alle modeller, ubegrenset generering."
+        description="Bragarmål-medlemskap fra 99 kr/mnd. Beta-plasser gratis i 3 måneder for de 10 første. Alle modeller, ubegrenset generering."
         path="/priser"
       />
       <div className="hairline-b">
@@ -127,14 +127,14 @@ export default function PricingPage() {
             title="Gratis · 3 mnd"
             price="0"
             unit="/de første 3 månedene"
-            note={status ? `${status.beta_slots_remaining} av ${status.beta_total} plasser igjen` : "For de 50 første"}
+            note={status ? `${status.beta_slots_remaining} av ${status.beta_total} plasser igjen` : "For de 10 første"}
             features={[
               "Alle funksjoner",
               "Alle modeller (Claude, GPT, Gemini)",
               "Ubegrenset generering",
               "Gratis i 3 måneder — deretter velg plan",
             ]}
-            cta={isBeta ? "Du er beta-medlem" : "Kun for de 50 første"}
+            cta={isBeta ? "Du er beta-medlem" : "Kun for de 10 første"}
             disabled
             highlight={isBeta}
           />

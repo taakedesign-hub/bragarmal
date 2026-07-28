@@ -150,7 +150,7 @@ export default function WritePage() {
       const a = document.createElement("a");
       const stamp = new Date().toISOString().slice(0, 10);
       a.href = url;
-      a.download = `bragr-utkast-${stamp}.txt`;
+      a.download = `bragarmal-utkast-${stamp}.txt`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -161,7 +161,7 @@ export default function WritePage() {
 
   const emailOut = () => {
     if (!output.trim()) return;
-    const subject = encodeURIComponent("Utkast fra BRAGR");
+    const subject = encodeURIComponent("Utkast fra BRAGARMÅL");
     const body = encodeURIComponent(output);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
@@ -180,7 +180,7 @@ export default function WritePage() {
         const img = new Image();
         img.onload = () => res(img);
         img.onerror = rej;
-        img.src = "/bragr-logo.png";
+        img.src = "/bragarmal-logo.png";
       });
     } catch {}
 
@@ -230,11 +230,11 @@ export default function WritePage() {
       }
       pdf.setFontSize(8);
       pdf.setTextColor(122, 118, 110);
-      pdf.text(`Bragr · bragrapp.no · ${stamp}`, margin, pageH - margin / 2);
+      pdf.text(`Bragarmål · bragrapp.no · ${stamp}`, margin, pageH - margin / 2);
       pdf.text(`${i} / ${pageCount}`, pageW - margin, pageH - margin / 2, { align: "right" });
     }
 
-    return { pdf, filename: `bragr-utkast-${stamp}.pdf` };
+    return { pdf, filename: `bragarmal-utkast-${stamp}.pdf` };
   };
 
   const downloadPdf = async () => {
@@ -258,8 +258,8 @@ export default function WritePage() {
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: "Utkast fra Bragr",
-          text: "Skrevet med Bragr — bragrapp.no",
+          title: "Utkast fra Bragarmål",
+          text: "Skrevet med Bragarmål — bragrapp.no",
         });
         toast("Delt");
       } else {

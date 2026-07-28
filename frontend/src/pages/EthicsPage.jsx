@@ -55,11 +55,11 @@ const CHECKS = [
   "Ville teksten sett annerledes ut hvis AI ikke hadde vært involvert?",
 ];
 
-const BRAGR_DESIGN = [
-  { label: "Stilgjenkjenning på ditt eget materiale", detail: "Jo mer Bragr kjenner din stemme — gamle tekster, håndskrift, høytlesning — desto mindre generisk blir forslagene." },
+const BRAGARMÅL_DESIGN = [
+  { label: "Stilgjenkjenning på ditt eget materiale", detail: "Jo mer Bragarmål kjenner din stemme — gamle tekster, håndskrift, høytlesning — desto mindre generisk blir forslagene." },
   { label: "Forslag, ikke ferdige kapitler", detail: "Retninger og korte formuleringer. Ikke hele avsnitt klare til kopiering." },
   { label: "Tydelig merking", detail: "Din tekst og AI-forslag holdes visuelt adskilt. Ingen skjult blanding." },
-  { label: "Ingen skjult generering", detail: "«Skriv ferdig dette kapittelet» finnes ikke. Du jobber alltid videre med det Bragr leverer." },
+  { label: "Ingen skjult generering", detail: "«Skriv ferdig dette kapittelet» finnes ikke. Du jobber alltid videre med det Bragarmål leverer." },
   { label: "Stemme og fragmenter", detail: "Les inn, fotografer gamle notater, jobb videre derfra. Ingen overtar skrivingen." },
   { label: "Personvern og eierskap", detail: "Stemmeopptak og personlige tekster er dine. Alt låst til din innlogging. Ingen deler dine data." },
 ];
@@ -68,8 +68,8 @@ export default function EthicsPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Seo
-        title="Etikk — hvordan Bragr forholder seg til AI"
-        description="Hvem eier teksten? Hvordan brukes AI etisk i skriving? Bragrs etikkside — for forfattere som vil vite hva som skjer under panseret."
+        title="Etikk — hvordan Bragarmål forholder seg til AI"
+        description="Hvem eier teksten? Hvordan brukes AI etisk i skriving? Bragarmåls etikkside — for forfattere som vil vite hva som skjer under panseret."
         path="/etikk"
       />
       <div className="hairline-b">
@@ -202,21 +202,21 @@ export default function EthicsPage() {
         </div>
       </section>
 
-      {/* Bragr's design ethics */}
+      {/* Bragarmål's design ethics */}
       <section className="hairline-t" style={{ background: "var(--bg-alt)" }}>
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             <div className="lg:col-span-4">
               <div className="label-ui">Del 5</div>
               <h2 className="font-serif-display text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
-                Slik er Bragr bygget.
+                Slik er Bragarmål bygget.
               </h2>
               <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
                 Etikk er ikke en side vi la til. Det er selve arkitekturen.
               </p>
             </div>
             <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-x-8">
-              {BRAGR_DESIGN.map((e, i) => (
+              {BRAGARMÅL_DESIGN.map((e, i) => (
                 <div key={i} className="hairline-b py-6">
                   <div className="font-serif-display text-lg" style={{ color: "var(--ink)" }}>{e.label}</div>
                   <div className="font-editor text-sm mt-2" style={{ color: "var(--ink-soft)" }}>{e.detail}</div>
@@ -271,7 +271,7 @@ export default function EthicsPage() {
               <ArrowLeft size={14} strokeWidth={1.6} /> Manifestet
             </Link>
             <Link to="/" className="btn-primary inline-flex items-center gap-3">
-              Tilbake til Bragr <ArrowRight size={14} strokeWidth={1.6} />
+              Tilbake til Bragarmål <ArrowRight size={14} strokeWidth={1.6} />
             </Link>
           </div>
         </div>

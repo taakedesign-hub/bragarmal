@@ -8,7 +8,7 @@ import { Helmet } from "react-helmet-async";
 export default function Seo({ title, description, path = "/", image }) {
   const fullUrl = `https://bragrapp.no${path}`;
   const ogImage = image || "https://bragrapp.no/og-image.png";
-  const fullTitle = title ? `${title} — Bragr` : "Bragr — vi finner din stemme";
+  const fullTitle = title ? `${title} — Bragarmål` : "Bragarmål — vi finner din stemme";
 
   return (
     <Helmet>

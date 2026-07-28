@@ -67,7 +67,7 @@ export default function LoginPage() {
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Seo
         title="Logg inn"
-        description="Logg inn på Bragr — det norske AI-skriveverktøyet som bevarer din stemme."
+        description="Logg inn på Bragarmål — det norske AI-skriveverktøyet som bevarer din stemme."
         path="/logg-inn"
       />
       {/* Header */}
@@ -90,7 +90,7 @@ export default function LoginPage() {
         <div className="lg:col-span-6">
           <div className="label-ui">Velkommen</div>
           <h1 className="font-serif-display text-5xl md:text-6xl font-light mt-3" style={{ color: "var(--ink)" }}>
-            Logg inn i <em className="italic" style={{ color: "var(--moss)" }}>Bragr</em>.
+            Logg inn i <em className="italic" style={{ color: "var(--moss)" }}>Bragarmål</em>.
           </h1>
           <p className="font-editor text-lg mt-6 max-w-[48ch]" style={{ color: "var(--ink-soft)" }}>
             Velg den innloggingen du foretrekker. All data — tekster, opptak, stemmeprofil —

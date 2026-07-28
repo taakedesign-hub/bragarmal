@@ -9,22 +9,22 @@ const ORIGINAL = [
   "Publisert forfatter er jeg ikke enda, men har utallige påbegynte prosjekter over flere år. Legg merke til at jeg skrev « ikke enda» — for det er nettopp derfor jeg laget denne appen, til meg selv, men deler den slik at andre også kan få tilgang.",
   "I tre år har jeg jobbet med samme bok. Dette siste året begynte jeg å teste ut diverse AI for å se om jeg kunne få hjelp med skrivingen. Resultatet har så langt vært nedslående. De beste forteller hva som fungerer og ikke er bra.",
   "Men dessverre, alt handler om å kunne publisere mest mulig og fortest mulig. I tillegg testet jeg også AI-detektorer, og selv mine personlige tekster ble flagget som AI. Fordi AI fungerer på data, matematikk, ord som er matet inn. Dette gjelder spesielt for akademiske tekster og kreative tekster som er ryddige, har flyt fra før.",
-  { block: "Det viktigst av alt med Bragr er ikke at det er et verktøy for deg som bare vil skrive en bok, publisere tekst, løse skriveoppgaver etisk, men for deg som står fast, trenger noen nye vinklinger, etc., med DIN stemme, gjennom bilder av tekster du har skrevet for hånd, notater, meldinger om du vil, den boka du begynte på en gang for lenge siden, men aldri skreiv ferdig. Stemmeaktivering for å fange din fortellerstemme muntlig om du har problemer med skriftspråket, og ikke vil gi fra deg fortellerstemmen din og miste ektheten som er deg." },
+  { block: "Det viktigst av alt med Bragarmål er ikke at det er et verktøy for deg som bare vil skrive en bok, publisere tekst, løse skriveoppgaver etisk, men for deg som står fast, trenger noen nye vinklinger, etc., med DIN stemme, gjennom bilder av tekster du har skrevet for hånd, notater, meldinger om du vil, den boka du begynte på en gang for lenge siden, men aldri skreiv ferdig. Stemmeaktivering for å fange din fortellerstemme muntlig om du har problemer med skriftspråket, og ikke vil gi fra deg fortellerstemmen din og miste ektheten som er deg." },
   { emphasis: "Test den ut nå, mat inn det du har og vil, ta bilder av gamle tekster du har skrevet på papir, les inn, noter og les gjennom." },
-  "En tekst på en app kunne nok vært mer formell, men det ville tatt bort poenget mitt med BRAGR. For som jeg hevder: «Din stemme».",
+  "En tekst på en app kunne nok vært mer formell, men det ville tatt bort poenget mitt med BRAGARMÅL. For som jeg hevder: «Din stemme».",
 ];
 
 const AI_EDITED = [
   "Publisert forfatter er jeg ikke enda. Men jeg har utallige påbegynte prosjekter bak meg, spredt over flere år. Legg merke til at jeg skriver «ikke enda» — det er nettopp derfor denne appen finnes. Den er laget for meg. Jeg deler den slik at andre også kan bruke den.",
   "I tre år har jeg jobbet med samme bok. Det siste året begynte jeg å teste diverse AI for å se om jeg kunne få hjelp med skrivingen. Resultatet har så langt vært nedslående. De beste verktøyene kan fortelle deg hva som fungerer og hva som ikke gjør det. Men nesten alt handler om å publisere mest mulig – og fortest mulig.",
   "Jeg testet også AI-detektorer. Selv mine personlige tekster, skrevet lenge før AI fantes, ble flagget som maskinskrevet. Fordi AI lever av data, matematikk og ord som allerede er matet inn. Det gjelder særlig akademiske tekster og kreative tekster som allerede har flyt og orden.",
-  { block: "Det viktigste med Bragr er ikke at det er et verktøy for deg som bare vil skrive en bok. Det er et verktøy for deg som står fast. For deg som trenger nye vinklinger, uten å miste din egen fortellerstemme." },
-  "En tekst i en app kunne vært mer formell. Men det ville fjernet selve poenget med Bragr. For som jeg hevder: din stemme.",
+  { block: "Det viktigste med Bragarmål er ikke at det er et verktøy for deg som bare vil skrive en bok. Det er et verktøy for deg som står fast. For deg som trenger nye vinklinger, uten å miste din egen fortellerstemme." },
+  "En tekst i en app kunne vært mer formell. Men det ville fjernet selve poenget med Bragarmål. For som jeg hevder: din stemme.",
   "Du kan mate inn det du allerede har: bilder av håndskrevne tekster, gamle notater, meldinger, den boka du startet på for lenge siden men aldri fullførte. Du kan bruke stemmen din. Lese inn. Fortelle. Ikke bare ordene, men rytmen, pausene og måten du bygger en historie på når du snakker. Særlig hvis skriftspråket er en kamp.",
 ];
 
 const NOTES = [
-  { label: "Stavefeil bevart", detail: "«viktigst av alt» → renset til «viktigste med Bragr». Særegenhet borte." },
+  { label: "Stavefeil bevart", detail: "«viktigst av alt» → renset til «viktigste med Bragarmål». Særegenhet borte." },
   { label: "Setnings­sammensmelting", detail: "Ett langt, myldrende avsnitt om håndskrift/notater/meldinger → tre korte, ryddige setninger. Rytmen borte." },
   { label: "Direkte tiltale­fjernet", detail: "«Test den ut nå, mat inn det du har» → fjernet helt. Den varme, muntlige oppfordringen forsvant." },
   { label: "«jævla», «vissvass»-nivået", detail: "Munnlig norsk («skreiv», «vissvass») glattet ut mot standardformer. Tonen ble kjøligere." },
@@ -118,7 +118,7 @@ export default function ManifestPage() {
         <div className="max-w-[1500px] mx-auto px-6 md:px-10 py-16 text-center">
           <div className="label-ui">Poenget</div>
           <h2 className="font-serif-display text-4xl md:text-5xl font-light mt-3 max-w-[26ch] mx-auto" style={{ color: "var(--ink)" }}>
-            Bragr sender deg tilbake til <em className="italic" style={{ color: "var(--moss)" }}>deg selv</em>.
+            Bragarmål sender deg tilbake til <em className="italic" style={{ color: "var(--moss)" }}>deg selv</em>.
           </h2>
           <div className="mt-8 flex items-center justify-center gap-4 flex-wrap">
             <Link to="/etikk" className="btn-ghost inline-flex items-center gap-2">

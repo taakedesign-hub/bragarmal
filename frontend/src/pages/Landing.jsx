@@ -14,7 +14,7 @@ export default function Landing() {
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Seo
         title="AI-skriveverktøy som bevarer din stemme"
-        description="Bragr er et norsk AI-skriveverktøy for forfattere og kreative. Vi genererer ikke ord — vi finner din stemme. Tren stemmeprofil, oppdag AI-signaturer, skriv videre uten AI-slop."
+        description="Bragarmål er et norsk AI-skriveverktøy for forfattere og kreative. Vi genererer ikke ord — vi finner din stemme. Tren stemmeprofil, oppdag AI-signaturer, skriv videre uten AI-slop."
         path="/"
       />
       {/* Top rule */}
@@ -37,51 +37,109 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* Hero */}
-      <section className="max-w-[1400px] mx-auto px-6 md:px-10 pt-16 md:pt-24 pb-12">
-        <div className="grid grid-cols-12 gap-6 md:gap-10 items-end">
-          <div className="col-span-12 md:col-span-9 fade-in">
+      {/* Hero — mosaic grid inspired by literary editorial templates */}
+      <section className="max-w-[1400px] mx-auto px-6 md:px-10 pt-12 md:pt-16 pb-8">
+        <div className="grid grid-cols-12 gap-4 md:gap-6 items-stretch">
+          {/* LEFT column — main heading + descriptions (spans 7 cols) */}
+          <div className="col-span-12 md:col-span-7 fade-in">
             <div className="label-ui mb-6">Manifest <span className="marker-ornament" /> for deg som står fast</div>
             <h1 className="font-serif-display font-light text-5xl sm:text-6xl md:text-7xl leading-[1.02] tracking-tight" style={{ color: "var(--ink)" }}>
               DIN stemme <em className="italic" style={{ color: "var(--moss)" }}>er din.</em>
             </h1>
-            <p className="mt-6 font-editor text-lg md:text-xl max-w-[62ch]" style={{ color: "var(--ink)" }}>
+            <p className="mt-6 font-editor text-lg md:text-xl max-w-[52ch]" style={{ color: "var(--ink)" }}>
               Vi genererer ikke ord. <em className="italic" style={{ color: "var(--moss)" }}>Vi finner din stemme.</em>
             </p>
-            <p className="mt-8 font-editor text-lg md:text-xl max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>
+            <p className="mt-6 font-editor text-base md:text-lg max-w-[52ch]" style={{ color: "var(--ink-soft)" }}>
               Ingen rask metode for å publisere. Kun et verktøy som tar deg videre — på dine premisser.
             </p>
-            <p className="mt-4 font-editor text-base italic max-w-[62ch]" style={{ color: "var(--moss)" }}>
+            <p className="mt-4 font-editor text-sm italic max-w-[52ch]" style={{ color: "var(--moss)" }}>
               Ikke bare for forfattere — for kreativ skriving generelt.
             </p>
-            <p className="mt-6 font-editor text-sm max-w-[62ch]" style={{ color: "var(--ink-mute)" }}>
-              <span className="font-serif-display text-base" style={{ color: "var(--ink)" }}>Bragr</span>
-              {" "}— norrønt for «diktekunst» og «den fremste».
-              {" "}<em className="italic" style={{ color: "var(--moss)" }}>Bragarmál</em> — skaldens språk. Finn ditt eget.
+            <p className="mt-6 font-editor text-sm max-w-[52ch]" style={{ color: "var(--ink-mute)" }}>
+              <span className="font-serif-display text-base" style={{ color: "var(--ink)" }}>Bragarmål</span>
+              {" "}— norrønt for «skaldens språk» og «den fremste diktekunst». Finn ditt eget.
             </p>
-            <div className="mt-10 flex flex-wrap gap-4 items-center">
-              <button
-                data-testid={TID.ctaGetStarted}
-                onClick={goLogin}
-                className="btn-primary inline-flex items-center gap-3"
+          </div>
+
+          {/* RIGHT column — mosaic 2x2 (spans 5 cols) */}
+          <div className="col-span-12 md:col-span-5">
+            <div className="grid grid-cols-2 gap-3 md:gap-4 h-full">
+
+              {/* Cell 1 — Black box with initial "B" */}
+              <div
+                data-testid="hero-tile-mark"
+                className="aspect-square flex items-center justify-center"
+                style={{ background: "#1c1b1a" }}
               >
-                Test den ut nå <ArrowRight size={16} strokeWidth={1.6} />
-              </button>
-              <span className="label-ui">Velg innlogging med Google eller e-post</span>
-            </div>
-            <div className="mt-6 flex items-center gap-3">
-              <span
-                className="inline-flex items-center gap-2 px-3 py-1.5"
-                style={{ background: "var(--linen)", color: "var(--ink)" }}
+                <span className="font-serif-display text-6xl md:text-7xl" style={{ color: "#f5f0e8" }}>B</span>
+              </div>
+
+              {/* Cell 2 — RED box with 3 CTA links */}
+              <div
+                data-testid="hero-tile-cta"
+                className="aspect-square flex flex-col justify-between p-4 md:p-5"
+                style={{ background: "#c8432c", color: "#f5f0e8" }}
               >
-                <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--ink)" }} />
-                <span className="font-mono-ui text-xs tracking-wider">BETA</span>
-              </span>
-              <span className="font-editor text-sm" style={{ color: "var(--ink-soft)" }}>
-                Gratis i 3 måneder for de 50 første som prøver den ut.
-              </span>
+                <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-80">KOM I GANG</div>
+                <div className="flex flex-col gap-2 md:gap-3">
+                  <button
+                    data-testid={TID.ctaGetStarted}
+                    onClick={goLogin}
+                    className="text-left font-serif-display text-sm md:text-base leading-tight hover:underline underline-offset-4"
+                  >
+                    Beta gratis i 3 mnd
+                    <span className="block font-editor text-[10px] md:text-xs opacity-80 mt-0.5">de 10 første som registrerer seg</span>
+                  </button>
+                  <button
+                    data-testid="hero-cta-trial"
+                    onClick={goLogin}
+                    className="text-left font-serif-display text-sm md:text-base leading-tight hover:underline underline-offset-4"
+                  >
+                    Prøv gratis i 1 uke
+                  </button>
+                  <Link
+                    to="/priser"
+                    data-testid="hero-cta-pricing"
+                    className="text-left font-serif-display text-sm md:text-base leading-tight hover:underline underline-offset-4"
+                  >
+                    Se priser →
+                  </Link>
+                </div>
+              </div>
+
+              {/* Cell 3 — Papyrus with fountain-pen quote */}
+              <div
+                data-testid="hero-tile-quote"
+                className="aspect-square flex items-center justify-center p-4"
+                style={{ background: "var(--linen)" }}
+              >
+                <p className="font-serif-display italic text-center text-sm md:text-base leading-snug" style={{ color: "var(--ink)" }}>
+                  «Skaldens språk<br/>er ditt eget.»
+                </p>
+              </div>
+
+              {/* Cell 4 — Dark box with logo mark */}
+              <div
+                data-testid="hero-tile-logo"
+                className="aspect-square flex items-center justify-center p-6"
+                style={{ background: "#2d2b28" }}
+              >
+                <img src="/bragr-logo-dark.png" alt="Bragarmål" className="w-full h-auto opacity-90" />
+              </div>
             </div>
           </div>
+        </div>
+
+        {/* Secondary CTA row */}
+        <div className="mt-10 flex flex-wrap gap-4 items-center">
+          <button
+            data-testid="hero-primary-cta"
+            onClick={goLogin}
+            className="btn-primary inline-flex items-center gap-3"
+          >
+            Test den ut nå <ArrowRight size={16} strokeWidth={1.6} />
+          </button>
+          <span className="label-ui">Velg innlogging med Google eller e-post</span>
         </div>
       </section>
 
@@ -114,7 +172,7 @@ export default function Landing() {
                   className="mt-8 font-serif-display text-2xl md:text-3xl leading-snug pl-6"
                   style={{ color: "var(--ink)", borderLeft: "2px solid var(--moss)" }}
                 >
-                  Det viktigst av alt med Bragr er ikke at det er et verktøy for deg som bare vil
+                  Det viktigst av alt med Bragarmål er ikke at det er et verktøy for deg som bare vil
                   skrive en bok, publisere tekst, løse skriveoppgaver etisk, men for deg som står
                   fast, trenger noen nye vinklinger, etc., med <em className="italic" style={{ color: "var(--moss)" }}>DIN stemme</em>
                   {" "}— gjennom bilder av tekster du har skrevet for hånd, notater, meldinger om
@@ -130,13 +188,13 @@ export default function Landing() {
                 </p>
                 <p className="mt-8" style={{ color: "var(--ink-soft)" }}>
                   En tekst på en app kunne nok vært mer formell, men det ville tatt bort poenget
-                  mitt med BRAGR. For som jeg hevder: <em className="italic" style={{ color: "var(--moss)" }}>«Din stemme»</em>.
+                  mitt med BRAGARMÅL. For som jeg hevder: <em className="italic" style={{ color: "var(--moss)" }}>«Din stemme»</em>.
                 </p>
                 <p
                   className="mt-10 font-serif-display text-3xl md:text-4xl leading-snug"
                   style={{ color: "var(--ink)" }}
                 >
-                  DIN stemme er din. Bragr sender deg tilbake til deg selv.
+                  DIN stemme er din. Bragarmål sender deg tilbake til deg selv.
                 </p>
               </div>
 
@@ -169,7 +227,7 @@ export default function Landing() {
             </div>
             <div className="col-span-12 md:col-span-8 md:pl-4 font-editor text-lg md:text-xl leading-[1.85]" style={{ color: "var(--ink)" }}>
               <p>
-                Bruk Bragr — og AI generelt — som en sparringspartner. Ikke for å få ferdige, glatte
+                Bruk Bragarmål — og AI generelt — som en sparringspartner. Ikke for å få ferdige, glatte
                 tekster ut av en prompt. Verktøyet blir bedre jo lengre du jobber med det.
                 Øvelse over tid. Din stemme, gjentatt.
               </p>
@@ -205,14 +263,14 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Example use cases — hvordan spør du Bragr */}
+      {/* Example use cases — hvordan spør du Bragarmål */}
       <section>
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16 md:py-20">
           <div className="grid grid-cols-12 gap-6 md:gap-10 items-start">
             <div className="col-span-12 md:col-span-4">
               <div className="label-ui">Sånn spør du</div>
               <h2 className="font-serif-display text-4xl md:text-5xl font-light mt-2" style={{ color: "var(--ink)" }}>
-                Eksempler på når Bragr <em className="italic" style={{ color: "var(--moss)" }}>hjelper</em>.
+                Eksempler på når Bragarmål <em className="italic" style={{ color: "var(--moss)" }}>hjelper</em>.
               </h2>
               <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
                 Ikke spør «skriv kapittel to for meg». Spør slik du ville spurt en betrodd kollega
@@ -222,7 +280,7 @@ export default function Landing() {
             <div className="col-span-12 md:col-span-8 space-y-6">
               <ExamplePrompt
                 situation="Skrivesperre midt i teksten"
-                prompt="Jeg har skrevet 4 sider, men står fast. Kan Bragr gi meg et tekstforslag for å løsne skrivesperren?"
+                prompt="Jeg har skrevet 4 sider, men står fast. Kan Bragarmål gi meg et tekstforslag for å løsne skrivesperren?"
               />
               <ExamplePrompt
                 situation="Ny scene i din stemme"

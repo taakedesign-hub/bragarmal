@@ -46,7 +46,7 @@ EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 XAI_API_KEY = os.environ.get('XAI_API_KEY')
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
-BETA_FREE_SLOTS = 50
+BETA_FREE_SLOTS = 10
 FOUNDER_SLOTS = 100  # First 100 (including the 50 beta) can access founder prices
 
 # ---------- Object Storage ----------
@@ -118,7 +118,7 @@ def storage_get(path: str) -> tuple[bytes, str]:
 
 
 
-app = FastAPI(title="Bragr")
+app = FastAPI(title="Bragarmål")
 api_router = APIRouter(prefix="/api")
 
 
@@ -1893,7 +1893,7 @@ async def stripe_webhook(request: Request):
 
 @api_router.get("/")
 async def root():
-    return {"app": "BRAGR", "ok": True}
+    return {"app": "BRAGARMÅL", "ok": True}
 
 
 app.include_router(api_router)
