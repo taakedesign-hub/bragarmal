@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { api, BACKEND } from "@/lib/api";
 import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
@@ -40,6 +41,20 @@ export default function WritePage() {
   const [saving, setSaving] = useState(false);
   const [canSharePdf, setCanSharePdf] = useState(false);
   const abortRef = useRef(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Prefill draft when navigated here from a sample ("Send til Skrivepulten")
+    const draft = location.state?.draft;
+    if (draft && typeof draft === "string") {
+      setInput(draft);
+      setMode("continue");
+      toast(`Utkast hentet${location.state?.source ? ` fra "${location.state.source}"` : ""}`);
+      // Clear state so a refresh doesn't refill
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state?.draft]);
 
   useEffect(() => {
     // Detect Web Share API file support (mobile Safari, Chrome Android)

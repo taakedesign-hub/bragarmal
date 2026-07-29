@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
 import {
-  Upload, Trash2, FileText, Camera, Mic, Square, ClipboardPaste, ScanLine, Loader2
+  Upload, Trash2, FileText, Camera, Mic, Square, ClipboardPaste, ScanLine, Loader2,
+  BookOpen, X as XIcon, Save, ArrowRight
 } from "lucide-react";
 import { useCategories, labelForCategory } from "@/lib/categories";
 
@@ -17,7 +19,9 @@ const TABS = [
 export default function SamplesPage() {
   const [samples, setSamples] = useState([]);
   const [tab, setTab] = useState("paste");
+  const [openSample, setOpenSample] = useState(null);
   const cats = useCategories();
+  const navigate = useNavigate();
 
   const load = async () => {
     try {
@@ -118,7 +122,16 @@ export default function SamplesPage() {
                     <div className="font-editor text-sm mt-2 line-clamp-2" style={{ color: "var(--ink-soft)" }}>
                       {s.content.slice(0, 180)}…
                     </div>
-                    <div className="mt-3">
+                    <div className="mt-3 flex items-center gap-2 flex-wrap">
+                      <button
+                        data-testid={`sample-open-${s.id}`}
+                        onClick={() => setOpenSample(s)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 font-mono-ui text-[11px] tracking-widest hover:bg-neutral-50 transition-colors"
+                        style={{ border: "1px solid var(--line)", color: "var(--ink)" }}
+                      >
+                        <BookOpen size={13} strokeWidth={1.5} />
+                        ÅPNE
+                      </button>
                       <select
                         data-testid={TID.sampleCategorySelect(s.id)}
                         value={s.category || "ren_menneske_ny"}
@@ -148,12 +161,152 @@ export default function SamplesPage() {
           )}
         </div>
       </div>
+
+      {openSample && (
+        <SampleEditorModal
+          sample={openSample}
+          onClose={() => setOpenSample(null)}
+          onSaved={(updated) => {
+            setSamples((s) => s.map((x) => (x.id === updated.id ? updated : x)));
+            setOpenSample(updated);
+          }}
+          onSendToWrite={(text) => {
+            setOpenSample(null);
+            navigate("/skriv", { state: { draft: text, source: openSample.title } });
+          }}
+        />
+      )}
     </div>
   );
 }
 
 function sourceLabel(src) {
   return { paste: "limt inn", file: "opplastet", handwriting: "håndskrevet", audio: "høytlest" }[src] || src;
+}
+
+function SampleEditorModal({ sample, onClose, onSaved, onSendToWrite }) {
+  const [title, setTitle] = useState(sample.title || "");
+  const [content, setContent] = useState(sample.content || "");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const handler = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handler);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handler);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  const isDirty = title.trim() !== (sample.title || "").trim() || content.trim() !== (sample.content || "").trim();
+  const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+
+  const save = async () => {
+    if (content.trim().length < 20) { toast("Minst 20 tegn"); return; }
+    setSaving(true);
+    try {
+      const r = await api.patch(`/samples/${sample.id}`, {
+        title: title.trim() || "Uten tittel",
+        content: content.trim(),
+      });
+      toast("Lagret");
+      onSaved(r.data);
+    } catch (e) {
+      toast(e?.response?.data?.detail || "Kunne ikke lagre");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
+      style={{ background: "rgba(20, 18, 15, 0.55)", backdropFilter: "blur(4px)" }}
+      onClick={onClose}
+      data-testid="sample-editor-modal"
+    >
+      <div
+        className="w-full max-w-3xl max-h-[90vh] flex flex-col"
+        style={{ background: "var(--paper)", border: "1px solid var(--line)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 hairline-b">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <BookOpen size={16} strokeWidth={1.3} style={{ color: "var(--rust)" }} />
+            <span className="label-ui truncate">
+              {sourceLabel(sample.source)} · {wordCount} ord
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Lukk"
+            className="p-2 hover:opacity-70 transition-opacity"
+            style={{ color: "var(--ink-mute)" }}
+            data-testid="sample-editor-close"
+          >
+            <XIcon size={18} strokeWidth={1.3} />
+          </button>
+        </div>
+
+        {/* Body — title + content */}
+        <div className="flex-1 overflow-auto px-6 py-5">
+          <input
+            data-testid="sample-editor-title"
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Tittel"
+            className="w-full bg-transparent font-serif-display text-2xl md:text-3xl outline-none border-none"
+            style={{ color: "var(--ink)" }}
+          />
+          <div className="hairline-b mt-3" />
+          <textarea
+            data-testid="sample-editor-content"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Skriv eller rediger teksten din …"
+            className="w-full mt-4 bg-transparent font-editor text-base outline-none border-none resize-none leading-relaxed"
+            style={{ color: "var(--ink)", minHeight: "50vh" }}
+          />
+        </div>
+
+        {/* Footer — actions */}
+        <div className="flex items-center justify-between gap-3 px-6 py-4 hairline-t flex-wrap">
+          <button
+            data-testid="sample-editor-send-to-write"
+            onClick={() => onSendToWrite(content)}
+            disabled={content.trim().length < 20}
+            className="inline-flex items-center gap-2 font-mono-ui text-[11px] tracking-widest hover:opacity-70 transition-opacity disabled:opacity-40"
+            style={{ color: "var(--rust)" }}
+          >
+            SEND TIL SKRIVEPULTEN
+            <ArrowRight size={14} strokeWidth={1.5} />
+          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onClose}
+              className="font-mono-ui text-[11px] tracking-widest hover:opacity-70"
+              style={{ color: "var(--ink-mute)" }}
+            >
+              LUKK
+            </button>
+            <button
+              data-testid="sample-editor-save"
+              onClick={save}
+              disabled={!isDirty || saving}
+              className="inline-flex items-center gap-2 px-4 py-2 font-mono-ui text-[11px] tracking-widest transition-all disabled:opacity-40"
+              style={{ background: "var(--ink)", color: "var(--paper)" }}
+            >
+              {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} strokeWidth={1.5} />}
+              LAGRE
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ---------- PASTE ----------

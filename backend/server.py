@@ -888,6 +888,40 @@ async def delete_sample(sample_id: str, user: User = Depends(get_current_user)):
     return {"ok": True}
 
 
+class SampleUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+
+
+@api_router.patch("/samples/{sample_id}")
+async def update_sample(
+    sample_id: str,
+    body: SampleUpdate,
+    user: User = Depends(get_current_user),
+):
+    updates: dict = {}
+    if body.title is not None:
+        updates["title"] = body.title.strip() or "Uten tittel"
+    if body.content is not None:
+        content = body.content.strip()
+        if len(content) < 20:
+            raise HTTPException(status_code=400, detail="Innholdet må være minst 20 tegn")
+        updates["content"] = content
+        updates["word_count"] = len(content.split())
+    if not updates:
+        raise HTTPException(status_code=400, detail="Ingenting å oppdatere")
+    r = await db.samples.update_one(
+        {"id": sample_id, "user_id": user.user_id},
+        {"$set": updates},
+    )
+    if r.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Ikke funnet")
+    doc = await db.samples.find_one(
+        {"id": sample_id, "user_id": user.user_id}, {"_id": 0}
+    )
+    return doc
+
+
 class SampleCategoryUpdate(BaseModel):
     category: str
 
