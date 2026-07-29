@@ -415,7 +415,7 @@ export default function WritePage() {
           options={[
             { value: "0.3", label: "Lav · trygg og kontrollert" },
             { value: "0.7", label: "Middels · naturlig balanse" },
-            { value: "1.0", label: "Høy · frekk og kreativ" },
+            { value: "1", label: "Høy · frekk og kreativ" },
           ]}
         />
       </div>

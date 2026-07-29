@@ -308,7 +308,7 @@ function SampleEditorModal({ sample, onClose, onSaved, onSendToWrite }) {
                   color: temperature === t.v ? "var(--paper)" : "var(--ink)",
                 }}
               >
-                {t.label} · {t.v}
+                {t.label} · {t.v.toFixed(1)}
               </button>
             ))}
           </div>
