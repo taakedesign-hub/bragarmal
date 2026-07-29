@@ -3,7 +3,7 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import { api, BACKEND } from "@/lib/api";
 import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
-import { PenLine, Copy, RefreshCcw, Wand2, Gauge, BookmarkPlus, X, Download, Mail, FileText, Share2 } from "lucide-react";
+import { PenLine, Copy, RefreshCcw, Wand2, Gauge, BookmarkPlus, X, Download, Mail, FileText, Share2, Loader2 } from "lucide-react";
 import jsPDF from "jspdf";
 
 const MODES = [
@@ -340,13 +340,27 @@ export default function WritePage() {
     }
   };
 
+  const [detecting, setDetecting] = useState(false);
   const runDetect = async () => {
     const text = output || input;
-    if (!text.trim()) return;
+    if (!text.trim()) {
+      toast("Skriv eller lim inn tekst først");
+      return;
+    }
+    setDetecting(true);
     try {
       const r = await api.post("/detect", { text });
       setDetection(r.data);
-    } catch {}
+      // Auto-scroll to the detection strip so the user actually sees it
+      setTimeout(() => {
+        document.getElementById("detection-strip")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    } catch (e) {
+      console.debug("detect failed", e);
+      toast(e?.response?.data?.detail || "Kunne ikke sjekke AI-signatur. Prøv igjen.");
+    } finally {
+      setDetecting(false);
+    }
   };
 
   return (
@@ -466,9 +480,10 @@ export default function WritePage() {
               data-testid={TID.writeDetectBtn}
               onClick={runDetect}
               className="btn-ghost inline-flex items-center gap-2"
-              disabled={!input && !output}
+              disabled={detecting || (!input && !output)}
             >
-              <Gauge size={16} strokeWidth={1.5} /> Sjekk AI-signatur
+              {detecting ? <Loader2 size={16} className="animate-spin" /> : <Gauge size={16} strokeWidth={1.5} />}
+              {detecting ? "Analyserer…" : "Sjekk AI-signatur"}
             </button>
           </div>
         </div>
@@ -627,7 +642,7 @@ export default function WritePage() {
 
       {/* Detection strip */}
       {detection && (
-        <div data-testid={TID.writeDetectionResult} className="mt-12">
+        <div id="detection-strip" data-testid={TID.writeDetectionResult} className="mt-12 scroll-mt-24">
           <div className="hairline-t hairline-b py-6 grid grid-cols-2 md:grid-cols-4 gap-6">
             <div>
               <div className="label-ui">Menneske-score</div>
