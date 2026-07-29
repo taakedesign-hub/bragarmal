@@ -114,8 +114,8 @@ export default function EthicsPage() {
               </p>
             </div>
             <div className="lg:col-span-8">
-              {CORE_QUESTIONS.map((q, i) => (
-                <div key={i} className="hairline-b py-8">
+              {CORE_QUESTIONS.map((q) => (
+                <div key={q.n} className="hairline-b py-8">
                   <div className="label-ui" style={{ color: "var(--moss)" }}>{q.n}</div>
                   <h3 className="font-serif-display text-2xl mt-2" style={{ color: "var(--ink)" }}>{q.title}</h3>
                   <p className="font-editor mt-3 leading-relaxed" style={{ color: "var(--ink-soft)" }}>{q.body}</p>
@@ -141,8 +141,8 @@ export default function EthicsPage() {
               <div className="col-span-12 md:col-span-3 hidden md:block">Vurdering</div>
               <div className="col-span-12 md:col-span-3 hidden md:block">Eksempel</div>
             </div>
-            {APPROACH_TABLE.map((r, i) => (
-              <div key={i} className="grid grid-cols-12 py-6 hairline-t items-start gap-y-3">
+            {APPROACH_TABLE.map((r) => (
+              <div key={r.approach} className="grid grid-cols-12 py-6 hairline-t items-start gap-y-3">
                 <div className="col-span-12 md:col-span-4 font-serif-display text-lg" style={{ color: "var(--ink)" }}>{r.approach}</div>
                 <div className="col-span-6 md:col-span-2">
                   <RiskDot level={r.risk} />
@@ -172,7 +172,7 @@ export default function EthicsPage() {
             <div className="lg:col-span-8">
               <ol>
                 {RULES.map((r, i) => (
-                  <li key={i} className="hairline-b py-5 flex items-start gap-4">
+                  <li key={r} className="hairline-b py-5 flex items-start gap-4">
                     <span className="font-mono-ui text-sm w-8 flex-shrink-0" style={{ color: "var(--ink-mute)" }}>{String(i + 1).padStart(2, "0")}</span>
                     <span className="font-editor text-lg" style={{ color: "var(--ink)" }}>{r}</span>
                   </li>
@@ -192,7 +192,7 @@ export default function EthicsPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-0 mt-10 hairline-t hairline-b">
             {WORKFLOW.map((w, i) => (
-              <div key={i} className={`p-8 ${i > 0 ? "md:border-l" : ""}`} style={{ borderColor: "var(--line)" }}>
+              <div key={w.n} className={`p-8 ${i > 0 ? "md:border-l" : ""}`} style={{ borderColor: "var(--line)" }}>
                 <div className="label-ui" style={{ color: "var(--moss)" }}>{w.n}</div>
                 <h3 className="font-serif-display text-2xl mt-3" style={{ color: "var(--ink)" }}>{w.title}</h3>
                 <p className="font-editor text-sm mt-3 leading-relaxed" style={{ color: "var(--ink-soft)" }}>{w.body}</p>
@@ -216,8 +216,8 @@ export default function EthicsPage() {
               </p>
             </div>
             <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-x-8">
-              {BRAGARMÅL_DESIGN.map((e, i) => (
-                <div key={i} className="hairline-b py-6">
+              {BRAGARMÅL_DESIGN.map((e) => (
+                <div key={e.label} className="hairline-b py-6">
                   <div className="font-serif-display text-lg" style={{ color: "var(--ink)" }}>{e.label}</div>
                   <div className="font-editor text-sm mt-2" style={{ color: "var(--ink-soft)" }}>{e.detail}</div>
                 </div>
@@ -240,8 +240,8 @@ export default function EthicsPage() {
             Tre spørsmål å sjekke med:
           </p>
           <ul className="mt-8 max-w-[70ch]">
-            {CHECKS.map((c, i) => (
-              <li key={i} className="hairline-b py-5 flex items-start gap-4">
+            {CHECKS.map((c) => (
+              <li key={c} className="hairline-b py-5 flex items-start gap-4">
                 <span className="w-2 h-2 mt-3 flex-shrink-0" style={{ background: "var(--rust)" }} />
                 <span className="font-serif-display text-2xl leading-snug" style={{ color: "var(--ink)" }}>{c}</span>
               </li>

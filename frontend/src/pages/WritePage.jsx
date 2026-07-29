@@ -83,7 +83,7 @@ export default function WritePage() {
       try {
         const r = await api.get("/models");
         setModels(r.data || []);
-      } catch {}
+      } catch (e) { console.debug("models fetch failed", e); }
       try {
         const h = await api.get("/helpers");
         const helperModels = (h.data || []).map((x) => ({
@@ -92,15 +92,15 @@ export default function WritePage() {
           provider: "Din egen",
         }));
         setModels((prev) => [...prev, ...helperModels]);
-      } catch {}
+      } catch (e) { console.debug("helpers fetch failed", e); }
       try {
         const s = await api.get("/samples");
         setSamplesReady((s.data || []).length > 0);
-      } catch {}
+      } catch (e) { console.debug("samples fetch failed", e); }
       try {
         const p = await api.get("/voice/profile");
         setProfileReady(!!p.data);
-      } catch {}
+      } catch (e) { console.debug("voice profile fetch failed", e); }
     })();
   }, []);
 

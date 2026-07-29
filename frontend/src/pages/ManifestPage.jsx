@@ -98,7 +98,7 @@ export default function ManifestPage() {
             <div className="lg:col-span-8">
               <ul>
                 {NOTES.map((n, i) => (
-                  <li key={i} className="hairline-b py-6 grid grid-cols-12 gap-6">
+                  <li key={n.label} className="hairline-b py-6 grid grid-cols-12 gap-6">
                     <div className="col-span-12 md:col-span-4">
                       <div className="label-ui" style={{ color: "var(--rust)" }}>{String(i + 1).padStart(2, "0")}</div>
                       <div className="font-serif-display text-xl mt-1" style={{ color: "var(--ink)" }}>{n.label}</div>
