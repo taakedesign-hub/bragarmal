@@ -87,15 +87,6 @@ export default function WritePage() {
         setModels(r.data || []);
       } catch (e) { console.debug("models fetch failed", e); }
       try {
-        const h = await api.get("/helpers");
-        const helperModels = (h.data || []).map((x) => ({
-          id: `helper:${x.id}`,
-          label: `★ ${x.name}`,
-          provider: "Din egen",
-        }));
-        setModels((prev) => [...prev, ...helperModels]);
-      } catch (e) { console.debug("helpers fetch failed", e); }
-      try {
         const s = await api.get("/samples");
         setSamplesReady((s.data || []).length > 0);
       } catch (e) { console.debug("samples fetch failed", e); }

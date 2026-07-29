@@ -4,7 +4,7 @@ import { api } from "@/lib/api";
 import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
-import { Sparkles, RefreshCcw, Plus, X, Key } from "lucide-react";
+import { Sparkles, RefreshCcw, Plus, X } from "lucide-react";
 
 export default function VoicePage() {
   const [profile, setProfile] = useState(null);
@@ -15,27 +15,17 @@ export default function VoicePage() {
   const [inspNote, setInspNote] = useState("");
   const [addingInsp, setAddingInsp] = useState(false);
 
-  const [helpers, setHelpers] = useState([]);
-  const [helperName, setHelperName] = useState("");
-  const [helperProvider, setHelperProvider] = useState("openai");
-  const [helperModelId, setHelperModelId] = useState("");
-  const [helperApiKey, setHelperApiKey] = useState("");
-  const [helperPersona, setHelperPersona] = useState("");
-  const [addingHelper, setAddingHelper] = useState(false);
-
   const load = async () => {
     try {
-      const [p, s, i, h] = await Promise.all([
+      const [p, s, i] = await Promise.all([
         api.get("/voice/profile"),
         api.get("/samples"),
         api.get("/inspirations"),
-        api.get("/helpers"),
       ]);
       setProfile(p.data || null);
       setSamplesCount((s.data || []).length);
       setInspirations(i.data || []);
-      setHelpers(h.data || []);
-    } catch {}
+    } catch (e) { console.debug("voice load failed", e); }
   };
   useEffect(() => { load(); }, []);
 
@@ -74,40 +64,6 @@ export default function VoicePage() {
     try {
       await api.delete(`/inspirations/${id}`);
       setInspirations((arr) => arr.filter((i) => i.id !== id));
-    } catch {
-      toast("Kunne ikke fjerne");
-    }
-  };
-
-  const addHelper = async (e) => {
-    e?.preventDefault?.();
-    if (!helperName.trim() || !helperModelId.trim() || !helperApiKey.trim()) {
-      toast("Fyll ut navn, modell og API-nøkkel");
-      return;
-    }
-    setAddingHelper(true);
-    try {
-      const r = await api.post("/helpers", {
-        name: helperName.trim(),
-        provider: helperProvider,
-        model_id: helperModelId.trim(),
-        api_key: helperApiKey.trim(),
-        persona_addon: helperPersona.trim(),
-      });
-      setHelpers((arr) => [...arr, r.data]);
-      setHelperName(""); setHelperModelId(""); setHelperApiKey(""); setHelperPersona("");
-      toast("AI-hjelper lagt til");
-    } catch (err) {
-      toast(err?.response?.data?.detail || "Kunne ikke legge til");
-    } finally {
-      setAddingHelper(false);
-    }
-  };
-
-  const removeHelper = async (id) => {
-    try {
-      await api.delete(`/helpers/${id}`);
-      setHelpers((arr) => arr.filter((h) => h.id !== id));
     } catch {
       toast("Kunne ikke fjerne");
     }
@@ -316,139 +272,6 @@ export default function VoicePage() {
                       onClick={() => removeInsp(i.id)}
                       aria-label="Fjern"
                       title="Fjern"
-                      className="p-2"
-                      style={{ color: "var(--ink-mute)" }}
-                    >
-                      <X size={16} strokeWidth={1.4} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* AI-hjelpere — bring-your-own-AI section */}
-      <div className="mt-24">
-        <div className="hairline-t pt-10">
-          <div className="label-ui" style={{ color: "var(--sky)" }}>Din egen AI</div>
-          <h2 className="font-serif-display text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
-            AI-hjelpere du har trent opp
-          </h2>
-          <p className="font-editor mt-4 max-w-[65ch]" style={{ color: "var(--ink-soft)" }}>
-            Koble på din egen ChatGPT, Claude eller Gemini — med API-nøkkelen din og persona-instruksene
-            du har finpusset over tid. Bragarmål bruker din AI i stedet for standard-modellene, men bevarer
-            fortsatt din egen stemme fra prøvetekstene som førsteprioritet.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mt-10">
-          <form onSubmit={addHelper} className="lg:col-span-6">
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <div className="label-ui mb-2">Navn</div>
-                <input
-                  className="input-line"
-                  placeholder="F.eks. Min ChatGPT"
-                  value={helperName}
-                  onChange={(e) => setHelperName(e.target.value)}
-                />
-              </div>
-              <div>
-                <div className="label-ui mb-2">Leverandør</div>
-                <select
-                  className="select-line w-full"
-                  value={helperProvider}
-                  onChange={(e) => setHelperProvider(e.target.value)}
-                >
-                  <option value="openai">OpenAI</option>
-                  <option value="anthropic">Anthropic</option>
-                  <option value="gemini">Google Gemini</option>
-                </select>
-              </div>
-            </div>
-            <div className="mt-6">
-              <div className="label-ui mb-2">Modell-ID</div>
-              <input
-                className="input-line"
-                placeholder={
-                  helperProvider === "openai" ? "gpt-5.2 eller gpt-4o" :
-                  helperProvider === "anthropic" ? "claude-sonnet-4-5-20250929" :
-                  "gemini-3.1-pro-preview"
-                }
-                value={helperModelId}
-                onChange={(e) => setHelperModelId(e.target.value)}
-              />
-            </div>
-            <div className="mt-6">
-              <div className="label-ui mb-2">API-nøkkel</div>
-              <input
-                className="input-line"
-                type="password"
-                placeholder="sk-…"
-                value={helperApiKey}
-                onChange={(e) => setHelperApiKey(e.target.value)}
-              />
-              <p className="label-ui mt-2" style={{ color: "var(--ink-mute)" }}>
-                Lagres kun i din konto. Ingen andre ser den.
-              </p>
-            </div>
-            <div className="mt-6">
-              <div className="label-ui mb-2">Persona / systeminstruks (valgfritt)</div>
-              <textarea
-                className="textarea-editor paper p-4 min-h-[160px]"
-                placeholder="Lim inn instruksjonene du har brukt over tid — f.eks. hvordan AI-en din svarer, hva den skal unngå, tonen…"
-                value={helperPersona}
-                onChange={(e) => setHelperPersona(e.target.value)}
-                maxLength={3000}
-              />
-              <p className="label-ui mt-2" style={{ color: "var(--ink-mute)" }}>
-                Din stemme fra prøvetekstene går alltid først. Denne instruksen legger seg på toppen.
-              </p>
-            </div>
-            <div className="mt-6">
-              <button
-                type="submit"
-                disabled={addingHelper || !helperName.trim() || !helperApiKey.trim()}
-                className="btn-primary inline-flex items-center gap-2"
-              >
-                <Plus size={16} strokeWidth={1.5} />
-                {addingHelper ? "Legger til…" : "Legg til AI-hjelper"}
-              </button>
-            </div>
-          </form>
-
-          <div className="lg:col-span-6">
-            <div className="hairline-b pb-3 flex items-center justify-between">
-              <span className="label-ui">Dine hjelpere</span>
-              <span className="label-ui">{helpers.length}</span>
-            </div>
-            {helpers.length === 0 ? (
-              <div className="mt-6 font-editor italic" style={{ color: "var(--ink-mute)" }}>
-                Ingen hjelpere lagt til ennå. Du kan alltid bruke standard-modellene under Skriv.
-              </div>
-            ) : (
-              <ul className="mt-2">
-                {helpers.map((h) => (
-                  <li key={h.id} className="hairline-b py-4 flex items-start gap-4">
-                    <Key size={16} strokeWidth={1.3} className="mt-1" style={{ color: "var(--sky)" }} />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-serif-display text-lg" style={{ color: "var(--ink)" }}>
-                        {h.name}
-                      </div>
-                      <div className="label-ui mt-1">
-                        {h.provider} · {h.model_id} · nøkkel {h.api_key_preview}
-                      </div>
-                      {h.persona_addon && (
-                        <div className="font-editor text-sm mt-2 line-clamp-2" style={{ color: "var(--ink-soft)" }}>
-                          {h.persona_addon.slice(0, 160)}…
-                        </div>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => removeHelper(h.id)}
-                      aria-label="Fjern"
                       className="p-2"
                       style={{ color: "var(--ink-mute)" }}
                     >
