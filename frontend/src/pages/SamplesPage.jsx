@@ -182,9 +182,9 @@ export default function SamplesPage() {
             setSamples((s) => s.map((x) => (x.id === updated.id ? updated : x)));
             setOpenSample(updated);
           }}
-          onSendToWrite={(text, mode) => {
+          onSendToWrite={(text, mode, temperature) => {
             setOpenSample(null);
-            navigate("/skriv", { state: { draft: text, source: openSample.title, mode, autoRun: mode === "humanize" } });
+            navigate("/skriv", { state: { draft: text, source: openSample.title, mode, autoRun: mode === "humanize", temperature } });
           }}
         />
       )}
@@ -200,6 +200,7 @@ function SampleEditorModal({ sample, onClose, onSaved, onSendToWrite }) {
   const [title, setTitle] = useState(sample.title || "");
   const [content, setContent] = useState(sample.content || "");
   const [saving, setSaving] = useState(false);
+  const [temperature, setTemperature] = useState(0.7);
 
   useEffect(() => {
     const handler = (e) => { if (e.key === "Escape") onClose(); };
@@ -285,48 +286,76 @@ function SampleEditorModal({ sample, onClose, onSaved, onSendToWrite }) {
         </div>
 
         {/* Footer — actions */}
-        <div className="flex items-center justify-between gap-3 px-6 py-4 hairline-t flex-wrap">
-          <div className="flex items-center gap-4 flex-wrap">
-            <button
-              data-testid="sample-editor-send-to-write"
-              onClick={() => onSendToWrite(content, "continue")}
-              disabled={content.trim().length < 20}
-              className="inline-flex items-center gap-2 font-mono-ui text-[11px] tracking-widest hover:opacity-70 transition-opacity disabled:opacity-40"
-              style={{ color: "var(--ink)" }}
-            >
-              SEND TIL SKRIVEPULTEN
-              <ArrowRight size={14} strokeWidth={1.5} />
-            </button>
-            <button
-              data-testid="sample-editor-humanize"
-              onClick={() => onSendToWrite(content, "humanize")}
-              disabled={content.trim().length < 20}
-              className="inline-flex items-center gap-2 font-mono-ui text-[11px] tracking-widest hover:opacity-70 transition-opacity disabled:opacity-40"
-              style={{ color: "var(--rust)" }}
-              title="Send til Skrivepulten og start automatisk omskriving i din stemme"
-            >
-              <Wand2 size={13} strokeWidth={1.5} />
-              OMSKRIV I MIN STEMME
-            </button>
+        <div className="px-6 py-4 hairline-t space-y-3">
+          {/* Temperature — governs the tone of the humanize/continue run */}
+          <div className="flex items-center gap-2 flex-wrap" data-testid="sample-editor-temperature-row">
+            <span className="font-mono-ui text-[10px] tracking-widest mr-1" style={{ color: "var(--ink-mute)" }}>
+              TEMPERATUR
+            </span>
+            {[
+              { v: 0.3, label: "Lav" },
+              { v: 0.7, label: "Middels" },
+              { v: 1.0, label: "Høy" },
+            ].map((t) => (
+              <button
+                key={t.v}
+                data-testid={`sample-editor-temp-${t.v}`}
+                onClick={() => setTemperature(t.v)}
+                className="px-3 py-1 font-mono-ui text-[10px] tracking-widest transition-all"
+                style={{
+                  border: `1px solid ${temperature === t.v ? "var(--rust)" : "var(--line)"}`,
+                  background: temperature === t.v ? "var(--rust)" : "transparent",
+                  color: temperature === t.v ? "var(--paper)" : "var(--ink)",
+                }}
+              >
+                {t.label} · {t.v}
+              </button>
+            ))}
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onClose}
-              className="font-mono-ui text-[11px] tracking-widest hover:opacity-70"
-              style={{ color: "var(--ink-mute)" }}
-            >
-              LUKK
-            </button>
-            <button
-              data-testid="sample-editor-save"
-              onClick={save}
-              disabled={!isDirty || saving}
-              className="inline-flex items-center gap-2 px-4 py-2 font-mono-ui text-[11px] tracking-widest transition-all disabled:opacity-40"
-              style={{ background: "var(--ink)", color: "var(--paper)" }}
-            >
-              {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} strokeWidth={1.5} />}
-              LAGRE
-            </button>
+
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-4 flex-wrap">
+              <button
+                data-testid="sample-editor-send-to-write"
+                onClick={() => onSendToWrite(content, "continue", temperature)}
+                disabled={content.trim().length < 20}
+                className="inline-flex items-center gap-2 font-mono-ui text-[11px] tracking-widest hover:opacity-70 transition-opacity disabled:opacity-40"
+                style={{ color: "var(--ink)" }}
+              >
+                SEND TIL SKRIVEPULTEN
+                <ArrowRight size={14} strokeWidth={1.5} />
+              </button>
+              <button
+                data-testid="sample-editor-humanize"
+                onClick={() => onSendToWrite(content, "humanize", temperature)}
+                disabled={content.trim().length < 20}
+                className="inline-flex items-center gap-2 font-mono-ui text-[11px] tracking-widest hover:opacity-70 transition-opacity disabled:opacity-40"
+                style={{ color: "var(--rust)" }}
+                title="Send til Skrivepulten og start automatisk omskriving i din stemme"
+              >
+                <Wand2 size={13} strokeWidth={1.5} />
+                OMSKRIV I MIN STEMME
+              </button>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={onClose}
+                className="font-mono-ui text-[11px] tracking-widest hover:opacity-70"
+                style={{ color: "var(--ink-mute)" }}
+              >
+                LUKK
+              </button>
+              <button
+                data-testid="sample-editor-save"
+                onClick={save}
+                disabled={!isDirty || saving}
+                className="inline-flex items-center gap-2 px-4 py-2 font-mono-ui text-[11px] tracking-widest transition-all disabled:opacity-40"
+                style={{ background: "var(--ink)", color: "var(--paper)" }}
+              >
+                {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} strokeWidth={1.5} />}
+                LAGRE
+              </button>
+            </div>
           </div>
         </div>
       </div>

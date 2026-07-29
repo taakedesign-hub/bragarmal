@@ -51,8 +51,10 @@ export default function WritePage() {
     if (draft && typeof draft === "string") {
       const requestedMode = location.state?.mode || "continue";
       const autoRun = !!location.state?.autoRun;
+      const passedTemp = location.state?.temperature;
       setInput(draft);
       setMode(requestedMode);
+      if (typeof passedTemp === "number") setTemperature(passedTemp);
       toast(
         requestedMode === "humanize"
           ? `Omskriver «${location.state?.source || "utkast"}» i din stemme…`
