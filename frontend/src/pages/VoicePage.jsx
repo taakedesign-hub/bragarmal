@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
@@ -115,10 +116,22 @@ export default function VoicePage() {
   return (
     <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-12">
       <div className="fade-in">
-        <div className="label-ui">Analyse</div>
-        <h1 className="font-serif-display text-5xl font-light mt-3" style={{ color: "var(--ink)" }}>
-          Din stemmeprofil
-        </h1>
+        <div className="flex items-baseline justify-between flex-wrap gap-3">
+          <div>
+            <div className="label-ui">Analyse</div>
+            <h1 className="font-serif-display text-5xl font-light mt-3" style={{ color: "var(--ink)" }}>
+              Din stemmeprofil
+            </h1>
+          </div>
+          <Link
+            to="/eksempler#testprompter"
+            data-testid="voice-testprompter-link"
+            className="font-mono-ui text-[11px] tracking-widest hover:underline"
+            style={{ color: "var(--rust)" }}
+          >
+            SE TESTPROMPTER →
+          </Link>
+        </div>
         <p className="font-editor mt-4 max-w-[60ch]" style={{ color: "var(--ink-soft)" }}>
           Tallene forteller én ting. Beskrivelsen forteller resten. Kjør analysen på nytt hver gang du legger til nye prøver.
         </p>

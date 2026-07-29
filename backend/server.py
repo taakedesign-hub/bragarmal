@@ -1210,6 +1210,7 @@ class GenerateBody(BaseModel):
     model: str = "claude-sonnet-4-5"
     humanize_level: int = 1  # 1..3
     length: Literal["kort", "medium", "lang"] = "medium"
+    temperature: float = 0.7  # 0.2..1.2 — låg = trygt, høg = kreativ
 
 
 @api_router.post("/generate")
@@ -1282,7 +1283,9 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
         api_key=api_key_to_use,
         session_id=f"gen-{user.user_id}-{uuid.uuid4().hex[:6]}",
         system_message=system,
-    ).with_model(provider, model) if provider != "xai" else None
+    ).with_model(provider, model).with_params(
+        temperature=max(0.2, min(1.2, float(body.temperature or 0.7)))
+    ) if provider != "xai" else None
 
     async def stream_llmchat():
         try:

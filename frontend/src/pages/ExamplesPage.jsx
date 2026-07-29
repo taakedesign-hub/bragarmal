@@ -140,6 +140,132 @@ export default function ExamplesPage() {
             Kom i gang <ArrowRight size={14} strokeWidth={1.6} />
           </Link>
         </div>
+
+        {/* Testprompter — snakk naturlig, ikke maskinelt */}
+        <section id="testprompter" className="mt-20 md:mt-24 scroll-mt-24">
+          <div className="grid grid-cols-12 gap-6 md:gap-10 items-start">
+            <div className="col-span-12 md:col-span-4">
+              <div className="label-ui">Testprompter</div>
+              <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
+                Tre enkle måter å <em className="italic" style={{ color: "var(--moss)" }}>komme i gang</em>.
+              </h2>
+              <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
+                Disse tre prompt-ene viser forskjellen mellom å snakke naturlig og å prøve å være
+                «korrekt». Bragarmål fungerer best når du <em>ikke</em> forsøker å være maskinell.
+              </p>
+            </div>
+            <div className="col-span-12 md:col-span-8 space-y-6">
+              <TestPrompt
+                number="01"
+                title="Den mest ærlige"
+                recommended
+                intro="Skriv som jeg snakker."
+                body="Jeg vil bare prøve å beskrive hvordan jeg har det akkurat nå, uten å pynte på det:"
+                placeholder="[her skriver du fritt med egne ord]"
+              />
+              <TestPrompt
+                number="02"
+                title="Rytme-testen"
+                intro="Jeg skal skrive noen setninger helt slik jeg vanligvis tenker og snakker."
+                body="Ikke gjør språket mer pent eller mer korrekt. Bare speil rytmen min:"
+                placeholder="[du skriver 4–6 setninger slik du faktisk snakker]"
+              />
+              <TestPrompt
+                number="03"
+                title="Når AI-en bommer"
+                intro="Du bommet på det jeg mente forrige gang."
+                body="Jeg skal forklare det på nytt med mine egne ord, og jeg vil at du svarer i samme tone og rytme som jeg bruker nå:"
+                placeholder="[du skriver på nytt, mer naturlig]"
+              />
+              <p className="font-editor text-sm mt-2" style={{ color: "var(--ink-mute)" }}>
+                Disse tre gjør det tydelig at AI-en fungerer best når du ikke prøver å være maskinell.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Temperatur — hva betyr det, og hvorfor bør du velge selv */}
+        <section id="temperatur" className="mt-20 md:mt-24 scroll-mt-24">
+          <div className="grid grid-cols-12 gap-6 md:gap-10 items-start">
+            <div className="col-span-12 md:col-span-4">
+              <div className="label-ui">Temperatur</div>
+              <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
+                Hvor <em className="italic" style={{ color: "var(--moss)" }}>forutsigbar</em> skal Bragarmål være?
+              </h2>
+              <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
+                Temperatur styrer hvor «trygg» eller «kreativ» AI-en er når den svarer.
+                Du velger selv — det finnes ingen fasit. Prøv deg fram.
+              </p>
+              <p className="font-editor mt-4 text-sm" style={{ color: "var(--ink-mute)" }}>
+                Bragarmål-anbefaling: hvis du vil ha svar som føles mer menneskelige og har mer
+                naturlig rytme, trenger du ofte litt <em>høyere</em> temperatur. For lav gjør språket
+                stivt. For høy kan gjøre det kaotisk.
+              </p>
+            </div>
+            <div className="col-span-12 md:col-span-8 space-y-6">
+              <TempTier
+                range="0.2 – 0.5"
+                title="Lav"
+                desc="AI-en blir forsiktig, stabil og «korrekt». Trygg, men kan føles flat og livløs."
+              />
+              <TempTier
+                range="0.6 – 0.8"
+                title="Middels"
+                recommended
+                desc="Balanse mellom kontroll og naturlig variasjon. Ofte det beste utgangspunktet for vanlig skrivearbeid."
+              />
+              <TempTier
+                range="0.9 – 1.2"
+                title="Høy"
+                desc="Frekkere, mer uforutsigbar, mer kreativ. Får mer rytme og personlighet — men kan spore av."
+              />
+
+              <div className="mt-8 pt-6 hairline-t">
+                <div className="label-ui mb-4">Eksempel · «Det er stille her inne i meg nå.»</div>
+                <div className="space-y-4">
+                  <div className="p-5" style={{ background: "var(--linen)", border: "1px solid var(--line)" }}>
+                    <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--ink-mute)" }}>
+                      LAV TEMPERATUR (0.3)
+                    </div>
+                    <p className="mt-3 font-editor text-base md:text-lg italic" style={{ color: "var(--ink)" }}>
+                      «Det høres ut som du er i en rolig og reflekterende tilstand.»
+                    </p>
+                  </div>
+                  <div className="p-5" style={{ background: "var(--linen)", border: "1px solid var(--rust)" }}>
+                    <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--rust)" }}>
+                      HØY TEMPERATUR (1.0)
+                    </div>
+                    <p className="mt-3 font-editor text-base md:text-lg italic" style={{ color: "var(--ink)" }}>
+                      «Stille på den måten som ikke er fred, bare tomrom. Som om noe har gått ut av
+                      rommet og etterlatt bare veggene.»
+                    </p>
+                  </div>
+                </div>
+
+                <div className="label-ui mt-8 mb-4">Eksempel · om å bære en fasade</div>
+                <div className="space-y-4">
+                  <div className="p-5" style={{ background: "var(--linen)", border: "1px solid var(--line)" }}>
+                    <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--ink-mute)" }}>
+                      LAV TEMPERATUR (0.3)
+                    </div>
+                    <p className="mt-3 font-editor text-base md:text-lg italic" style={{ color: "var(--ink)" }}>
+                      «Det høres ut som du er sliten av å holde fasaden. Det er forståelig å føle det slik.»
+                    </p>
+                  </div>
+                  <div className="p-5" style={{ background: "var(--linen)", border: "1px solid var(--rust)" }}>
+                    <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--rust)" }}>
+                      HØY TEMPERATUR (1.0)
+                    </div>
+                    <p className="mt-3 font-editor text-base md:text-lg italic" style={{ color: "var(--ink)" }}>
+                      «Ja. Den der fasaden er tung å bære. Den sitter som et ekstra lag hud du aldri
+                      ba om, og en dag bare sier kroppen nei.»
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </section>
 
       <Footer />
@@ -156,6 +282,63 @@ function ExamplePrompt({ situation, prompt }) {
         style={{ color: "var(--ink)" }}
       >
         «{prompt}»
+      </p>
+    </div>
+  );
+}
+
+function TempTier({ range, title, desc, recommended }) {
+  return (
+    <div
+      className="p-5 md:p-6 flex items-start gap-5 md:gap-6"
+      style={{ background: "var(--paper)", border: `1px solid ${recommended ? "var(--moss)" : "var(--line)"}` }}
+    >
+      <div className="shrink-0 w-28">
+        <div className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--ink-mute)" }}>{range}</div>
+        <div className="font-serif-display text-xl mt-1" style={{ color: "var(--ink)" }}>{title}</div>
+        {recommended && (
+          <span
+            className="mt-2 inline-block font-mono-ui text-[9px] tracking-widest px-1.5 py-0.5"
+            style={{ background: "var(--moss)", color: "white" }}
+          >
+            ANBEFALT
+          </span>
+        )}
+      </div>
+      <p className="font-editor text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>{desc}</p>
+    </div>
+  );
+}
+
+function TestPrompt({ number, title, intro, body, placeholder, recommended }) {
+  return (
+    <div
+      className="p-6 md:p-7"
+      style={{ background: "var(--linen)", border: "1px solid var(--line)" }}
+      data-testid={`testprompt-${number}`}
+    >
+      <div className="flex items-baseline justify-between gap-3 flex-wrap">
+        <div className="flex items-baseline gap-3">
+          <span className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--moss)" }}>{number}</span>
+          <h3 className="font-serif-display text-xl md:text-2xl" style={{ color: "var(--ink)" }}>{title}</h3>
+        </div>
+        {recommended && (
+          <span
+            className="font-mono-ui text-[10px] tracking-widest px-2 py-1"
+            style={{ background: "var(--moss)", color: "white" }}
+          >
+            ANBEFALT FØRST
+          </span>
+        )}
+      </div>
+      <p className="mt-4 font-editor text-base md:text-lg" style={{ color: "var(--ink)" }}>
+        {intro}
+      </p>
+      <p className="mt-2 font-editor text-base md:text-lg" style={{ color: "var(--ink-soft)" }}>
+        {body}
+      </p>
+      <p className="mt-3 font-mono-ui text-xs tracking-wider" style={{ color: "var(--ink-mute)" }}>
+        {placeholder}
       </p>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
@@ -50,10 +50,22 @@ export default function SamplesPage() {
   return (
     <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-12">
       <div className="fade-in">
-        <div className="label-ui">Bibliotek</div>
-        <h1 className="font-serif-display text-5xl font-light mt-3" style={{ color: "var(--ink)" }}>
-          Skriveprøver
-        </h1>
+        <div className="flex items-baseline justify-between flex-wrap gap-3">
+          <div>
+            <div className="label-ui">Bibliotek</div>
+            <h1 className="font-serif-display text-5xl font-light mt-3" style={{ color: "var(--ink)" }}>
+              Skriveprøver
+            </h1>
+          </div>
+          <Link
+            to="/eksempler#testprompter"
+            data-testid="samples-testprompter-link"
+            className="font-mono-ui text-[11px] tracking-widest hover:underline"
+            style={{ color: "var(--rust)" }}
+          >
+            SE TESTPROMPTER →
+          </Link>
+        </div>
         <p className="font-editor mt-4 max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>
           Jo mer variert materiale, desto tydeligere stemme. Lim inn tekst, last opp filer,
           fotografer håndskrevne notater, eller les høyt for meg.

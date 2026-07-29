@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { api, BACKEND } from "@/lib/api";
 import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
@@ -29,6 +29,7 @@ export default function WritePage() {
   const [model, setModel] = useState("claude-sonnet-4-5");
   const [mode, setMode] = useState("prompt");
   const [length, setLength] = useState("medium");
+  const [temperature, setTemperature] = useState(0.7);
   const [humanize, setHumanize] = useState(1);
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
@@ -107,7 +108,7 @@ export default function WritePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ mode, text: input, model, humanize_level: humanize, length }),
+        body: JSON.stringify({ mode, text: input, model, humanize_level: humanize, length, temperature }),
         signal: ctrl.signal,
       });
       if (!res.ok || !res.body) {
@@ -334,10 +335,22 @@ export default function WritePage() {
   return (
     <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-12">
       <div className="fade-in">
-        <div className="label-ui">Skrivepult</div>
-        <h1 className="font-serif-display text-5xl font-light mt-3" style={{ color: "var(--ink)" }}>
-          Bryt sperren.
-        </h1>
+        <div className="flex items-baseline justify-between flex-wrap gap-3">
+          <div>
+            <div className="label-ui">Skrivepult</div>
+            <h1 className="font-serif-display text-5xl font-light mt-3" style={{ color: "var(--ink)" }}>
+              Bryt sperren.
+            </h1>
+          </div>
+          <Link
+            to="/eksempler#testprompter"
+            data-testid="write-testprompter-link"
+            className="font-mono-ui text-[11px] tracking-widest hover:underline inline-flex items-center gap-1.5"
+            style={{ color: "var(--rust)" }}
+          >
+            SE TESTPROMPTER →
+          </Link>
+        </div>
         <p className="font-editor mt-4 max-w-[60ch]" style={{ color: "var(--ink-soft)" }}>
           {profileReady
             ? "Stemmen din er lastet. Skriv et frø eller lim inn teksten din."
@@ -377,6 +390,27 @@ export default function WritePage() {
           onChange={(v) => setHumanize(Number(v))}
           options={HUMANIZE.map((h) => ({ value: h.id, label: h.label }))}
         />
+        <ControlSelect
+          label="Temperatur"
+          tid="write-temperature-select"
+          value={String(temperature)}
+          onChange={(v) => setTemperature(Number(v))}
+          options={[
+            { value: "0.3", label: "Lav · trygg og kontrollert" },
+            { value: "0.7", label: "Middels · naturlig balanse" },
+            { value: "1.0", label: "Høy · frekk og kreativ" },
+          ]}
+        />
+      </div>
+      <div className="mt-3 flex items-center justify-end">
+        <Link
+          to="/eksempler#temperatur"
+          className="font-mono-ui text-[10px] tracking-widest hover:underline"
+          style={{ color: "var(--ink-mute)" }}
+          data-testid="write-temperature-help-link"
+        >
+          HVA ER TEMPERATUR? →
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10">
