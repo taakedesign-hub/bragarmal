@@ -20,6 +20,7 @@
   --sky-soft: #E4EBEE;
   --linen: #E8D89A;
   --linen-soft: #F5EDC9;
+  --paper: #FFFFFF;
   --paper-shadow: rgba(28,27,26,0.06);
 }
 
@@ -39,6 +40,7 @@
   --sky-soft: #2C3A40;
   --linen: #C4B577;
   --linen-soft: #3A331F;
+  --paper: #F4F1EA;
   --paper-shadow: rgba(0,0,0,0.4);
 }
 
