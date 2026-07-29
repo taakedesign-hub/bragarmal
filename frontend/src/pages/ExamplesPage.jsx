@@ -70,6 +70,41 @@ export default function ExamplesPage() {
         </p>
       </section>
 
+      {/* Intro — hvorfor AI-en bommer, og hvorfor det er et godt tegn */}
+      <section className="max-w-[900px] mx-auto px-6 md:px-10 pb-6">
+        <div className="hairline-t pt-10 md:pt-12 space-y-5 font-editor text-base md:text-lg leading-[1.75]" style={{ color: "var(--ink)" }}>
+          <p>
+            AI forstår ikke språk slik et menneske gjør.
+          </p>
+          <p>
+            Den gjenkjenner mønstre — rytme, tone, ordvalg og intensjon — ut fra det du
+            faktisk skriver. Når den ikke kjenner din personlige måte å snakke og tenke på,
+            kan den bomme. Noen ganger flere ganger på rad. Den kan gi deg svar du ikke
+            ba om, før den til slutt innrømmer at den er usikker på hva du mener.
+          </p>
+          <p className="font-serif-display text-xl md:text-2xl italic" style={{ color: "var(--moss)" }}>
+            Det er faktisk et godt tegn.
+          </p>
+          <p>
+            Det betyr at den slutter å gjette og begynner å være ærlig.
+          </p>
+          <div className="pt-2">
+            <p className="mb-3">Derfor fungerer det best når du:</p>
+            <ul className="space-y-2 ml-1" style={{ color: "var(--ink-soft)" }}>
+              <li className="flex gap-3"><span style={{ color: "var(--rust)" }}>—</span> Skriver som du faktisk snakker</li>
+              <li className="flex gap-3"><span style={{ color: "var(--rust)" }}>—</span> Retter den tydelig når den bommer</li>
+              <li className="flex gap-3"><span style={{ color: "var(--rust)" }}>—</span> Gir den tid til å lære rytmen din</li>
+            </ul>
+          </div>
+          <p className="pt-2">
+            Du trenger ikke tilpasse deg AI-en.
+          </p>
+          <p style={{ color: "var(--ink-soft)" }}>
+            Jo mer ærlig og menneskelig du er, jo fortere klarer den å speile deg tilbake.
+          </p>
+        </div>
+      </section>
+
       <section className="max-w-[1200px] mx-auto px-6 md:px-10 py-10 md:py-14">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
           {EXAMPLES.map((ex, i) => (
