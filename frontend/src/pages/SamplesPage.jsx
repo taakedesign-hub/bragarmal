@@ -5,7 +5,7 @@ import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
 import {
   Upload, Trash2, FileText, Camera, Mic, Square, ClipboardPaste, ScanLine, Loader2,
-  BookOpen, X as XIcon, Save, ArrowRight
+  BookOpen, X as XIcon, Save, ArrowRight, Wand2
 } from "lucide-react";
 import { useCategories, labelForCategory } from "@/lib/categories";
 
@@ -182,9 +182,9 @@ export default function SamplesPage() {
             setSamples((s) => s.map((x) => (x.id === updated.id ? updated : x)));
             setOpenSample(updated);
           }}
-          onSendToWrite={(text) => {
+          onSendToWrite={(text, mode) => {
             setOpenSample(null);
-            navigate("/skriv", { state: { draft: text, source: openSample.title } });
+            navigate("/skriv", { state: { draft: text, source: openSample.title, mode, autoRun: mode === "humanize" } });
           }}
         />
       )}
@@ -286,16 +286,29 @@ function SampleEditorModal({ sample, onClose, onSaved, onSendToWrite }) {
 
         {/* Footer — actions */}
         <div className="flex items-center justify-between gap-3 px-6 py-4 hairline-t flex-wrap">
-          <button
-            data-testid="sample-editor-send-to-write"
-            onClick={() => onSendToWrite(content)}
-            disabled={content.trim().length < 20}
-            className="inline-flex items-center gap-2 font-mono-ui text-[11px] tracking-widest hover:opacity-70 transition-opacity disabled:opacity-40"
-            style={{ color: "var(--rust)" }}
-          >
-            SEND TIL SKRIVEPULTEN
-            <ArrowRight size={14} strokeWidth={1.5} />
-          </button>
+          <div className="flex items-center gap-4 flex-wrap">
+            <button
+              data-testid="sample-editor-send-to-write"
+              onClick={() => onSendToWrite(content, "continue")}
+              disabled={content.trim().length < 20}
+              className="inline-flex items-center gap-2 font-mono-ui text-[11px] tracking-widest hover:opacity-70 transition-opacity disabled:opacity-40"
+              style={{ color: "var(--ink)" }}
+            >
+              SEND TIL SKRIVEPULTEN
+              <ArrowRight size={14} strokeWidth={1.5} />
+            </button>
+            <button
+              data-testid="sample-editor-humanize"
+              onClick={() => onSendToWrite(content, "humanize")}
+              disabled={content.trim().length < 20}
+              className="inline-flex items-center gap-2 font-mono-ui text-[11px] tracking-widest hover:opacity-70 transition-opacity disabled:opacity-40"
+              style={{ color: "var(--rust)" }}
+              title="Send til Skrivepulten og start automatisk omskriving i din stemme"
+            >
+              <Wand2 size={13} strokeWidth={1.5} />
+              OMSKRIV I MIN STEMME
+            </button>
+          </div>
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}

@@ -49,13 +49,26 @@ export default function WritePage() {
     // Prefill draft when navigated here from a sample ("Send til Skrivepulten")
     const draft = location.state?.draft;
     if (draft && typeof draft === "string") {
+      const requestedMode = location.state?.mode || "continue";
+      const autoRun = !!location.state?.autoRun;
       setInput(draft);
-      setMode("continue");
-      toast(`Utkast hentet${location.state?.source ? ` fra "${location.state.source}"` : ""}`);
+      setMode(requestedMode);
+      toast(
+        requestedMode === "humanize"
+          ? `Omskriver «${location.state?.source || "utkast"}» i din stemme…`
+          : `Utkast hentet${location.state?.source ? ` fra "${location.state.source}"` : ""}`
+      );
       // Clear state so a refresh doesn't refill
       navigate(location.pathname, { replace: true, state: {} });
+      if (autoRun) {
+        // Fire generation once state has settled
+        setTimeout(() => { generateRef.current?.(); }, 100);
+      }
     }
   }, [location.state?.draft]);
+
+  // Keep a stable ref to generate so the effect above can call it without stale closure
+  const generateRef = useRef(null);
 
   useEffect(() => {
     // Detect Web Share API file support (mobile Safari, Chrome Android)
@@ -99,7 +112,6 @@ export default function WritePage() {
     setOutput("");
     setDetection(null);
     setStreaming(true);
-
     const ctrl = new AbortController();
     abortRef.current = ctrl;
 
@@ -145,6 +157,9 @@ export default function WritePage() {
       abortRef.current = null;
     }
   };
+
+  // Wire the ref so navigation-triggered autoRun can invoke generate()
+  generateRef.current = generate;
 
   const stop = () => {
     abortRef.current?.abort();
