@@ -39,6 +39,7 @@ export default function AppShell({ children }) {
             <NavLink to="/prover" label="Prøver" tid={TID.navSamples} />
             <NavLink to="/stemme" label="Stemme" tid={TID.navVoice} />
             <NavLink to="/skriv" label="Skriv" tid={TID.navWrite} />
+            <NavLink to="/manuskript" label="Manuskript" tid="nav-manuscript" />
             <InfoMenu align="right" />
           </nav>
           <div className="flex items-center gap-3">

@@ -948,6 +948,129 @@ async def list_categories():
     return [{"id": k, "label": v} for k, v in SAMPLE_CATEGORIES.items()]
 
 
+# ---------- Manuscript / Outliner (scenes & chapters) ----------
+
+SCENE_STATUSES = ["skisse", "utkast", "revidert", "ferdig"]
+
+
+class SceneCreate(BaseModel):
+    title: str = "Uten tittel"
+    synopsis: str = ""
+    content: str = ""
+    status: str = "skisse"
+    pov: str = ""
+    location: str = ""
+    scene_date: str = ""  # freeform user-entered date/timeline label
+
+
+class SceneUpdate(BaseModel):
+    title: Optional[str] = None
+    synopsis: Optional[str] = None
+    content: Optional[str] = None
+    status: Optional[str] = None
+    pov: Optional[str] = None
+    location: Optional[str] = None
+    scene_date: Optional[str] = None
+
+
+class SceneReorder(BaseModel):
+    ordered_ids: List[str]
+
+
+def _word_count(text: str) -> int:
+    return len(text.strip().split()) if text and text.strip() else 0
+
+
+@api_router.get("/manuscript")
+async def list_scenes(user: User = Depends(get_current_user)):
+    docs = await db.scenes.find({"user_id": user.user_id}, {"_id": 0}).sort("order", 1).to_list(1000)
+    return docs
+
+
+@api_router.post("/manuscript")
+async def create_scene(body: SceneCreate, user: User = Depends(get_current_user)):
+    if body.status not in SCENE_STATUSES:
+        raise HTTPException(status_code=400, detail="Ugyldig status")
+    # Find current max order
+    last = await db.scenes.find({"user_id": user.user_id}, {"order": 1, "_id": 0}).sort("order", -1).limit(1).to_list(1)
+    next_order = (last[0]["order"] + 1) if last else 0
+    scene = {
+        "id": str(uuid.uuid4()),
+        "user_id": user.user_id,
+        "title": body.title.strip() or "Uten tittel",
+        "synopsis": body.synopsis.strip(),
+        "content": body.content,
+        "status": body.status,
+        "pov": body.pov.strip(),
+        "location": body.location.strip(),
+        "scene_date": body.scene_date.strip(),
+        "word_count": _word_count(body.content),
+        "order": next_order,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.scenes.insert_one(scene)
+    scene.pop("_id", None)
+    return scene
+
+
+@api_router.patch("/manuscript/{scene_id}")
+async def update_scene(scene_id: str, body: SceneUpdate, user: User = Depends(get_current_user)):
+    updates: dict = {}
+    if body.title is not None:
+        updates["title"] = body.title.strip() or "Uten tittel"
+    if body.synopsis is not None:
+        updates["synopsis"] = body.synopsis.strip()
+    if body.content is not None:
+        updates["content"] = body.content
+        updates["word_count"] = _word_count(body.content)
+    if body.status is not None:
+        if body.status not in SCENE_STATUSES:
+            raise HTTPException(status_code=400, detail="Ugyldig status")
+        updates["status"] = body.status
+    if body.pov is not None:
+        updates["pov"] = body.pov.strip()
+    if body.location is not None:
+        updates["location"] = body.location.strip()
+    if body.scene_date is not None:
+        updates["scene_date"] = body.scene_date.strip()
+    if not updates:
+        raise HTTPException(status_code=400, detail="Ingenting å oppdatere")
+    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+    r = await db.scenes.update_one(
+        {"id": scene_id, "user_id": user.user_id},
+        {"$set": updates},
+    )
+    if r.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Ikke funnet")
+    doc = await db.scenes.find_one({"id": scene_id, "user_id": user.user_id}, {"_id": 0})
+    return doc
+
+
+@api_router.delete("/manuscript/{scene_id}")
+async def delete_scene(scene_id: str, user: User = Depends(get_current_user)):
+    r = await db.scenes.delete_one({"id": scene_id, "user_id": user.user_id})
+    if r.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Ikke funnet")
+    return {"ok": True}
+
+
+@api_router.post("/manuscript/reorder")
+async def reorder_scenes(body: SceneReorder, user: User = Depends(get_current_user)):
+    # Bulk update all order values in a single pass
+    for idx, scene_id in enumerate(body.ordered_ids):
+        await db.scenes.update_one(
+            {"id": scene_id, "user_id": user.user_id},
+            {"$set": {"order": idx, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        )
+    return {"ok": True, "count": len(body.ordered_ids)}
+
+
+@api_router.get("/manuscript/statuses")
+async def list_statuses():
+    return SCENE_STATUSES
+
+
 # ---------- Inspirations (reference authors) ----------
 class InspirationCreate(BaseModel):
     name: str

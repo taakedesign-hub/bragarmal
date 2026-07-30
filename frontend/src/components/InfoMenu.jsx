@@ -10,6 +10,7 @@ const ITEMS = [
   { to: "/prover", label: "Prøver", desc: "Lim inn, last opp fil, foto av håndskrift, høytlesning" },
   { to: "/stemme", label: "Stemmeprofil", desc: "Analyser rytme, tone og signaturord" },
   { to: "/skriv", label: "Skriv", desc: "Skrivepulten — sparr med Bragarmål i din stemme" },
+  { to: "/manuskript", label: "Manuskript", desc: "Oversikt over scener, POV, status og ordantall" },
   { to: "/dashboard", label: "Din side", desc: "Alle verktøy og hjelpemidler samlet" },
   { href: "mailto:hei@bragarmål.no?subject=Hilsen%20fra%20BRAGARMÅL", label: "Kontakt", desc: "Send oss en e-post — hei@bragarmål.no" },
 ];
