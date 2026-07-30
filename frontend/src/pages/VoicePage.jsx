@@ -32,9 +32,15 @@ export default function VoicePage() {
   const run = async () => {
     setLoading(true);
     try {
+      // Refresh sample count first so header reflects current DB state
+      try {
+        const s = await api.get("/samples");
+        setSamplesCount((s.data || []).length);
+      } catch (e) { console.debug("samples refresh failed", e); }
       const r = await api.post("/voice/analyze");
       setProfile(r.data);
-      toast("Stemmeprofil oppdatert");
+      if (r.data?.total_samples != null) setSamplesCount(r.data.total_samples);
+      toast(`Stemmeprofil oppdatert · ${r.data?.total_samples ?? "?"} prøver`);
     } catch (e) {
       toast(e?.response?.data?.detail || "Kunne ikke analysere");
     } finally {

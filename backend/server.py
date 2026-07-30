@@ -553,10 +553,22 @@ async def build_style_summary(samples: List[dict], stats: dict) -> dict:
     if not samples or not EMERGENT_LLM_KEY:
         return {"tone_description": "", "style_summary": "", "signature_phrases": []}
 
-    # Trim to a reasonable size
-    joined = "\n\n---\n\n".join(s["content"] for s in samples)
-    if len(joined) > 12000:
-        joined = joined[:12000]
+    # Ensure ALL samples are represented — take proportional slices from each
+    # (avoids the bug where newest samples get truncated away by a naive [:12000] cut)
+    MAX_TOTAL = 12000
+    if samples:
+        per_sample = max(200, MAX_TOTAL // len(samples))
+        pieces = []
+        for s in samples:
+            c = (s.get("content") or "").strip()
+            if len(c) > per_sample:
+                c = c[:per_sample].rsplit(" ", 1)[0] + "…"
+            pieces.append(c)
+        joined = "\n\n---\n\n".join(pieces)
+        if len(joined) > MAX_TOTAL:
+            joined = joined[:MAX_TOTAL]
+    else:
+        joined = ""
 
     system = (
         "Du er en litterær stilanalytiker. Du analyserer en forfatters norske tekster "
