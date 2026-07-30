@@ -1,0 +1,38 @@
+{
+  "summary": "Re-verified the PWA icon/splash bug fix (iteration 2 of same bug). All 16 pytest checks pass against the public REACT_APP_BACKEND_URL. Manifest is valid JSON with background_color/theme_color = #ffffff and lists 5 icons (16/32/180/192/512) with 192 & 512 marked purpose 'any maskable'. All icon files serve HTTP 200 with image/png content-type and exact declared dimensions. index.html contains <meta name='theme-color' content='#ffffff'> (no lingering #f5f0e8). Added extra pixel-content checks (parametrized) confirming apple-touch-icon (180x180, 8.1KB, 4.5% dark-pixel coverage), bragarmal-mark-192 (192x192, 8.9KB, 4.6%), and bragarmal-mark-512 (512x512, 29.4KB, 3.8%) contain visible non-white ink pixels — i.e. the full wordmark is actually drawn, files are not truncated/blank/alpha-only. Bug is closed.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_pwa_static_assets.py",
+    "/app/test_reports/pytest/pwa_assets_results.xml"
+  ],
+  "action_items": [
+    "None — PWA icon/splash bug fully verified. Remember that CRA dev server does NOT hot-reload files under /app/frontend/public/ (index.html, site.webmanifest, PNGs); a `sudo supervisorctl restart frontend` is needed after any change there. In this run the current public files were already live so no restart was required."
+  ],
+  "critical_code_review_comments": [
+    "site.webmanifest is clean JSON: bg/theme = #ffffff, 5 icons declared, 192 & 512 have purpose 'any maskable' as needed for Android adaptive splash.",
+    "All 6 PNG icons open with PIL, match their declared sizes exactly, and contain real ink (visible non-white pixels 3.8-4.6% of canvas — consistent with a ~75% wide wordmark on a white plate).",
+    "index.html theme-color meta = #ffffff and no #f5f0e8 anywhere in served HTML — beige-splash regression cannot recur from HTML source.",
+    "Optional nit (non-blocking, same as last iteration): with purpose 'any maskable' Android will crop to the safe zone (roughly a centered circle). If the user ever reports the wordmark clipped on the sides of the round icon on some Android launchers, add a dedicated variant with ~10-15% extra inner padding (or split into separate 'any' and 'maskable' entries) rather than sharing one file for both purposes."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_pwa_static_assets.py (extended: added parametrized visible-pixel + min-byte-size checks for wordmark icons)"
+  ],
+  "success_rate": {
+    "backend": "100% (16/16 pytest)",
+    "frontend": "not tested (backend-only request)"
+  },
+  "test_credentials": "none required — all assets are public",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "PWA static-asset bug is closed. If the user re-opens for further icon tweaks: (1) CRA dev server does not hot-reload /app/frontend/public/*, so restart frontend supervisor after edits. (2) The current icons render the full 'Bragarmål' wordmark at ~75% width with visible-pixel coverage in the 3.8-4.6% range — if a new icon drops significantly below ~2%, the pixel-visibility test will catch it as blank/alpha-only. (3) Test file is /app/backend/tests/test_pwa_static_assets.py — 16 test cases across TestManifest, TestIconAssets, TestIndexHtml.",
+  "rca of the issue": "First iteration of this bug fixed the beige splash + BRAG truncation by moving manifest bg/theme to #ffffff and adding 192/512 maskable icons, but the initial rework used only a compact pen+B mark. User rejected that and asked for the full Bragarmål wordmark scaled to ~75% width. Current state (verified this iteration): manifest colors white, 5 icons declared (192/512 maskable), all icon files are valid PNGs of correct dimensions with real wordmark ink drawn, index.html theme-color is #ffffff. All 16 pytest checks pass on the public preview URL."
+}

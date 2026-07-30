@@ -120,6 +120,51 @@ class TestIconAssets:
         )
         assert len(r.content) > 0, "favicon.ico is empty"
 
+    # --- Visible pixel data / minimum byte-size sanity checks (per re-test spec) ---
+    # If an icon file is only alpha-transparent (or truncated), the wordmark would
+    # not be visible on the Android splash. Verify the image actually contains
+    # non-transparent, non-white pixels AND meets a minimum file size floor.
+
+    _WORDMARK_ICONS = [
+        # (path, min_bytes_expected)
+        ("/apple-touch-icon.png", 3 * 1024),      # 180px -> >3KB
+        ("/bragarmal-mark-192.png", 5 * 1024),    # 192px -> >5KB
+        ("/bragarmal-mark-512.png", 15 * 1024),   # 512px -> >15KB
+        ("/bragarmal-mark.png", 15 * 1024),       # legacy 512 -> >15KB
+    ]
+
+    @pytest.mark.parametrize("path,min_bytes", _WORDMARK_ICONS)
+    def test_wordmark_icon_has_visible_pixels(self, path, min_bytes):
+        r = _get(path)
+        assert r.status_code == 200, f"{path} status={r.status_code}"
+        assert len(r.content) >= min_bytes, (
+            f"{path} size={len(r.content)}B below threshold {min_bytes}B — "
+            f"likely truncated or empty"
+        )
+
+        im = Image.open(io.BytesIO(r.content))
+        im.load()  # forces full decode; raises on truncated file
+        rgba = im.convert("RGBA")
+        w, h = rgba.size
+        pixels = rgba.getdata()
+
+        # Count pixels that are visible (alpha > 0) AND not pure white.
+        # Wordmark = dark ink strokes on white/transparent background.
+        visible_dark = 0
+        for r_, g_, b_, a_ in pixels:
+            if a_ > 0 and not (r_ > 240 and g_ > 240 and b_ > 240):
+                visible_dark += 1
+
+        total = w * h
+        # Expect the wordmark to occupy at least ~2% of the canvas — enough to
+        # confirm real ink is drawn (not a blank/alpha-only image). Real files
+        # observed are ~10-20%+ coverage.
+        min_required = int(total * 0.02)
+        assert visible_dark >= min_required, (
+            f"{path} has only {visible_dark}/{total} visible non-white pixels — "
+            f"expected >= {min_required}. Icon may be blank/alpha-only."
+        )
+
 
 # ---------- html theme-color meta ----------
 
