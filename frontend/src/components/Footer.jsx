@@ -7,7 +7,9 @@ export default function Footer() {
     <footer className="hairline-t">
       <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-10 flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
-          <Logo size={22} />
+          <Link to="/" aria-label="Bragarmål — gå til forsiden" className="inline-flex" data-testid="footer-logo-link">
+            <Logo size={22} />
+          </Link>
           <span className="label-ui" style={{ color: "var(--ink-mute)" }}>2026</span>
         </div>
         <div className="flex items-center gap-6 flex-wrap">

@@ -1,0 +1,47 @@
+{
+  "summary": "Iteration 13 verification (transparent PWA icons + logo-link on every page) — all 27 pytest checks pass and end-to-end Playwright verification confirms behavior on the public preview URL. (1) Transparent icons: all 6 PWA icons (/apple-touch-icon.png 5.7KB, /bragarmal-mark-192.png 6.3KB, /bragarmal-mark-512.png 21.7KB, /bragarmal-mark.png 21.7KB, /favicon-16.png 259B, /favicon-32.png 575B) open as RGBA with alpha extrema 0..255 both on disk and when served — i.e. every icon has fully-transparent pixels (bg not filled white) AND real opaque ink pixels. Byte sizes are well under the 15KB/30KB thresholds (apple 5.6KB, mark-192 6.1KB, mark-512 21.2KB), consistent with mostly-transparent backgrounds. (2) Logo.jsx renders <img alt=\"Bragarmål\"> only — no react-router-dom import, no internal <Link>, no <a>. (3) Every listed page (/, /logg-inn, /eksempler, /manifest, /etikk, /priser, /betaling/vellykket) and every protected page (/dashboard, /prover, /stemme, /skriv, /manuskript) renders the header logo inside <a href=\"/\"> wrapping <img alt=\"Bragarmål\">, with NO nested <a>. Clicking the header logo from every non-root page navigates back to / (verified in Playwright). (4) Footer on every page except the payment-status page contains data-testid=\"footer-logo-link\" pointing to / and wrapping the logo image; PaymentStatusPage intentionally has no footer (minimal centered layout). (5) site.webmanifest still valid JSON with background_color=#ffffff, theme_color=#ffffff (iter-12 regression fix intact).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "PaymentStatusPage (/betaling/vellykket, /betaling/avbrutt)",
+        "issues": [
+          "This page has no footer, so no data-testid=\"footer-logo-link\" is present. The spec allows for this ('may 404 for un-authed, that's OK if page still renders logo') and the header logo link IS present and clickable to /. Flagging as a minor consistency note only — not a bug."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_logo_and_icons.py",
+    "/app/test_reports/pytest/logo_and_icons_results.xml",
+    "/app/backend/tests/test_pwa_static_assets.py"
+  ],
+  "action_items": [
+    "None — bug thread can be closed. All acceptance criteria from the review request are met on the live preview URL."
+  ],
+  "critical_code_review_comments": [
+    "Logo.jsx is correctly minimal: just a plain <img> with alt=\"Bragarmål\", so wrapping it in <Link to=\"/\"> at each call-site produces valid non-nested HTML (verified via querySelectorAll for a[href='/'] > img and inspecting for nested <a> — zero found on any page).",
+    "All public pages and AppShell share the same pattern: <Link to=\"/\" className=\"flex items-center\"><Logo size={70} /></Link>. This is a repeating snippet — could be extracted into a HeaderLogoLink component for DRY, but current inline usage is small (single line, 8 pages) so not worth the refactor.",
+    "PaymentStatusPage does not render <Footer />, so there's no footer-logo-link on that route. This is intentional (centered success/cancel confirmation screen) and matches the review-request note that this page 'may 404 for un-authed, that's OK if page still renders logo'. Header logo link is still present.",
+    "Transparent PWA icons: alpha=0 pixels dominate (85-96% of canvas), meaning the wordmark now sits on a truly transparent background — will visually blend with any launcher color instead of showing a white plate. File sizes dropped ~30-40% vs the previous white-plate versions.",
+    "Nit (non-blocking): the /bragarmal-mark.png legacy file is byte-identical to /bragarmal-mark-512.png (both 21744 bytes) — consider dropping the duplicate if manifest+HTML no longer reference it."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_logo_and_icons.py (NEW — 27 test cases covering transparent icons on disk+HTTP, byte-size bounds, Logo.jsx purity, page-source wrapping, footer testid, manifest colors)"
+  ],
+  "success_rate": {
+    "backend": "100% (27/27 pytest)",
+    "frontend": "100% (all 12 pages tested via Playwright — 7 public + 5 protected — logo present, no nested anchor, click navigates to /)"
+  },
+  "test_credentials": "editortest2@bragarmal.no / Test1234! (cookie-based /api/auth/login — verified working, session_token HttpOnly cookie set)",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "PWA transparent-icon + logo-link bug is closed as of iteration 13. Reusable regression assets: (a) /app/backend/tests/test_logo_and_icons.py — 27 pytest cases covering iter-13 fixes. (b) /app/backend/tests/test_pwa_static_assets.py — earlier 16 pytest cases still passing (colors, MIME, dimensions, wordmark visibility). Login: POST /api/auth/login with JSON {email, password} sets HttpOnly session_token cookie on the preview domain. Playwright natively handles this — no manual cookie work needed. If icons are re-touched, the current transparency-percentage floor is 84% (favicon-16) → 96% (mark-512). All 6 icons must remain RGBA with alpha min=0. bragr-logo.png (the header/footer visual wordmark, size 914x316) is a separate file from the PWA icons and was NOT modified in iter-13; the header logo is rendered by <img src=\"/bragr-logo.png\" alt=\"Bragarmål\">.",
+  "rca of the issue": "Iteration 13 addresses two follow-up polish bugs from iteration 12: (A) Even after fixing the beige splash by moving manifest bg/theme to #ffffff, the icon PNGs themselves still had opaque-white backgrounds, so on any non-white surface (dark launcher, colored splash) the icons showed a white plate around the wordmark. Fix: regenerate all 6 icons with a truly transparent (RGBA 0,0,0,0) canvas — verified on disk and when served over HTTPS from the preview URL: all report alpha min=0. (B) On several pages the logo image was not wrapped in a link to home, so users couldn't click the logo to return to the landing page. Fix: every page (Landing, LoginPage, ExamplesPage, ManifestPage, EthicsPage, PricingPage, PaymentStatusPage, AppShell/protected routes) now wraps <Logo/> in <Link to=\"/\">; Footer additionally has data-testid=\"footer-logo-link\". Logo.jsx itself was reduced to a pure <img> to prevent nested <a>/<a> from any of these wrappers. Verified via source scanning (regex) AND runtime Playwright checks (querySelectorAll a[href=\"/\"] for img[alt=\"Bragarmål\"] on all 12 routes, followed by click-and-assert-url-is-root)."
+}
