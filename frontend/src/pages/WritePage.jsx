@@ -646,9 +646,69 @@ export default function WritePage() {
       {/* Detection strip */}
       {detection && (
         <div id="detection-strip" data-testid={TID.writeDetectionResult} className="mt-12 scroll-mt-24">
+          {/* Warning if text was too short for reliable analysis */}
+          {detection.too_short && (
+            <div
+              className="mb-6 p-4"
+              style={{ background: "var(--linen)", border: "1px solid var(--rust)" }}
+            >
+              <div className="font-mono-ui text-[11px] tracking-widest" style={{ color: "var(--rust)" }}>
+                FOR KORT TEKST FOR PÅLITELIG ANALYSE
+              </div>
+              <p className="mt-2 font-editor text-sm" style={{ color: "var(--ink)" }}>
+                Teksten er kun {detection.word_count} ord. Analysen trenger minst {detection.min_words_reliable} ord
+                for å gi en pålitelig vurdering. Tallene under er kun statistikk — ingen menneskelig-vs-AI-dom.
+              </p>
+            </div>
+          )}
+
+          {/* AI verdict — Claude's nuanced take (when text is long enough) */}
+          {detection.ai_verdict && detection.ai_verdict.label && (
+            <div
+              className="mb-6 p-5"
+              style={{ background: "var(--paper)", border: "1px solid var(--line)" }}
+            >
+              <div className="flex items-baseline justify-between flex-wrap gap-2">
+                <div className="label-ui">Claudes vurdering</div>
+                {detection.ai_verdict.confidence != null && (
+                  <div className="label-ui" style={{ color: "var(--ink-mute)" }}>
+                    Sikkerhet: {detection.ai_verdict.confidence}%
+                  </div>
+                )}
+              </div>
+              <div
+                className="font-serif-display text-3xl md:text-4xl mt-2"
+                style={{
+                  color:
+                    /menneskelig/i.test(detection.ai_verdict.label)
+                      ? "var(--moss)"
+                      : /usikker/i.test(detection.ai_verdict.label)
+                      ? "var(--rust)"
+                      : "#a13a3a",
+                }}
+              >
+                {detection.ai_verdict.label}
+              </div>
+              {detection.ai_verdict.reasoning && (
+                <p className="mt-3 font-editor text-base leading-relaxed" style={{ color: "var(--ink)" }}>
+                  {detection.ai_verdict.reasoning}
+                </p>
+              )}
+              {Array.isArray(detection.ai_verdict.notes) && detection.ai_verdict.notes.length > 0 && (
+                <ul className="mt-3 space-y-1">
+                  {detection.ai_verdict.notes.map((n, i) => (
+                    <li key={i} className="font-editor text-sm flex gap-2" style={{ color: "var(--ink-soft)" }}>
+                      <span style={{ color: "var(--rust)" }}>—</span> {n}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
           <div className="hairline-t hairline-b py-6 grid grid-cols-2 md:grid-cols-4 gap-6">
             <div>
-              <div className="label-ui">Menneske-score</div>
+              <div className="label-ui">Statistisk score</div>
               <div className="font-serif-display text-4xl mt-1" style={{ color: "var(--ink)" }}>
                 {detection.score}<span className="text-xl" style={{ color: "var(--ink-mute)" }}>/100</span>
               </div>

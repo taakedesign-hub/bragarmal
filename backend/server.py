@@ -1631,6 +1631,49 @@ AI_MARKERS = [
 ]
 
 
+async def _ai_verdict(text: str) -> dict:
+    """Ask Claude for a nuanced verdict on whether text feels AI-generated.
+    Returns {label, confidence, reasoning} or {} if unavailable."""
+    if not EMERGENT_LLM_KEY:
+        return {}
+    snippet = text[:6000]
+    system = (
+        "Du er en litterær kritiker med spesialkompetanse på å skille menneskelig prosa "
+        "fra AI-generert tekst. Du kjenner igjen bevisste stilvalg — som Nick Hornbys "
+        "samtale-aktige enkelthet eller Erlend Loes flate rytme — og forveksler dem "
+        "IKKE med AI. Du er skeptisk til utjevnet, klisjéfull tekst med perfekt grammatikk "
+        "og trippel-listestruktur. Svar KUN i gyldig JSON."
+    )
+    prompt = (
+        "Vurder følgende norske tekst. Svar i JSON med:\n"
+        "  - label: én av \"Menneskelig\", \"Sannsynligvis menneskelig\", \"Usikker\", \"Sannsynligvis AI\", \"AI-aktig\"\n"
+        "  - confidence: heltall 0-100 (hvor sikker du er på vurderingen)\n"
+        "  - reasoning: 1-2 setninger på norsk med konkret begrunnelse (nevn stiltrekk du observerer)\n"
+        "  - notes: liste med 0-3 korte observasjoner om stemmen (fri form)\n\n"
+        f"TEKST:\n{snippet}"
+    )
+    chat = LlmChat(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=f"detect-{uuid.uuid4().hex[:8]}",
+        system_message=system,
+    ).with_model("anthropic", "claude-sonnet-4-5-20250929").with_params(temperature=0.3)
+    try:
+        parts = []
+        async for ev in chat.stream_message(UserMessage(text=prompt)):
+            if isinstance(ev, TextDelta):
+                parts.append(ev.content)
+            elif isinstance(ev, StreamDone):
+                break
+        raw = "".join(parts).strip()
+        m = re.search(r"\{.*\}", raw, re.DOTALL)
+        if m:
+            raw = m.group(0)
+        return json.loads(raw)
+    except Exception as e:
+        logger.warning("AI verdict failed: %s", e)
+        return {}
+
+
 @api_router.post("/detect")
 async def detect_ai(body: DetectBody, user: User = Depends(get_current_user)):
     text = body.text.strip()
@@ -1639,8 +1682,12 @@ async def detect_ai(body: DetectBody, user: User = Depends(get_current_user)):
 
     words = re.findall(r"[A-Za-zÆØÅæøå']+", text)
     total_words = max(len(words), 1)
-    unique_ratio = len(set(w.lower() for w in words)) / total_words
 
+    # Guard: heuristic + AI verdict need enough text to be meaningful
+    MIN_WORDS_RELIABLE = 300
+    too_short = total_words < MIN_WORDS_RELIABLE
+
+    unique_ratio = len(set(w.lower() for w in words)) / total_words
     sentences = [s for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
     sent_lens = [len(re.findall(r"\S+", s)) for s in sentences] or [0]
     if len(sent_lens) > 1:
@@ -1659,20 +1706,23 @@ async def detect_ai(body: DetectBody, user: User = Depends(get_current_user)):
             marker_hits += len(m)
             hits_list.append({"pattern": pat, "count": len(m)})
 
-    # Score: high burstiness + high vocab richness + low marker hits => human
+    # Heuristic score kept as SECONDARY signal — AI verdict is primary
     score = 0
-    score += min(burstiness * 40, 40)  # 0..40
-    score += min(unique_ratio * 60, 60)  # 0..60
+    score += min(burstiness * 40, 40)
+    score += min(unique_ratio * 60, 60)
     score -= marker_hits * 8
     score = max(0, min(100, score))
+    heur_label = "Menneskelig" if score >= 65 else ("Blandet" if score >= 40 else "AI-aktig")
 
-    label = "Menneskelig" if score >= 65 else ("Blandet" if score >= 40 else "AI-aktig")
+    # ---- AI verdict (only when text is long enough) ----
+    verdict = {} if too_short else await _ai_verdict(text)
+
+    # Final label: prefer AI verdict when available, otherwise heuristic
+    label = verdict.get("label") or heur_label
 
     # ---- Personal style similarity ----
-    # Compare text against the user's HUMAN samples using function-word + top-word fingerprint.
     personal = await compute_personal_style_score(user.user_id, text, words)
 
-    # ---- Sentence-level highlighting: which sentences feel most foreign ----
     highlights = []
     if personal.get("available"):
         profile = await db.voice_profiles.find_one({"user_id": user.user_id}, {"_id": 0})
@@ -1687,6 +1737,10 @@ async def detect_ai(body: DetectBody, user: User = Depends(get_current_user)):
         "ai_markers": hits_list,
         "personal_style": personal,
         "highlights": highlights,
+        "too_short": too_short,
+        "word_count": total_words,
+        "min_words_reliable": MIN_WORDS_RELIABLE,
+        "ai_verdict": verdict,   # {label, confidence, reasoning, notes} or {}
     }
 
 
