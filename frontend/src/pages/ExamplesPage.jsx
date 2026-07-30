@@ -176,6 +176,56 @@ export default function ExamplesPage() {
           </Link>
         </div>
 
+        {/* Stemmeprofil — eksempel på hva Bragarmål lager til deg */}
+        <section id="stemmeprofil" className="mt-20 md:mt-24 scroll-mt-24">
+          <div className="grid grid-cols-12 gap-6 md:gap-10 items-start">
+            <div className="col-span-12 md:col-span-4">
+              <div className="label-ui">Stemmeprofil</div>
+              <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
+                Slik <em className="italic" style={{ color: "var(--moss)" }}>ser Bragarmål</em> stemmen din.
+              </h2>
+              <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
+                Etter noen prøver bygger Bragarmål en analyse av tone og stil.
+                Under er et faktisk eksempel — slik en profil kan se ut.
+              </p>
+            </div>
+            <div className="col-span-12 md:col-span-8 space-y-6">
+              <div
+                className="p-6 md:p-7"
+                style={{ background: "var(--linen)", border: "1px solid var(--line)" }}
+              >
+                <div className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--rust)" }}>
+                  TONE
+                </div>
+                <p className="mt-3 font-editor text-base md:text-lg leading-relaxed" style={{ color: "var(--ink)" }}>
+                  Tonen er nær, anspent og observerende, med korte, avsluttende setninger som
+                  skaper tempo og indre uro. Stemningen veksler mellom kontrollert ytre og
+                  kollapset indre, med hint av mørk ironi i kontraster som «romantisk kveld»
+                  mot konkurs.
+                </p>
+              </div>
+              <div
+                className="p-6 md:p-7"
+                style={{ background: "var(--paper)", border: "1px solid var(--line)" }}
+              >
+                <div className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--rust)" }}>
+                  STIL
+                </div>
+                <p className="mt-3 font-editor text-base md:text-lg leading-relaxed" style={{ color: "var(--ink)" }}>
+                  Setningene er korte, ofte brutale avbrudd av tankerekker. Forfatterens
+                  grep er filmisk: sanselige detaljer (lukt, lyd, lys), fysiske reaksjoner
+                  («armene ble tunge», «han drakk det som var igjen»), og tomme rom.
+                  Ordvalget veksler mellom hverdagslig presisjon og mettet bildespråk.
+                </p>
+              </div>
+              <p className="font-editor text-sm" style={{ color: "var(--ink-mute)" }}>
+                Denne profilen brukes deretter når du sparrer med Bragarmål i Skrivepulten —
+                slik at forslag speiler din rytme, ikke bare språkmodellens gjennomsnitt.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Testprompter — snakk naturlig, ikke maskinelt */}
         <section id="testprompter" className="mt-20 md:mt-24 scroll-mt-24">
           <div className="grid grid-cols-12 gap-6 md:gap-10 items-start">

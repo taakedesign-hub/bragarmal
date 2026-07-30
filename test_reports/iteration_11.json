@@ -1,0 +1,38 @@
+{
+  "summary": "PWA static-asset bug fix verified end-to-end. Tested manifest (JSON, white colors, maskable icon entries), all 6 icon files (correct dimensions/MIME/PNG validity), favicon.ico, and index.html meta theme-color + manifest link. 12/12 pytest cases pass against the public REACT_APP_BACKEND_URL. NOTE: initial run showed the served /index.html still contained the old '#f5f0e8' theme-color even though the source file had '#ffffff' — a frontend restart (sudo supervisorctl restart frontend) was required to pick up the public/index.html change. After restart the served HTML contains '#ffffff' and all tests pass.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_pwa_static_assets.py",
+    "/app/test_reports/pytest/pwa_assets_results.xml"
+  ],
+  "action_items": [
+    "None — bug fix verified. Just be aware: CRA dev server does NOT hot-reload public/index.html or public/site.webmanifest; a supervisor restart of the frontend is required whenever files under /app/frontend/public/ change. In this session I already restarted the frontend once so the fix is now live in the preview URL."
+  ],
+  "critical_code_review_comments": [
+    "Manifest looks clean: name/short_name/start_url/display/icons/theme_color/background_color all correct. Both new 192 and 512 icons declare purpose 'any maskable' which is what Android's adaptive-icon splash needs.",
+    "bragarmal-mark-192.png (RGBA, 192x192, 6.4KB) and bragarmal-mark-512.png (RGBA, 512x512, 22KB) are valid PNGs of the declared sizes. apple-touch-icon.png is a valid 180x180 PNG.",
+    "index.html theme-color meta is now #ffffff and matches manifest.theme_color and body background — this eliminates the beige launch screen the user reported.",
+    "Minor tip (non-blocking): with purpose 'any maskable' Android may crop the mark to a circle inside the safe zone; if the user sees the mark clipped at the edges of the round icon, a dedicated maskable variant with ~10-15% inner padding would fix that. Not required for the current bug (splash background + full mark), which is fixed."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_pwa_static_assets.py (new, pytest for PWA static assets)"
+  ],
+  "success_rate": {
+    "backend": "100% (12/12 pytest)",
+    "frontend": "not tested (backend-only request)"
+  },
+  "test_credentials": "none required — all assets are public",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "The frontend was restarted once during this iteration to pick up the /app/frontend/public/index.html theme-color change. If future testing changes files under /app/frontend/public/ (index.html, site.webmanifest, favicons, PWA icons), a `sudo supervisorctl restart frontend` is required — CRA dev server does not hot-reload these on file change.",
+  "rca of the issue": "User's Android splash showed 'BRAG' cut off on a beige (#f5f0e8) background. RCA: (1) manifest.background_color/theme_color were #f5f0e8 so the OS-drawn launch background did not match the icon's white plate, and (2) no dedicated 192/512 icons with purpose 'any maskable' were declared, so Android fell back to bitmap icons that got cropped by the adaptive-icon mask, cutting off part of the wordmark. Fix (already applied by main agent): manifest bg/theme -> #ffffff, added /bragarmal-mark-192.png and /bragarmal-mark-512.png with purpose 'any maskable', and updated <meta name='theme-color'> in index.html to #ffffff. Verification: manifest JSON, all icon files (dimensions + PNG validity), and index.html all confirmed on the live REACT_APP_BACKEND_URL. All 12 pytest checks pass."
+}

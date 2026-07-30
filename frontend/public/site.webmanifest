@@ -4,14 +4,15 @@
   "description": "Norsk AI-skriveverktøy som bevarer din unike fortellerstemme.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f5f0e8",
-  "theme_color": "#f5f0e8",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "lang": "nb-NO",
   "icons": [
     { "src": "/favicon-16.png", "sizes": "16x16", "type": "image/png" },
     { "src": "/favicon-32.png", "sizes": "32x32", "type": "image/png" },
     { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
-    { "src": "/bragarmal-mark.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    { "src": "/bragarmal-mark-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/bragarmal-mark-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ],
   "categories": ["productivity", "utilities", "education"]
 }
