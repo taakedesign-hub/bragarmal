@@ -49,8 +49,12 @@ function Protected({ children }) {
   const { user, loading } = useAuth();
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="label-ui">Laster…</div>
+      <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#ffffff" }}>
+        <img
+          src="/bragr-logo.png"
+          alt="Bragarmål"
+          style={{ width: "100%", maxWidth: 260, height: "auto", opacity: 0.85, animation: "bragr-fade 1.6s ease-in-out infinite" }}
+        />
       </div>
     );
   }

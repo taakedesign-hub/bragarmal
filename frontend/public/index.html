@@ -132,13 +132,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 24px;
+            box-sizing: border-box;
             background: #ffffff;
             z-index: 9999;
             transition: opacity 0.35s ease-out;
           }
           #bragr-boot img {
-            width: 220px;
+            width: 100%;
+            max-width: 280px;
             height: auto;
+            object-fit: contain;
             opacity: 0;
             animation: bragr-fade 1.6s ease-in-out infinite;
           }
