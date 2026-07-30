@@ -66,7 +66,7 @@ export default function ExamplesPage() {
           Når hjelper <em className="italic" style={{ color: "var(--moss)" }}>Bragarmål</em> deg?
         </h1>
         <p className="mt-6 font-editor text-lg md:text-xl max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>
-          Seks konkrete situasjoner der Bragarmål tar deg videre — uten å ta over.
+          Måter Bragarmål hjelper deg videre — uten å ta over.
         </p>
       </section>
 

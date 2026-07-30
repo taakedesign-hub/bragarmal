@@ -117,7 +117,7 @@ export default function Landing() {
                 Når hjelper Bragarmål deg?
               </div>
               <p className="mt-3 font-serif-display italic text-sm md:text-base leading-snug max-w-[32ch] ml-auto" style={{ color: "var(--ink-soft)" }}>
-                Seks konkrete situasjoner der Bragarmål tar deg videre — uten å ta over.
+                Måter Bragarmål hjelper deg videre — uten å ta over.
               </p>
               <div className="mt-4 font-mono-ui text-sm md:text-base tracking-wide uppercase inline-flex items-center gap-2 hover:underline underline-offset-4" style={{ color: "#c8432c" }}>
                 Vis eksempler <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
