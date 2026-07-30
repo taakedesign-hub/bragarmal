@@ -332,6 +332,7 @@ export default function WritePage() {
   };
 
   const [detecting, setDetecting] = useState(false);
+  const [composition, setComposition] = useState(false);
   const runDetect = async () => {
     const text = output || input;
     if (!text.trim()) {
@@ -364,14 +365,25 @@ export default function WritePage() {
               Bryt sperren.
             </h1>
           </div>
-          <Link
-            to="/eksempler#testprompter"
-            data-testid="write-testprompter-link"
-            className="font-mono-ui text-[11px] tracking-widest hover:underline inline-flex items-center gap-1.5"
-            style={{ color: "var(--rust)" }}
-          >
-            SE TESTPROMPTER →
-          </Link>
+          <div className="flex items-center gap-4 flex-wrap">
+            <button
+              onClick={() => setComposition(true)}
+              className="font-mono-ui text-[11px] tracking-widest hover:underline"
+              style={{ color: "var(--ink-mute)" }}
+              data-testid="write-composition-mode-btn"
+              title="Distraksjonsfri fullskjermsmodus"
+            >
+              KOMPOSISJONSMODUS
+            </button>
+            <Link
+              to="/eksempler#testprompter"
+              data-testid="write-testprompter-link"
+              className="font-mono-ui text-[11px] tracking-widest hover:underline inline-flex items-center gap-1.5"
+              style={{ color: "var(--rust)" }}
+            >
+              SE TESTPROMPTER →
+            </Link>
+          </div>
         </div>
         <p className="font-editor mt-4 max-w-[60ch]" style={{ color: "var(--ink-soft)" }}>
           {profileReady
@@ -838,6 +850,50 @@ export default function WritePage() {
           )}
         </div>
       )}
+
+      {composition && (
+        <CompositionMode
+          input={input}
+          onInputChange={setInput}
+          onClose={() => setComposition(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function CompositionMode({ input, onInputChange, onClose }) {
+  useEffect(() => {
+    const h = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", h);
+    document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", h); document.body.style.overflow = ""; };
+  }, [onClose]);
+  const wc = input.trim() ? input.trim().split(/\s+/).length : 0;
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "var(--paper)" }} data-testid="composition-mode">
+      <div className="flex items-center justify-between px-8 py-4 hairline-b">
+        <span className="label-ui">Komposisjonsmodus · {wc} ord</span>
+        <button
+          onClick={onClose}
+          className="font-mono-ui text-[11px] tracking-widest hover:opacity-70 inline-flex items-center gap-2"
+          style={{ color: "var(--ink-mute)" }}
+          data-testid="composition-mode-close"
+        >
+          <X size={14} strokeWidth={1.4} />
+          LUKK (ESC)
+        </button>
+      </div>
+      <div className="flex-1 overflow-auto">
+        <textarea
+          autoFocus
+          value={input}
+          onChange={(e) => onInputChange(e.target.value)}
+          placeholder="Skriv fritt. Ingen andre distraksjoner nå."
+          className="w-full h-full max-w-[70ch] mx-auto px-8 py-16 bg-transparent font-editor text-lg md:text-xl leading-[1.9] outline-none resize-none"
+          style={{ color: "var(--ink)", minHeight: "calc(100vh - 80px)" }}
+        />
+      </div>
     </div>
   );
 }

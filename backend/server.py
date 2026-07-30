@@ -31,6 +31,8 @@ from openai import AsyncOpenAI
 
 # Extraction libs
 from PyPDF2 import PdfReader
+from docx import Document
+from docx.shared import Pt, Cm
 from docx import Document as DocxDocument
 
 
@@ -1069,6 +1071,149 @@ async def reorder_scenes(body: SceneReorder, user: User = Depends(get_current_us
 @api_router.get("/manuscript/statuses")
 async def list_statuses():
     return SCENE_STATUSES
+
+
+class WritingGoal(BaseModel):
+    total_goal: int = 0
+    session_goal: int = 0
+
+
+@api_router.get("/manuscript/goals")
+async def get_goals(user: User = Depends(get_current_user)):
+    doc = await db.writing_goals.find_one({"user_id": user.user_id}, {"_id": 0}) or {"total_goal": 0, "session_goal": 0}
+    return doc
+
+
+@api_router.put("/manuscript/goals")
+async def set_goals(body: WritingGoal, user: User = Depends(get_current_user)):
+    await db.writing_goals.update_one(
+        {"user_id": user.user_id},
+        {"$set": {
+            "user_id": user.user_id,
+            "total_goal": max(0, body.total_goal),
+            "session_goal": max(0, body.session_goal),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }},
+        upsert=True,
+    )
+    return {"total_goal": body.total_goal, "session_goal": body.session_goal}
+
+
+@api_router.get("/manuscript/compile.docx")
+async def compile_manuscript_docx(user: User = Depends(get_current_user)):
+    scenes = await db.scenes.find({"user_id": user.user_id}, {"_id": 0}).sort("order", 1).to_list(1000)
+    doc = Document()
+    # Base style — Times New Roman 12pt, double spacing (industry standard for novel manuscripts)
+    style = doc.styles["Normal"]
+    style.font.name = "Times New Roman"
+    style.font.size = Pt(12)
+    for section in doc.sections:
+        section.top_margin = Cm(2.5)
+        section.bottom_margin = Cm(2.5)
+        section.left_margin = Cm(2.5)
+        section.right_margin = Cm(2.5)
+
+    # Title page
+    t = doc.add_paragraph()
+    t.alignment = 1  # center
+    r = t.add_run(user.name or "Manuskript")
+    r.font.size = Pt(24)
+    r.bold = True
+    doc.add_paragraph()
+    doc.add_paragraph()
+
+    if not scenes:
+        doc.add_paragraph("(Ingen scener enda.)")
+    for i, s in enumerate(scenes):
+        # Page break between scenes (except first)
+        if i > 0:
+            doc.add_page_break()
+        heading = doc.add_paragraph()
+        heading.alignment = 1
+        hr = heading.add_run(s.get("title") or f"Scene {i+1}")
+        hr.font.size = Pt(16)
+        hr.bold = True
+        if s.get("synopsis"):
+            syn = doc.add_paragraph()
+            sr = syn.add_run(s["synopsis"])
+            sr.italic = True
+            sr.font.size = Pt(11)
+        doc.add_paragraph()
+        content = (s.get("content") or "").strip()
+        for para in content.split("\n"):
+            p = doc.add_paragraph(para)
+            p.paragraph_format.first_line_indent = Cm(1)
+            p.paragraph_format.line_spacing = 2.0
+
+    buf = io.BytesIO()
+    doc.save(buf)
+    buf.seek(0)
+    filename = f"bragarmaal-manuskript-{datetime.now(timezone.utc).strftime('%Y-%m-%d')}.docx"
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+# ---------- Snapshots (scene version history) ----------
+class SnapshotCreate(BaseModel):
+    scene_id: str
+    label: Optional[str] = ""
+
+
+@api_router.post("/manuscript/{scene_id}/snapshots")
+async def create_snapshot(scene_id: str, body: SnapshotCreate, user: User = Depends(get_current_user)):
+    scene = await db.scenes.find_one({"id": scene_id, "user_id": user.user_id}, {"_id": 0})
+    if not scene:
+        raise HTTPException(status_code=404, detail="Scene ikke funnet")
+    snap = {
+        "id": str(uuid.uuid4()),
+        "user_id": user.user_id,
+        "scene_id": scene_id,
+        "title": scene.get("title", ""),
+        "content": scene.get("content", ""),
+        "word_count": scene.get("word_count", 0),
+        "label": (body.label or "").strip(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.snapshots.insert_one(snap)
+    snap.pop("_id", None)
+    return snap
+
+
+@api_router.get("/manuscript/{scene_id}/snapshots")
+async def list_snapshots(scene_id: str, user: User = Depends(get_current_user)):
+    docs = await db.snapshots.find(
+        {"scene_id": scene_id, "user_id": user.user_id}, {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    return docs
+
+
+@api_router.post("/manuscript/snapshots/{snapshot_id}/restore")
+async def restore_snapshot(snapshot_id: str, user: User = Depends(get_current_user)):
+    snap = await db.snapshots.find_one({"id": snapshot_id, "user_id": user.user_id}, {"_id": 0})
+    if not snap:
+        raise HTTPException(status_code=404, detail="Øyeblikksbilde ikke funnet")
+    await db.scenes.update_one(
+        {"id": snap["scene_id"], "user_id": user.user_id},
+        {"$set": {
+            "title": snap.get("title", ""),
+            "content": snap.get("content", ""),
+            "word_count": snap.get("word_count", 0),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }},
+    )
+    doc = await db.scenes.find_one({"id": snap["scene_id"], "user_id": user.user_id}, {"_id": 0})
+    return doc
+
+
+@api_router.delete("/manuscript/snapshots/{snapshot_id}")
+async def delete_snapshot(snapshot_id: str, user: User = Depends(get_current_user)):
+    r = await db.snapshots.delete_one({"id": snapshot_id, "user_id": user.user_id})
+    if r.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Ikke funnet")
+    return {"ok": True}
 
 
 # ---------- Inspirations (reference authors) ----------
