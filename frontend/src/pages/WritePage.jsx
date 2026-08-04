@@ -500,10 +500,26 @@ export default function WritePage() {
           <div
             data-testid={TID.writeOutput}
             className="paper p-6 min-h-[380px] mt-3 font-editor text-[1.05rem] leading-relaxed whitespace-pre-wrap"
-            style={{ color: "var(--ink)" }}
+            style={{
+              color: "var(--ink)",
+              // Faint yellow tint so AI-generated text is visually distinct from user's own writing.
+              // Fades out when field is empty (no output yet).
+              background: output ? "rgba(255, 236, 130, 0.22)" : undefined,
+              borderLeft: output ? "3px solid rgba(255, 200, 60, 0.55)" : undefined,
+            }}
           >
             {output || <span style={{ color: "var(--ink-mute)" }} className="italic">Utkastet dukker opp her.</span>}
           </div>
+          {output && (
+            <div className="mt-2 flex items-center gap-2 label-ui" style={{ color: "var(--ink-mute)" }}>
+              <span
+                aria-hidden
+                className="inline-block"
+                style={{ width: 12, height: 12, background: "rgba(255, 236, 130, 0.55)", border: "1px solid rgba(255, 200, 60, 0.7)" }}
+              />
+              Gul markering = AI-generert innhold
+            </div>
+          )}
           <div className="mt-4 flex items-center gap-3 flex-wrap">
             <button
               data-testid={TID.writeCopyBtn}
