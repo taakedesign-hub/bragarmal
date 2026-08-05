@@ -159,13 +159,75 @@ const FORLAG_STEPS = [
   },
 ];
 
-const FORLAG_HOUSES = [
-  { group: "De store", names: "Gyldendal · Aschehoug · Cappelen Damm" },
-  { group: "Mellomstore", names: "Vigmostad & Bjørke · Kagge · Pax · Samlaget (nynorsk)" },
-  { group: "Uavhengige", names: "Pelikanen · Flamme · Oktober · Vigmund" },
+const FORLAG_BIG = [
+  {
+    name: "Cappelen Damm",
+    how: "E-post eller nettskjema",
+    genres: "Skjønnlitteratur, barn/ungdom, sakprosa",
+    note: "Flere adresser avhengig av sjanger",
+  },
+  {
+    name: "Gyldendal",
+    how: "Kun nettskjema på gyldendal.no",
+    genres: "Skjønnlitteratur, barnebøker, sakprosa, faktabøker",
+    note: "Tar ikke imot e-post eller papir",
+  },
+  {
+    name: "Aschehoug",
+    how: "E-post",
+    genres: "Skjønnlitteratur, barn/ungdom, sakprosa",
+    note: "Separate adresser for ulike redaksjoner",
+  },
+  {
+    name: "Vigmostad & Bjørke",
+    how: "E-post",
+    genres: "Skjønnlitteratur, barn/ungdom, sakprosa",
+    note: "Åpent for de fleste sjangre",
+  },
+  {
+    name: "Bonnier Forlag",
+    how: "E-post",
+    genres: "Skjønnlitteratur, feelgood, fantasy, sakprosa",
+    note: "Tar for tiden ikke imot barnebokmanus",
+  },
+  {
+    name: "Samlaget",
+    how: "E-post",
+    genres: "Skjønnlitteratur, barn/ungdom, sakprosa",
+    note: "Kun nynorsk",
+  },
+];
+
+const FORLAG_OTHER = [
+  { name: "Omnipax", note: "Barne- og ungdomslitteratur" },
+  { name: "Flamme Forlag", note: "Del av Cappelen Damm" },
+  { name: "Solum Bokvennen", note: null },
+  { name: "Forlagshuset Publica", note: null },
+  { name: "Bokhuset Forlag", note: null },
+  { name: "Kagge Forlag", note: "Sjekk aktuelle retningslinjer" },
+  { name: "Magikon Forlag", note: "Spesielt bildebøker" },
+  { name: "Flux Forlag", note: "Sakprosa" },
+  { name: "Efrem Forlag", note: null },
+];
+
+const FORLAG_KEYPOINTS = [
+  <><strong>Alltid sjekk forlagets nettside</strong> før du sender. Retningslinjer endres.</>,
+  <>De fleste vil ha <strong>Word eller PDF</strong>.</>,
+  <>Mange ønsker <strong>fullt manus</strong> (spesielt skjønnlitteratur). For sakprosa godtas ofte prosjektbeskrivelse + prøvekapittel.</>,
+  <>Svarstid er vanligvis <strong>4–12 uker</strong>.</>,
+  <>Svært få manus blir antatt — <strong>ofte under 1 %</strong>.</>,
 ];
 
 const FORLAG_PRACTICAL = [
+  {
+    icon: <BookOpen size={16} strokeWidth={1.5} />,
+    text: (
+      <>
+        <strong>Start med forlag som faktisk utgir den typen bøker du har skrevet.</strong>{" "}
+        Se på katalogen deres og sjekk om de har gitt ut lignende titler de siste årene.
+      </>
+    ),
+  },
   {
     icon: <ExternalLink size={16} strokeWidth={1.5} />,
     text: (
@@ -176,21 +238,21 @@ const FORLAG_PRACTICAL = [
     ),
   },
   {
-    icon: <BookOpen size={16} strokeWidth={1.5} />,
-    text: (
-      <>
-        Vurder <strong>litterær agent</strong> hvis du sikter mot internasjonale rettigheter — men det
-        er sjelden nødvendig for norsk debut.
-      </>
-    ),
-  },
-  {
     icon: <Layers size={16} strokeWidth={1.5} />,
     text: (
       <>
         Skrivekurs, tekstverksteder og litteraturfestivaler er gode arenaer for å bli kjent med
         redaktører uformelt. Norsk barnebokinstitutt, Norsk Forfattersentrum og festivaler som
         Kapittel, Lillehammer og Bjørnsonfestivalen er verdt å følge med på.
+      </>
+    ),
+  },
+  {
+    icon: <Compass size={16} strokeWidth={1.5} />,
+    text: (
+      <>
+        Vurder <strong>litterær agent</strong> hvis du sikter mot internasjonale rettigheter — men det
+        er sjelden nødvendig for norsk debut.
       </>
     ),
   },
@@ -386,16 +448,75 @@ export default function TipsPage() {
           </ol>
 
           <div className="mt-10 hairline-t pt-8">
-            <div className="label-ui" style={{ color: "var(--moss)" }}>Norske forlag verdt å kjenne til</div>
+            <div className="label-ui" style={{ color: "var(--moss)" }}>De største forlagene</div>
+            <p className="mt-3 font-editor text-sm" style={{ color: "var(--ink-soft)" }}>
+              Tradisjonelle forlag som tar imot uoppfordrede innsendinger — uten at forfatter må betale.
+            </p>
+
+            {/* Tabellen: desktop-visning */}
+            <div className="mt-5 hidden md:block">
+              <div className="grid grid-cols-12 gap-4 pb-3 hairline-b label-ui" style={{ color: "var(--ink-mute)" }}>
+                <div className="col-span-3">Forlag</div>
+                <div className="col-span-3">Hvordan sende</div>
+                <div className="col-span-3">Sjangre</div>
+                <div className="col-span-3">Merknad</div>
+              </div>
+              {FORLAG_BIG.map((f) => (
+                <div key={f.name} className="grid grid-cols-12 gap-4 py-4 hairline-b font-editor text-sm" data-testid={`forlag-big-${f.name}`}>
+                  <div className="col-span-3 font-serif-display text-lg leading-tight" style={{ color: "var(--ink)" }}>{f.name}</div>
+                  <div className="col-span-3" style={{ color: "var(--ink)" }}>{f.how}</div>
+                  <div className="col-span-3" style={{ color: "var(--ink-soft)" }}>{f.genres}</div>
+                  <div className="col-span-3 italic" style={{ color: "var(--ink-soft)" }}>{f.note}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Mobilvisning: stablet */}
+            <div className="mt-5 md:hidden">
+              {FORLAG_BIG.map((f) => (
+                <div key={f.name} className="py-5 hairline-b" data-testid={`forlag-big-m-${f.name}`}>
+                  <div className="font-serif-display text-xl" style={{ color: "var(--ink)" }}>{f.name}</div>
+                  <dl className="mt-3 font-editor text-sm space-y-2">
+                    <div className="grid grid-cols-3 gap-2">
+                      <dt className="label-ui" style={{ color: "var(--ink-mute)" }}>Sende</dt>
+                      <dd className="col-span-2" style={{ color: "var(--ink)" }}>{f.how}</dd>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <dt className="label-ui" style={{ color: "var(--ink-mute)" }}>Sjangre</dt>
+                      <dd className="col-span-2" style={{ color: "var(--ink-soft)" }}>{f.genres}</dd>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <dt className="label-ui" style={{ color: "var(--ink-mute)" }}>Merknad</dt>
+                      <dd className="col-span-2 italic" style={{ color: "var(--ink-soft)" }}>{f.note}</dd>
+                    </div>
+                  </dl>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-10 hairline-t pt-8">
+            <div className="label-ui" style={{ color: "var(--moss)" }}>Andre forlag som tar imot manus</div>
+            <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+              {FORLAG_OTHER.map((f) => (
+                <li key={f.name} className="font-editor text-base flex items-baseline gap-2" data-testid={`forlag-other-${f.name}`}>
+                  <span className="shrink-0" style={{ color: "var(--moss)" }}>—</span>
+                  <span>
+                    <strong style={{ color: "var(--ink)" }}>{f.name}</strong>
+                    {f.note && <span style={{ color: "var(--ink-soft)" }}> · {f.note}</span>}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mt-10 hairline-t pt-8">
+            <div className="label-ui" style={{ color: "var(--moss)" }}>Viktige punkter</div>
             <ul className="mt-4 space-y-3">
-              {FORLAG_HOUSES.map((h) => (
-                <li key={h.group} className="grid grid-cols-12 gap-4">
-                  <div className="col-span-12 md:col-span-3 label-ui" style={{ color: "var(--ink-mute)" }}>
-                    {h.group}
-                  </div>
-                  <div className="col-span-12 md:col-span-9 font-editor" style={{ color: "var(--ink)" }}>
-                    {h.names}
-                  </div>
+              {FORLAG_KEYPOINTS.map((p, i) => (
+                <li key={i} className="flex items-start gap-3 font-editor text-base leading-relaxed" style={{ color: "var(--ink)" }}>
+                  <span className="mt-2 shrink-0 inline-block w-1.5 h-1.5" style={{ background: "var(--rust)" }} />
+                  <span>{p}</span>
                 </li>
               ))}
             </ul>
