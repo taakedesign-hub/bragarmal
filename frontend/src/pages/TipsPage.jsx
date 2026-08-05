@@ -13,6 +13,9 @@ import {
   ListOrdered,
   Grid3x3,
   Map as MapIcon,
+  FileText,
+  AlertTriangle,
+  MessageSquare,
 } from "lucide-react";
 import Seo from "@/components/Seo";
 
@@ -345,12 +348,63 @@ const DISPOSISJON_PRACTICAL = [
   },
 ];
 
+/* ─────────────────────────────  TIP 04 — FØLGEBREV  ───────────────────────────── */
+
+const FOLGEBREV_PRINCIPLES = [
+  "Kort — helst under en halv side.",
+  "Konkret.",
+  "Ryddig og profesjonelt.",
+  "Fokusert på boka, ikke på deg.",
+];
+
+const FOLGEBREV_STRUCTURE = [
+  {
+    n: "01",
+    title: "Åpning",
+    body: "Si rett ut hva du sender.",
+    example: "«Jeg sender hermed manuset til [sjanger + tittel] for vurdering.»",
+  },
+  {
+    n: "02",
+    title: "Kort om boka",
+    body:
+      "Fortell hva boka handler om, hvem den er skrevet for, og hva som gjør den interessant. Vær konkret, ikke generelt lovprisende. Unngå formuleringer som «en magisk fortelling om vennskap og mot». Si heller hva som faktisk skjer, hvilken alder den er ment for, og hva som er særegent ved den.",
+  },
+  {
+    n: "03",
+    title: "Hvorfor dette forlaget",
+    body: "Vis at du har sett litt på utgivelsesprofilen deres. Én eller to setninger er nok.",
+  },
+  {
+    n: "04",
+    title: "Kort om deg",
+    body:
+      "Bare det som er relevant for boka. Ingen lang bakgrunnshistorie, ingen unødvendige detaljer om livssituasjon eller tidligere erfaringer som ikke har direkte betydning.",
+  },
+  {
+    n: "05",
+    title: "Avslutning",
+    body: "Hold det enkelt.",
+    example:
+      "«Manuset følger vedlagt som Word/PDF.\nJeg hører gjerne fra dere.\n\nMed vennlig hilsen\n[Navn]\n[Telefon]\n[E-post]»",
+  },
+];
+
+const FOLGEBREV_PITFALLS = [
+  "Lange selvbiografier.",
+  "Overdreven entusiasme («dette er en bok alle vil elske»).",
+  "Humor eller selvironi som ikke treffer.",
+  "Sammenligninger med kjente forfattere.",
+  "Å forklare hvorfor du trenger å bli utgitt.",
+  "Generiske brev som tydelig er sendt til mange forlag uten tilpasning.",
+];
+
 /* ─────────────────────────────  PAGE  ───────────────────────────── */
 
 export default function TipsPage() {
   return (
     <div className="max-w-[1200px] mx-auto px-6 md:px-10 py-12 md:py-16">
-      <Seo title="Tips — Bragarmål" description="Praktiske råd for forfattere: stipend, forlagskontakt og disposisjonsteknikker." />
+      <Seo title="Tips — Bragarmål" description="Praktiske råd for forfattere: stipend, forlagskontakt, disposisjon og følgebrev." />
 
       <div className="fade-in">
         <div className="label-ui inline-flex items-center gap-2">
@@ -371,6 +425,7 @@ export default function TipsPage() {
         <a href="#stipend" className="hover:underline" style={{ color: "var(--ink)" }}>01 · Stipend</a>
         <a href="#forlag" className="hover:underline" style={{ color: "var(--ink)" }}>02 · Kontakte forlagene</a>
         <a href="#disposisjon" className="hover:underline" style={{ color: "var(--ink)" }}>03 · Disposisjonsteknikker</a>
+        <a href="#folgebrev" className="hover:underline" style={{ color: "var(--ink)" }}>04 · Følgebrev</a>
       </nav>
 
       {/* ────── TIP 01 — STIPEND ────── */}
@@ -564,6 +619,105 @@ export default function TipsPage() {
           <Aside>
             Disposisjon er ikke fasit — det er stillas. Rive det ned når det er reist, hvis det stenger
             for teksten. Poenget er å komme videre, ikke å ha den peneste planen.
+          </Aside>
+        </div>
+      </section>
+
+      {/* ────── TIP 04 — FØLGEBREV ────── */}
+      <section id="folgebrev" className="mt-24 scroll-mt-24 hairline-t pt-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12" data-testid="tip-folgebrev">
+        <div className="lg:col-span-4">
+          <TipHeader
+            n="04"
+            tag="Innsending"
+            icon={<FileText size={20} strokeWidth={1.4} />}
+            title="Forslag til følgebrev"
+            subtitle="Slik skriver du et brev en travel redaktør faktisk leser — kort, konkret og saklig."
+          />
+        </div>
+        <div className="lg:col-span-8">
+          {/* Grunnregelen */}
+          <div className="label-ui" style={{ color: "var(--moss)" }}>Grunnregelen</div>
+          <p className="mt-3 font-editor text-base leading-relaxed" style={{ color: "var(--ink)" }}>
+            Forlagene får svært mange manus. De fleste følgebrev blir skumlest på under et minutt.
+            Hvis brevet er langt, uklart eller for personlig, mister det fort interessen.
+          </p>
+          <p className="mt-4 font-editor text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+            Et godt følgebrev er:
+          </p>
+          <ul className="mt-3 space-y-2">
+            {FOLGEBREV_PRINCIPLES.map((p, i) => (
+              <li key={i} className="pl-5 relative font-editor text-base" style={{ color: "var(--ink)" }} data-testid={`folgebrev-principle-${i + 1}`}>
+                <span className="absolute left-0" style={{ color: "var(--moss)" }}>—</span>
+                {p}
+              </li>
+            ))}
+          </ul>
+
+          {/* Anbefalt struktur */}
+          <div className="mt-10 hairline-t pt-8">
+            <div className="label-ui" style={{ color: "var(--moss)" }}>Anbefalt struktur</div>
+            <ol className="mt-4">
+              {FOLGEBREV_STRUCTURE.map((s) => (
+                <li key={s.n} className="hairline-t py-6" data-testid={`folgebrev-step-${s.n}`}>
+                  <div className="flex items-baseline gap-3">
+                    <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--rust)" }}>{s.n}</div>
+                    <h3 className="font-serif-display text-xl md:text-2xl leading-snug" style={{ color: "var(--ink)" }}>
+                      {s.title}
+                    </h3>
+                  </div>
+                  <p className="mt-3 font-editor text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+                    {s.body}
+                  </p>
+                  {s.example && (
+                    <pre
+                      className="mt-4 p-4 md:p-5 font-editor text-sm md:text-base leading-relaxed whitespace-pre-wrap"
+                      style={{
+                        background: "var(--bg-alt, #faf7f1)",
+                        borderLeft: "2px solid var(--rust)",
+                        color: "var(--ink)",
+                        fontStyle: "italic",
+                      }}
+                      data-testid={`folgebrev-example-${s.n}`}
+                    >
+                      {s.example}
+                    </pre>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {/* Ting som svekker */}
+          <div className="mt-10 hairline-t pt-8">
+            <div className="label-ui inline-flex items-center gap-2" style={{ color: "var(--rust)" }}>
+              <AlertTriangle size={14} strokeWidth={1.5} />
+              Ting som svekker brevet
+            </div>
+            <ul className="mt-4 space-y-3">
+              {FOLGEBREV_PITFALLS.map((p, i) => (
+                <li key={i} className="flex items-start gap-3 font-editor text-base leading-relaxed" style={{ color: "var(--ink)" }} data-testid={`folgebrev-pitfall-${i + 1}`}>
+                  <span className="mt-2 shrink-0 inline-block w-1.5 h-1.5" style={{ background: "var(--rust)" }} />
+                  <span>{p}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Tone */}
+          <div className="mt-10 hairline-t pt-8">
+            <div className="label-ui inline-flex items-center gap-2" style={{ color: "var(--moss)" }}>
+              <MessageSquare size={14} strokeWidth={1.5} />
+              Tone
+            </div>
+            <p className="mt-3 font-editor text-base leading-relaxed" style={{ color: "var(--ink)" }}>
+              Skriv klart, rolig og saklig. Det skaper mer tillit enn forsøk på å imponere.
+            </p>
+          </div>
+
+          <Aside>
+            Følgebrev er der stemmen din blir mest naken. Skriv utkastet selv — la Bragarmål eventuelt
+            hjelpe deg med å stramme det inn i din egen tone. Ikke la AI skrive brevet fra bunnen av;
+            redaktører gjenkjenner en AI-tone på sekunder.
           </Aside>
         </div>
       </section>
