@@ -1,5 +1,22 @@
-import { Lightbulb, ExternalLink, Coins, MapPin, Search, BookOpen } from "lucide-react";
+import {
+  Lightbulb,
+  ExternalLink,
+  Coins,
+  MapPin,
+  Search,
+  BookOpen,
+  Mail,
+  Layers,
+  Compass,
+  Clock,
+  Send,
+  ListOrdered,
+  Grid3x3,
+  Map as MapIcon,
+} from "lucide-react";
 import Seo from "@/components/Seo";
+
+/* ─────────────────────────────  TIP 01 — STIPEND  ───────────────────────────── */
 
 const STIPEND_ORGS = [
   {
@@ -48,7 +65,7 @@ const STIPEND_ORGS = [
   },
 ];
 
-const PRACTICAL = [
+const STIPEND_PRACTICAL = [
   {
     icon: <Search size={16} strokeWidth={1.5} />,
     text: (
@@ -101,10 +118,177 @@ const PRACTICAL = [
   },
 ];
 
+/* ─────────────────────────────  TIP 02 — KONTAKTE FORLAG  ───────────────────────────── */
+
+const FORLAG_STEPS = [
+  {
+    icon: <Search size={16} strokeWidth={1.5} />,
+    title: "Undersøk forlaget først",
+    body:
+      "Passer bøkene forlaget gir ut til det du skriver? Ikke send krim til et forlag som bare gir ut lyrikk. Bla i katalogen deres, se hvem de har gitt ut de siste to årene, og hvilke redaktører som står bak.",
+  },
+  {
+    icon: <ListOrdered size={16} strokeWidth={1.5} />,
+    title: "Følg innsendingsrutinene",
+    body:
+      "Hvert forlag har egne rutiner (finnes på nettsiden). Vanligvis: kort synopsis + 1–3 kapittelutkast + forfatterpresentasjon. Send akkurat det de ber om — ikke mer, ikke mindre.",
+  },
+  {
+    icon: <Send size={16} strokeWidth={1.5} />,
+    title: "Skriv et profesjonelt følgebrev",
+    body:
+      "Kort, konkret, ærlig. Hvem er du, hva har du skrevet, hvorfor akkurat dette forlaget. Én side maks. Ikke prøv å være morsom — vær presis.",
+  },
+  {
+    icon: <Clock size={16} strokeWidth={1.5} />,
+    title: "Regn med lang ventetid",
+    body:
+      "3–6 måneder er normalt. Ikke purr før det har gått minst tre måneder, og gjør det da høflig i én e-post — ikke flere.",
+  },
+  {
+    icon: <Mail size={16} strokeWidth={1.5} />,
+    title: "Sjekk om eksklusivitet kreves",
+    body:
+      "Noen forlag krever at manuset ikke er sendt andre steder samtidig. Andre godtar parallelle innsendinger. Les vilkårene før du sender ut bredt.",
+  },
+  {
+    icon: <Compass size={16} strokeWidth={1.5} />,
+    title: "Ta avslag konstruktivt",
+    body:
+      "De fleste forfattere får mange avslag før første ja. Be om tilbakemelding når du kan — noen redaktører gir det, mange gjør det ikke. Bruk det som kommer.",
+  },
+];
+
+const FORLAG_HOUSES = [
+  { group: "De store", names: "Gyldendal · Aschehoug · Cappelen Damm" },
+  { group: "Mellomstore", names: "Vigmostad & Bjørke · Kagge · Pax · Samlaget (nynorsk)" },
+  { group: "Uavhengige", names: "Pelikanen · Flamme · Oktober · Vigmund" },
+];
+
+const FORLAG_PRACTICAL = [
+  {
+    icon: <ExternalLink size={16} strokeWidth={1.5} />,
+    text: (
+      <>
+        Nesten alle norske forlag har egen{" "}
+        <em className="italic">«manuskript til vurdering»</em>-side. Google forlagsnavn + «manuskript».
+      </>
+    ),
+  },
+  {
+    icon: <BookOpen size={16} strokeWidth={1.5} />,
+    text: (
+      <>
+        Vurder <strong>litterær agent</strong> hvis du sikter mot internasjonale rettigheter — men det
+        er sjelden nødvendig for norsk debut.
+      </>
+    ),
+  },
+  {
+    icon: <Layers size={16} strokeWidth={1.5} />,
+    text: (
+      <>
+        Skrivekurs, tekstverksteder og litteraturfestivaler er gode arenaer for å bli kjent med
+        redaktører uformelt. Norsk barnebokinstitutt, Norsk Forfattersentrum og festivaler som
+        Kapittel, Lillehammer og Bjørnsonfestivalen er verdt å følge med på.
+      </>
+    ),
+  },
+];
+
+/* ─────────────────────────────  TIP 03 — DISPOSISJON  ───────────────────────────── */
+
+const DISPOSISJON_METHODS = [
+  {
+    n: "01",
+    name: "Snøflakmetoden",
+    author: "Randy Ingermanson",
+    body:
+      "Start med én setning som beskriver hele boka. Utvid den til et avsnitt. Så til én side per hovedkarakter. Så til en scene-liste. Bygg boka lag for lag — som en snøflak vokser fra sentrum og ut.",
+  },
+  {
+    n: "02",
+    name: "Save the Cat / Beat Sheet",
+    author: "Blake Snyder",
+    body:
+      "Femten faste vendepunkter (beats) fordelt over boka: åpningsbilde, katalysator, debatt, midtpunkt, alt-er-tapt, finale. Opprinnelig for film, men brukes tungt i kommersiell skjønnlitteratur — særlig thriller og krim.",
+  },
+  {
+    n: "03",
+    name: "Tre-aktsstrukturen",
+    author: "Klassisk dramateori",
+    body:
+      "Anslag (25%): sett opp verden, karakter, konflikt. Oppbygging (50%): eskalering, komplikasjoner, midtvending. Klimaks (25%): konfrontasjon og oppløsning. Enkelt, robust, fungerer for de fleste sjangre.",
+  },
+  {
+    n: "04",
+    name: "Heltens reise",
+    author: "Joseph Campbell / Christopher Vogler",
+    body:
+      "Tolv trinn fra kall til hjemkomst. Kraftig for mytisk fortelling og karakterreise, men kan gjøre plottet forutsigbart hvis du følger det slavisk. Bruk som sjekkliste, ikke oppskrift.",
+  },
+  {
+    n: "05",
+    name: "Kortstokk-metoden",
+    author: "Praktisk teknikk",
+    body:
+      "Skriv én scene per kort — enten fysiske indeksekort eller digitale kort i et verktøy. Legg dem på et bord. Omorganiser fritt. Perfekt hvis du tenker visuelt eller sitter fast i lineær tenkning.",
+  },
+  {
+    n: "06",
+    name: "Skjelett-utkast",
+    author: "Rask førsteoversikt",
+    body:
+      "Skriv hele boka som svært korte oppsummeringer — 1–2 setninger per kapittel — før du skriver detaljert. Da ser du hull, tempoproblemer og gjentakelser før du har brukt hundrevis av timer på å skrive dem ut.",
+  },
+];
+
+const DISPOSISJON_PRACTICAL = [
+  {
+    icon: <Layers size={16} strokeWidth={1.5} />,
+    text: (
+      <>
+        <strong>Kombinér metoder.</strong> Bruk gjerne én metode for plott (f.eks. tre-akts) og en
+        annen for karakterer (f.eks. snøflak). Ingen enkelt metode dekker alt.
+      </>
+    ),
+  },
+  {
+    icon: <Compass size={16} strokeWidth={1.5} />,
+    text: (
+      <>
+        Vet hva som passer deg: <strong>«planner»</strong> (grundig disponering før du skriver) eller{" "}
+        <strong>«pantser»</strong> (skriver seg fram og oppdager plottet underveis). Begge er
+        gyldige — men du taper tid hvis du prøver å være den du ikke er.
+      </>
+    ),
+  },
+  {
+    icon: <Clock size={16} strokeWidth={1.5} />,
+    text: (
+      <>
+        <strong>Ikke bruk mer tid på disposisjon enn på skriving.</strong> Disposisjon er et verktøy,
+        ikke et prokrastineringsprosjekt. Sett en tidsramme.
+      </>
+    ),
+  },
+  {
+    icon: <Grid3x3 size={16} strokeWidth={1.5} />,
+    text: (
+      <>
+        Test ut i <strong>Manuskript-modulen</strong> i Bragarmål — scener kan flyttes fritt, POV og
+        status noteres, og du beholder oversikten uten å miste tak i detaljene.
+      </>
+    ),
+  },
+];
+
+/* ─────────────────────────────  PAGE  ───────────────────────────── */
+
 export default function TipsPage() {
   return (
     <div className="max-w-[1200px] mx-auto px-6 md:px-10 py-12 md:py-16">
-      <Seo title="Tips — Bragarmål" description="Praktiske råd for forfattere: stipend, arbeidsflyt og skrivevaner." />
+      <Seo title="Tips — Bragarmål" description="Praktiske råd for forfattere: stipend, forlagskontakt og disposisjonsteknikker." />
 
       <div className="fade-in">
         <div className="label-ui inline-flex items-center gap-2">
@@ -119,78 +303,149 @@ export default function TipsPage() {
         </p>
       </div>
 
-      <div className="mt-14">
-        <article className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12" data-testid="tip-stipend">
-          <div className="lg:col-span-4">
-            <div className="flex items-center gap-3">
-              <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--rust)" }}>01</div>
-              <div className="label-ui" style={{ color: "var(--ink-mute)" }}>Økonomi</div>
-            </div>
-            <div className="mt-4 inline-flex items-center gap-3" style={{ color: "var(--moss)" }}>
-              <Coins size={20} strokeWidth={1.4} />
-            </div>
-            <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-3 leading-tight" style={{ color: "var(--ink)" }}>
-              Stipend for forfattere
-            </h2>
-            <p className="font-editor text-base mt-4" style={{ color: "var(--ink-soft)" }}>
-              En oversikt over de viktigste ordningene — og hvordan du kan finne midler du faktisk kan få.
-            </p>
-          </div>
+      {/* Innholdsfortegnelse */}
+      <nav className="mt-10 flex flex-wrap gap-x-6 gap-y-2 label-ui" style={{ color: "var(--ink-mute)" }} data-testid="tips-toc">
+        <span style={{ color: "var(--rust)" }}>Innhold:</span>
+        <a href="#stipend" className="hover:underline" style={{ color: "var(--ink)" }}>01 · Stipend</a>
+        <a href="#forlag" className="hover:underline" style={{ color: "var(--ink)" }}>02 · Kontakte forlagene</a>
+        <a href="#disposisjon" className="hover:underline" style={{ color: "var(--ink)" }}>03 · Disposisjonsteknikker</a>
+      </nav>
 
-          <div className="lg:col-span-8">
-            <div className="label-ui" style={{ color: "var(--moss)" }}>Fem steder å se</div>
-            <ol className="mt-4">
-              {STIPEND_ORGS.map((org) => (
-                <li key={org.n} className="hairline-t py-6" data-testid={`stipend-org-${org.n}`}>
-                  <div className="flex items-baseline gap-3">
-                    <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--rust)" }}>{org.n}</div>
-                    <h3 className="font-serif-display text-xl md:text-2xl leading-snug" style={{ color: "var(--ink)" }}>
-                      {org.name}
-                    </h3>
+      {/* ────── TIP 01 — STIPEND ────── */}
+      <section id="stipend" className="mt-16 scroll-mt-24 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12" data-testid="tip-stipend">
+        <div className="lg:col-span-4">
+          <TipHeader
+            n="01"
+            tag="Økonomi"
+            icon={<Coins size={20} strokeWidth={1.4} />}
+            title="Stipend for forfattere"
+            subtitle="En oversikt over de viktigste ordningene — og hvordan du kan finne midler du faktisk kan få."
+          />
+        </div>
+        <div className="lg:col-span-8">
+          <div className="label-ui" style={{ color: "var(--moss)" }}>Fem steder å se</div>
+          <ol className="mt-4">
+            {STIPEND_ORGS.map((org) => (
+              <li key={org.n} className="hairline-t py-6" data-testid={`stipend-org-${org.n}`}>
+                <div className="flex items-baseline gap-3">
+                  <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--rust)" }}>{org.n}</div>
+                  <h3 className="font-serif-display text-xl md:text-2xl leading-snug" style={{ color: "var(--ink)" }}>
+                    {org.name}
+                  </h3>
+                </div>
+                <ul className="mt-3 font-editor text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+                  {org.points.map((p, i) => (
+                    <li key={i} className="pl-4 relative mt-2">
+                      <span className="absolute left-0" style={{ color: "var(--moss)" }}>—</span>
+                      {p}
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ol>
+          <PracticalList items={STIPEND_PRACTICAL} />
+          <Aside>
+            En god søknad handler like mye om å vise hvem du er som forfatter, som å beskrive prosjektet.
+            Bruk gjerne Bragarmål til å skrive utkast i din egen stemme — så teksten låter som deg,
+            ikke som en søknadsmal.
+          </Aside>
+        </div>
+      </section>
+
+      {/* ────── TIP 02 — KONTAKTE FORLAG ────── */}
+      <section id="forlag" className="mt-24 scroll-mt-24 hairline-t pt-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12" data-testid="tip-forlag">
+        <div className="lg:col-span-4">
+          <TipHeader
+            n="02"
+            tag="Innsending"
+            icon={<Mail size={20} strokeWidth={1.4} />}
+            title="Hvordan kontakte forlagene"
+            subtitle="Prosessen fra ferdig utkast til redaktørens innboks — uten å tabbe deg ut."
+          />
+        </div>
+        <div className="lg:col-span-8">
+          <div className="label-ui" style={{ color: "var(--moss)" }}>Seks trinn</div>
+          <ol className="mt-4">
+            {FORLAG_STEPS.map((s, i) => (
+              <li key={i} className="hairline-t py-6" data-testid={`forlag-step-${i + 1}`}>
+                <div className="flex items-center gap-3">
+                  <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--rust)" }}>
+                    {String(i + 1).padStart(2, "0")}
                   </div>
-                  <ul className="mt-3 font-editor text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>
-                    {org.points.map((p, i) => (
-                      <li key={i} className="pl-4 relative mt-2">
-                        <span className="absolute left-0" style={{ color: "var(--moss)" }}>—</span>
-                        {p}
-                      </li>
-                    ))}
-                  </ul>
+                  <span style={{ color: "var(--moss)" }}>{s.icon}</span>
+                  <h3 className="font-serif-display text-xl md:text-2xl leading-snug" style={{ color: "var(--ink)" }}>
+                    {s.title}
+                  </h3>
+                </div>
+                <p className="mt-3 font-editor text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+                  {s.body}
+                </p>
+              </li>
+            ))}
+          </ol>
+
+          <div className="mt-10 hairline-t pt-8">
+            <div className="label-ui" style={{ color: "var(--moss)" }}>Norske forlag verdt å kjenne til</div>
+            <ul className="mt-4 space-y-3">
+              {FORLAG_HOUSES.map((h) => (
+                <li key={h.group} className="grid grid-cols-12 gap-4">
+                  <div className="col-span-12 md:col-span-3 label-ui" style={{ color: "var(--ink-mute)" }}>
+                    {h.group}
+                  </div>
+                  <div className="col-span-12 md:col-span-9 font-editor" style={{ color: "var(--ink)" }}>
+                    {h.names}
+                  </div>
                 </li>
               ))}
-            </ol>
-
-            <div className="mt-10 hairline-t pt-8">
-              <div className="label-ui" style={{ color: "var(--moss)" }}>Praktiske råd</div>
-              <ul className="mt-4 space-y-4">
-                {PRACTICAL.map((p, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <span className="mt-1 shrink-0" style={{ color: "var(--moss)" }}>{p.icon}</span>
-                    <div className="font-editor text-base leading-relaxed" style={{ color: "var(--ink)" }}>
-                      {p.text}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div
-              className="mt-8 p-5 md:p-6 font-editor text-sm md:text-base leading-relaxed"
-              style={{
-                background: "var(--bg-alt, #faf7f1)",
-                borderLeft: "2px solid var(--moss)",
-                color: "var(--ink)",
-              }}
-            >
-              <em className="italic">
-                En god søknad handler like mye om å vise hvem du er som forfatter, som å beskrive prosjektet.
-                Bruk gjerne Bragarmål til å skrive utkast i din egen stemme — så teksten låter som deg,
-                ikke som en søknadsmal.
-              </em>
-            </div>
+            </ul>
           </div>
-        </article>
-      </div>
+
+          <PracticalList items={FORLAG_PRACTICAL} />
+          <Aside>
+            Følgebrevet er der du oftest snubler. Ikke send AI-genererte følgebrev til redaktører —
+            de gjenkjenner tonefallet umiddelbart. Bruk Bragarmål til å skrive utkastet i din egen
+            stemme, og la det være ærlig framfor perfekt.
+          </Aside>
+        </div>
+      </section>
+
+      {/* ────── TIP 03 — DISPOSISJON ────── */}
+      <section id="disposisjon" className="mt-24 scroll-mt-24 hairline-t pt-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12" data-testid="tip-disposisjon">
+        <div className="lg:col-span-4">
+          <TipHeader
+            n="03"
+            tag="Struktur"
+            icon={<MapIcon size={20} strokeWidth={1.4} />}
+            title="Disposisjonsteknikker"
+            subtitle="Seks måter å strukturere en bok på — og hvordan du velger den som passer måten du tenker på."
+          />
+        </div>
+        <div className="lg:col-span-8">
+          <div className="label-ui" style={{ color: "var(--moss)" }}>Seks metoder</div>
+          <ol className="mt-4">
+            {DISPOSISJON_METHODS.map((m) => (
+              <li key={m.n} className="hairline-t py-6" data-testid={`disposisjon-method-${m.n}`}>
+                <div className="flex items-baseline gap-3 flex-wrap">
+                  <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--rust)" }}>{m.n}</div>
+                  <h3 className="font-serif-display text-xl md:text-2xl leading-snug" style={{ color: "var(--ink)" }}>
+                    {m.name}
+                  </h3>
+                  <span className="label-ui" style={{ color: "var(--ink-mute)" }}>· {m.author}</span>
+                </div>
+                <p className="mt-3 font-editor text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+                  {m.body}
+                </p>
+              </li>
+            ))}
+          </ol>
+          <PracticalList items={DISPOSISJON_PRACTICAL} />
+          <Aside>
+            Disposisjon er ikke fasit — det er stillas. Rive det ned når det er reist, hvis det stenger
+            for teksten. Poenget er å komme videre, ikke å ha den peneste planen.
+          </Aside>
+        </div>
+      </section>
 
       <div className="mt-20 hairline-t pt-10 font-editor text-sm italic" style={{ color: "var(--ink-mute)" }}>
         Flere tips kommer. Har du noe du synes andre forfattere burde vite?{" "}
@@ -204,6 +459,57 @@ export default function TipsPage() {
         </a>
         .
       </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────  Sub-components  ───────────────────────────── */
+
+function TipHeader({ n, tag, icon, title, subtitle }) {
+  return (
+    <div>
+      <div className="flex items-center gap-3">
+        <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--rust)" }}>{n}</div>
+        <div className="label-ui" style={{ color: "var(--ink-mute)" }}>{tag}</div>
+      </div>
+      <div className="mt-4 inline-flex items-center gap-3" style={{ color: "var(--moss)" }}>{icon}</div>
+      <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-3 leading-tight" style={{ color: "var(--ink)" }}>
+        {title}
+      </h2>
+      <p className="font-editor text-base mt-4" style={{ color: "var(--ink-soft)" }}>{subtitle}</p>
+    </div>
+  );
+}
+
+function PracticalList({ items }) {
+  return (
+    <div className="mt-10 hairline-t pt-8">
+      <div className="label-ui" style={{ color: "var(--moss)" }}>Praktiske råd</div>
+      <ul className="mt-4 space-y-4">
+        {items.map((p, i) => (
+          <li key={i} className="flex items-start gap-3">
+            <span className="mt-1 shrink-0" style={{ color: "var(--moss)" }}>{p.icon}</span>
+            <div className="font-editor text-base leading-relaxed" style={{ color: "var(--ink)" }}>
+              {p.text}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function Aside({ children }) {
+  return (
+    <div
+      className="mt-8 p-5 md:p-6 font-editor text-sm md:text-base leading-relaxed"
+      style={{
+        background: "var(--bg-alt, #faf7f1)",
+        borderLeft: "2px solid var(--moss)",
+        color: "var(--ink)",
+      }}
+    >
+      <em className="italic">{children}</em>
     </div>
   );
 }
