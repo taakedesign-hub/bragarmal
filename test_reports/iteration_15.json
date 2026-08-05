@@ -1,0 +1,41 @@
+{
+  "summary": "Preview environment is HEALTHY. All 11 backend + Playwright smoke tests PASSED. Login (cookie auth) works, all critical endpoints respond in ~50ms, all 5 protected pages render in ~1s, Character CRUD (POST/GET/PATCH/DELETE) verified end-to-end. Supervisor: backend, frontend, mongodb all RUNNING. User's reported slowness ('Appen kjører tungt. Jeg får ikke kjørt deploy') is NOT reproducible in preview — root cause is outside main-agent scope: either (a) production deploy (bragarmal.no) has not been redeployed with recent code, (b) Emergent deploy pipeline issue, or (c) client-side (browser/network). User's code in preview is intact and performant.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_preview_health.py",
+    "/app/test_reports/pytest/preview_health.xml"
+  ],
+  "action_items": [
+    "Tell the user: preview is healthy — her code is intact. The slowness affects only the production deployed site (bragarmal.no). She needs to (1) trigger a redeploy from Emergent UI or (2) contact Emergent support about deploy pipeline slowness. Main agent cannot fix production deploy pipeline directly."
+  ],
+  "critical_code_review_comments": [
+    "Character endpoints (GET/POST/PATCH/DELETE /api/characters) work correctly, use user_id isolation, exclude _id in responses. No changes needed.",
+    "Auth /api/auth/login sets httpOnly session_token cookie with 7-day expiry — matches auth playbook. Brute-force lockout after 5 attempts is present."
+  ],
+  "updated_files": ["/app/backend/tests/test_preview_health.py (new)"],
+  "success_rate": {"backend": "100% (5/5 endpoints)", "frontend": "100% (6/6 pages load and render)"},
+  "test_credentials": "editortest2@bragarmal.no / Test1234! (verified working via POST /api/auth/login, cookie auth)",
+  "seed_data_creation": "None persisted — TESTPerson_HealthCheck character was created, verified, updated, then deleted as part of CRUD test cleanup",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Preview URL: https://echo-writer-2.preview.emergentagent.com. Cookie-auth test user editortest2@bragarmal.no/Test1234! works. Reusable smoke test at /app/backend/tests/test_preview_health.py — 11 tests, ~1.1s runtime. Character endpoints at line 1111-1156 of /app/backend/server.py. CharactersPage.jsx page route is /karakterer.",
+  "measured_response_times": {
+    "GET /": "0.17s",
+    "POST /api/auth/login": "0.28s",
+    "GET /api/samples": "0.05s",
+    "GET /api/manuscript": "0.05s",
+    "GET /api/characters": "0.05s",
+    "POST /api/characters": "0.05s",
+    "SPA pages (/manuskript, /karakterer, /skriv, /prover, /stemme)": "0.94-1.13s (client-rendered with data fetches)",
+    "thresholds_met": "All well under required limits (samples <2s, manuscript/characters <1.5s, frontend <3s)"
+  },
+  "supervisor_status": {
+    "backend": "RUNNING",
+    "frontend": "RUNNING",
+    "mongodb": "RUNNING",
+    "code-server": "RUNNING",
+    "nginx-code-proxy": "RUNNING"
+  },
+  "rca of the issue": "User's reported production slowness cannot be reproduced in preview. Preview environment is fully healthy with all response times far below thresholds. RCA points OUTSIDE preview: either the last-deployed production build on bragarmal.no is stale/heavy, or the Emergent deploy pipeline itself is failing/slow. Main agent should communicate this back and direct the user to trigger a redeploy or contact Emergent platform support."
+}
