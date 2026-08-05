@@ -222,7 +222,7 @@ export default function Landing() {
                 Samlet på <em className="italic" style={{ color: "var(--moss)" }}>ett sted</em>.
               </div>
               <p className="mt-2 font-editor text-sm md:text-base" style={{ color: "var(--ink-soft)" }}>
-                Ting som er nyttige å vite når du skriver — stipend, forlagskontakt, disposisjon, følgebrev.
+                Ting som er nyttige å vite når du skriver — disposisjon, stipend, forlagskontakt, følgebrev.
               </p>
             </div>
             <div className="flex items-center gap-3 shrink-0">
