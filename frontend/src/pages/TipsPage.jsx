@@ -422,21 +422,58 @@ export default function TipsPage() {
       {/* Innholdsfortegnelse */}
       <nav className="mt-10 flex flex-wrap gap-x-6 gap-y-2 label-ui" style={{ color: "var(--ink-mute)" }} data-testid="tips-toc">
         <span style={{ color: "var(--rust)" }}>Innhold:</span>
-        <a href="#stipend" className="hover:underline" style={{ color: "var(--ink)" }}>01 · Stipend</a>
-        <a href="#forlag" className="hover:underline" style={{ color: "var(--ink)" }}>02 · Kontakte forlagene</a>
-        <a href="#disposisjon" className="hover:underline" style={{ color: "var(--ink)" }}>03 · Disposisjonsteknikker</a>
+        <a href="#disposisjon" className="hover:underline" style={{ color: "var(--ink)" }}>01 · Disposisjonsteknikker</a>
+        <a href="#stipend" className="hover:underline" style={{ color: "var(--ink)" }}>02 · Stipend</a>
+        <a href="#forlag" className="hover:underline" style={{ color: "var(--ink)" }}>03 · Kontakte forlagene</a>
         <a href="#folgebrev" className="hover:underline" style={{ color: "var(--ink)" }}>04 · Følgebrev</a>
       </nav>
 
-      {/* ────── TIP 01 — STIPEND ────── */}
-      <section id="stipend" className="mt-16 scroll-mt-24 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12" data-testid="tip-stipend">
+      {/* ────── TIP 01 — DISPOSISJON ────── */}
+      <section id="disposisjon" className="mt-16 scroll-mt-24 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12" data-testid="tip-disposisjon">
         <div className="lg:col-span-4">
           <TipHeader
             n="01"
+            tag="Struktur"
+            icon={<MapIcon size={20} strokeWidth={1.4} />}
+            title="Disposisjonsteknikker"
+            subtitle="Seks måter å strukturere en bok på — og hvordan du velger den som passer måten du tenker på."
+          />
+        </div>
+        <div className="lg:col-span-8">
+          <div className="label-ui" style={{ color: "var(--moss)" }}>Seks metoder</div>
+          <ol className="mt-4">
+            {DISPOSISJON_METHODS.map((m) => (
+              <li key={m.n} className="hairline-t py-6" data-testid={`disposisjon-method-${m.n}`}>
+                <div className="flex items-baseline gap-3 flex-wrap">
+                  <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--rust)" }}>{m.n}</div>
+                  <h3 className="font-serif-display text-xl md:text-2xl leading-snug" style={{ color: "var(--ink)" }}>
+                    {m.name}
+                  </h3>
+                  <span className="label-ui" style={{ color: "var(--ink-mute)" }}>· {m.author}</span>
+                </div>
+                <p className="mt-3 font-editor text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+                  {m.body}
+                </p>
+              </li>
+            ))}
+          </ol>
+          <PracticalList items={DISPOSISJON_PRACTICAL} />
+          <Aside>
+            Disposisjon er ikke fasit — det er stillas. Rive det ned når det er reist, hvis det stenger
+            for teksten. Poenget er å komme videre, ikke å ha den peneste planen.
+          </Aside>
+        </div>
+      </section>
+
+      {/* ────── TIP 02 — STIPEND ────── */}
+      <section id="stipend" className="mt-24 scroll-mt-24 hairline-t pt-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12" data-testid="tip-stipend">
+        <div className="lg:col-span-4">
+          <TipHeader
+            n="02"
             tag="Økonomi"
             icon={<Coins size={20} strokeWidth={1.4} />}
             title="Stipend for forfattere"
-            subtitle="En oversikt over de viktigste ordningene — og hvordan du kan finne midler du faktisk kan få."
+            subtitle="En oversikt over de viktigste ordningene."
           />
         </div>
         <div className="lg:col-span-8">
@@ -470,11 +507,11 @@ export default function TipsPage() {
         </div>
       </section>
 
-      {/* ────── TIP 02 — KONTAKTE FORLAG ────── */}
+      {/* ────── TIP 03 — KONTAKTE FORLAG ────── */}
       <section id="forlag" className="mt-24 scroll-mt-24 hairline-t pt-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12" data-testid="tip-forlag">
         <div className="lg:col-span-4">
           <TipHeader
-            n="02"
+            n="03"
             tag="Innsending"
             icon={<Mail size={20} strokeWidth={1.4} />}
             title="Hvordan kontakte forlagene"
@@ -582,43 +619,6 @@ export default function TipsPage() {
             Følgebrevet er der du oftest snubler. Ikke send AI-genererte følgebrev til redaktører —
             de gjenkjenner tonefallet umiddelbart. Bruk Bragarmål til å skrive utkastet i din egen
             stemme, og la det være ærlig framfor perfekt.
-          </Aside>
-        </div>
-      </section>
-
-      {/* ────── TIP 03 — DISPOSISJON ────── */}
-      <section id="disposisjon" className="mt-24 scroll-mt-24 hairline-t pt-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12" data-testid="tip-disposisjon">
-        <div className="lg:col-span-4">
-          <TipHeader
-            n="03"
-            tag="Struktur"
-            icon={<MapIcon size={20} strokeWidth={1.4} />}
-            title="Disposisjonsteknikker"
-            subtitle="Seks måter å strukturere en bok på — og hvordan du velger den som passer måten du tenker på."
-          />
-        </div>
-        <div className="lg:col-span-8">
-          <div className="label-ui" style={{ color: "var(--moss)" }}>Seks metoder</div>
-          <ol className="mt-4">
-            {DISPOSISJON_METHODS.map((m) => (
-              <li key={m.n} className="hairline-t py-6" data-testid={`disposisjon-method-${m.n}`}>
-                <div className="flex items-baseline gap-3 flex-wrap">
-                  <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--rust)" }}>{m.n}</div>
-                  <h3 className="font-serif-display text-xl md:text-2xl leading-snug" style={{ color: "var(--ink)" }}>
-                    {m.name}
-                  </h3>
-                  <span className="label-ui" style={{ color: "var(--ink-mute)" }}>· {m.author}</span>
-                </div>
-                <p className="mt-3 font-editor text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>
-                  {m.body}
-                </p>
-              </li>
-            ))}
-          </ol>
-          <PracticalList items={DISPOSISJON_PRACTICAL} />
-          <Aside>
-            Disposisjon er ikke fasit — det er stillas. Rive det ned når det er reist, hvis det stenger
-            for teksten. Poenget er å komme videre, ikke å ha den peneste planen.
           </Aside>
         </div>
       </section>
