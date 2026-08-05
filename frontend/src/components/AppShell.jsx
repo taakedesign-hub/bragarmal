@@ -31,8 +31,8 @@ export default function AppShell({ children }) {
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <header className="hairline-b sticky top-0 z-30" style={{ background: "var(--bg)" }}>
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-4 flex items-center justify-between gap-4">
-          <Link to="/" className="flex items-center">
-            <Logo size={70} />
+          <Link to="/" aria-label="Bragarmål — gå til forsiden" data-testid="header-logo-link" className="flex items-center transition-opacity hover:opacity-80 cursor-pointer">
+            <Logo size={56} />
           </Link>
           <nav className="flex items-center gap-1 md:gap-2">
             <NavLink to="/dashboard" label="Hjem" tid={TID.navHome} />

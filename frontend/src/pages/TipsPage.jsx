@@ -415,7 +415,7 @@ export default function TipsPage() {
           Praktiske råd, <em className="italic" style={{ color: "var(--moss)" }}>samlet på ett sted</em>.
         </h1>
         <p className="font-editor text-lg mt-4 max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>
-          Ting som er nyttige å vite når du skriver. Ingen store manifester — bare det som fungerer i praksis.
+          Ting som er nyttige å vite når du skriver.
         </p>
       </div>
 

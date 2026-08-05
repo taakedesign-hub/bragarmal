@@ -60,7 +60,7 @@ export default function PricingPage() {
       <div className="hairline-b">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <Logo size={70} />
+            <Logo size={56} />
           </Link>
           <div className="flex items-center gap-4">
             <InfoMenu align="right" />

@@ -44,7 +44,7 @@ export default function Landing() {
       <div className="hairline-b">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <Logo size={70} />
+            <Logo size={56} />
           </Link>
           <nav className="flex items-center gap-2 md:gap-6">
             <InfoMenu align="right" />
@@ -205,6 +205,37 @@ export default function Landing() {
           </button>
 
         </div>
+
+        {/* Tips-teaser — rett under boksene, lenke til /tips (kun for innloggede) */}
+        <Link
+          to="/tips"
+          data-testid="hero-tips-teaser"
+          className="mt-6 md:mt-8 block group"
+        >
+          <div
+            className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-3 md:gap-6 px-6 md:px-8 py-6 md:py-7 transition-all hover:bg-neutral-50"
+            style={{ border: "1px solid var(--line)", background: "#fdfcf9" }}
+          >
+            <div className="min-w-0">
+              <div className="label-ui" style={{ color: "var(--rust)" }}>Praktiske råd</div>
+              <div className="mt-2 font-serif-display text-2xl md:text-3xl leading-tight" style={{ color: "var(--ink)" }}>
+                Samlet på <em className="italic" style={{ color: "var(--moss)" }}>ett sted</em>.
+              </div>
+              <p className="mt-2 font-editor text-sm md:text-base" style={{ color: "var(--ink-soft)" }}>
+                Ting som er nyttige å vite når du skriver — stipend, forlagskontakt, disposisjon, følgebrev.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <span className="label-ui" style={{ color: "var(--ink-mute)" }}>Kun for innloggede</span>
+              <span
+                className="font-mono-ui text-sm tracking-wide uppercase inline-flex items-center gap-2 group-hover:underline underline-offset-4"
+                style={{ color: "var(--rust)" }}
+              >
+                Åpne tips <ArrowRight size={14} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
+              </span>
+            </div>
+          </div>
+        </Link>
 
         {/* Hero heading below grid */}
         <div className="mt-14 md:mt-16 max-w-[62ch]">

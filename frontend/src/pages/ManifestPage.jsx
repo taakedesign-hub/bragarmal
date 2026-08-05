@@ -15,7 +15,6 @@ const ORIGINAL = [
   "Manuskript-verktøyet er derfor noe av det viktigste for meg, som Bragarmål hjelper meg med. Det å beholde oversikten og unngå alt ekstraarbeidet en drøss med uoversiktlige scener og notater fører til.",
   { block: "Det viktigst av alt med Bragarmål er ikke at det er et verktøy for deg som bare vil skrive en bok, publisere tekst, løse skriveoppgaver etisk, men for deg som står fast, trenger noen nye vinklinger, etc., med DIN stemme, gjennom bilder av tekster du har skrevet for hånd, notater, meldinger om du vil, den boka du begynte på en gang for lenge siden, men aldri skreiv ferdig. Stemmeaktivering for å fange din fortellerstemme muntlig om du har problemer med skriftspråket, og ikke vil gi fra deg fortellerstemmen din og miste ektheten som er deg." },
   { emphasis: "Test den ut nå, mat inn det du har og vil, ta bilder av gamle tekster du har skrevet på papir, les inn, noter og les gjennom." },
-  "En tekst på en app kunne nok vært mer formell, men det ville tatt bort poenget mitt med BRAGARMÅL. For som jeg hevder: «Din stemme».",
 ];
 
 const AI_EDITED = [
@@ -23,7 +22,6 @@ const AI_EDITED = [
   "I tre år har jeg jobbet med samme bok. Det siste året begynte jeg å teste diverse AI for å se om jeg kunne få hjelp med skrivingen. Resultatet har så langt vært nedslående. De beste verktøyene kan fortelle deg hva som fungerer og hva som ikke gjør det. Men nesten alt handler om å publisere mest mulig – og fortest mulig.",
   "Jeg testet også AI-detektorer. Selv mine personlige tekster, skrevet lenge før AI fantes, ble flagget som maskinskrevet. Fordi AI lever av data, matematikk og ord som allerede er matet inn. Det gjelder særlig akademiske tekster og kreative tekster som allerede har flyt og orden.",
   { block: "Det viktigste med Bragarmål er ikke at det er et verktøy for deg som bare vil skrive en bok. Det er et verktøy for deg som står fast. For deg som trenger nye vinklinger, uten å miste din egen fortellerstemme." },
-  "En tekst i en app kunne vært mer formell. Men det ville fjernet selve poenget med Bragarmål. For som jeg hevder: din stemme.",
   "Du kan mate inn det du allerede har: bilder av håndskrevne tekster, gamle notater, meldinger, den boka du startet på for lenge siden men aldri fullførte. Du kan bruke stemmen din. Lese inn. Fortelle. Ikke bare ordene, men rytmen, pausene og måten du bygger en historie på når du snakker. Særlig hvis skriftspråket er en kamp.",
 ];
 
@@ -41,7 +39,7 @@ export default function ManifestPage() {
       <div className="hairline-b">
         <div className="max-w-[1500px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <Logo size={70} />
+            <Logo size={56} />
           </Link>
           <div className="flex items-center gap-4">
             <InfoMenu align="right" />
