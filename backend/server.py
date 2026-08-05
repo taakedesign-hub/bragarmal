@@ -1085,6 +1085,156 @@ async def list_statuses():
     return SCENE_STATUSES
 
 
+# ---------- Characters (psychological profiles) ----------
+class CharacterCreate(BaseModel):
+    name: str
+    role: str = ""
+    appearance: str = ""
+    inner_struggle: str = ""
+    outer_struggle: str = ""
+    relationships: str = ""
+    arc: str = ""
+    voice_notes: str = ""
+
+
+class CharacterUpdate(BaseModel):
+    name: Optional[str] = None
+    role: Optional[str] = None
+    appearance: Optional[str] = None
+    inner_struggle: Optional[str] = None
+    outer_struggle: Optional[str] = None
+    relationships: Optional[str] = None
+    arc: Optional[str] = None
+    voice_notes: Optional[str] = None
+
+
+@api_router.get("/characters")
+async def list_characters(user: User = Depends(get_current_user)):
+    return await db.characters.find({"user_id": user.user_id}, {"_id": 0}).sort("name", 1).to_list(500)
+
+
+@api_router.post("/characters")
+async def create_character(body: CharacterCreate, user: User = Depends(get_current_user)):
+    doc = {
+        "id": str(uuid.uuid4()),
+        "user_id": user.user_id,
+        "name": body.name.strip() or "Uten navn",
+        "role": body.role.strip(),
+        "appearance": body.appearance.strip(),
+        "inner_struggle": body.inner_struggle.strip(),
+        "outer_struggle": body.outer_struggle.strip(),
+        "relationships": body.relationships.strip(),
+        "arc": body.arc.strip(),
+        "voice_notes": body.voice_notes.strip(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.characters.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.patch("/characters/{char_id}")
+async def update_character(char_id: str, body: CharacterUpdate, user: User = Depends(get_current_user)):
+    updates = {k: (v.strip() if isinstance(v, str) else v) for k, v in body.model_dump(exclude_none=True).items()}
+    if not updates:
+        raise HTTPException(status_code=400, detail="Ingenting å oppdatere")
+    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+    r = await db.characters.update_one(
+        {"id": char_id, "user_id": user.user_id}, {"$set": updates}
+    )
+    if r.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Ikke funnet")
+    return await db.characters.find_one({"id": char_id, "user_id": user.user_id}, {"_id": 0})
+
+
+@api_router.delete("/characters/{char_id}")
+async def delete_character(char_id: str, user: User = Depends(get_current_user)):
+    r = await db.characters.delete_one({"id": char_id, "user_id": user.user_id})
+    if r.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Ikke funnet")
+    return {"ok": True}
+
+
+@api_router.post("/characters/extract")
+async def extract_characters(user: User = Depends(get_current_user)):
+    """Read all scenes and ask Claude to extract character profiles."""
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(status_code=503, detail="AI ikke tilgjengelig")
+    scenes = await db.scenes.find({"user_id": user.user_id}, {"_id": 0}).sort("order", 1).to_list(500)
+    if not scenes:
+        raise HTTPException(status_code=400, detail="Legg inn scener i /manuskript først")
+    # Build a compact corpus
+    parts = []
+    for s in scenes[:30]:
+        c = (s.get("content") or "").strip()
+        if c:
+            parts.append(f"[{s.get('title', 'Scene')}] {c[:2000]}")
+    corpus = "\n\n---\n\n".join(parts)[:15000]
+    system = (
+        "Du er en litterær redaktør som identifiserer karakterer i romaner. "
+        "Trekk ut alle navngitte personer og bygg psykologiske profiler basert på hva "
+        "teksten faktisk viser — ikke gjett. Svar KUN i gyldig JSON."
+    )
+    prompt = (
+        "Analyser teksten under. Returner JSON i formen:\n"
+        '{"characters": [{"name":"", "role":"", "appearance":"", "inner_struggle":"", '
+        '"outer_struggle":"", "relationships":"", "arc":"", "voice_notes":""}]}\n\n'
+        "Skriv beskrivelsene på norsk. Vær konkret og tekstnær. Ikke oppfinn.\n\n"
+        f"TEKST:\n{corpus}"
+    )
+    chat = LlmChat(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=f"chars-{uuid.uuid4().hex[:8]}",
+        system_message=system,
+    ).with_model("anthropic", "claude-sonnet-4-5-20250929").with_params(temperature=0.4)
+    try:
+        parts = []
+        async for ev in chat.stream_message(UserMessage(text=prompt)):
+            if isinstance(ev, TextDelta):
+                parts.append(ev.content)
+            elif isinstance(ev, StreamDone):
+                break
+        raw = "".join(parts).strip()
+        m = re.search(r"\{.*\}", raw, re.DOTALL)
+        data = json.loads(m.group(0) if m else raw)
+        chars = data.get("characters", []) or []
+    except Exception as e:
+        logger.warning("character extract failed: %s", e)
+        raise HTTPException(status_code=500, detail="AI-uttrekk feilet, prøv igjen")
+    # Upsert each: match by (user_id, name) case-insensitive
+    saved = []
+    for c in chars:
+        name = (c.get("name") or "").strip()
+        if not name:
+            continue
+        existing = await db.characters.find_one(
+            {"user_id": user.user_id, "name": {"$regex": f"^{re.escape(name)}$", "$options": "i"}},
+            {"_id": 0},
+        )
+        payload = {
+            "user_id": user.user_id,
+            "name": name,
+            "role": (c.get("role") or "").strip(),
+            "appearance": (c.get("appearance") or "").strip(),
+            "inner_struggle": (c.get("inner_struggle") or "").strip(),
+            "outer_struggle": (c.get("outer_struggle") or "").strip(),
+            "relationships": (c.get("relationships") or "").strip(),
+            "arc": (c.get("arc") or "").strip(),
+            "voice_notes": (c.get("voice_notes") or "").strip(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        if existing:
+            await db.characters.update_one({"id": existing["id"], "user_id": user.user_id}, {"$set": payload})
+            saved.append({**existing, **payload})
+        else:
+            payload.update({"id": str(uuid.uuid4()), "created_at": payload["updated_at"]})
+            await db.characters.insert_one(payload)
+            payload.pop("_id", None)
+            saved.append(payload)
+    return {"count": len(saved), "characters": saved}
+
+
 class WritingGoal(BaseModel):
     total_goal: int = 0
     session_goal: int = 0

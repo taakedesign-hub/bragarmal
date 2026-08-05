@@ -17,6 +17,7 @@ import SamplesPage from "@/pages/SamplesPage";
 import VoicePage from "@/pages/VoicePage";
 import WritePage from "@/pages/WritePage";
 import ManuscriptPage from "@/pages/ManuscriptPage";
+import CharactersPage from "@/pages/CharactersPage";
 import AppShell from "@/components/AppShell";
 
 function AppRouter() {
@@ -40,6 +41,7 @@ function AppRouter() {
       <Route path="/stemme" element={<Protected><AppShell><VoicePage /></AppShell></Protected>} />
       <Route path="/skriv" element={<Protected><AppShell><WritePage /></AppShell></Protected>} />
       <Route path="/manuskript" element={<Protected><AppShell><ManuscriptPage /></AppShell></Protected>} />
+      <Route path="/karakterer" element={<Protected><AppShell><CharactersPage /></AppShell></Protected>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

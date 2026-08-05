@@ -11,6 +11,7 @@ const ITEMS = [
   { to: "/stemme", label: "Stemmeprofil", desc: "Analyser rytme, tone og signaturord" },
   { to: "/skriv", label: "Skriv", desc: "Skrivepulten — sparr med Bragarmål i din stemme" },
   { to: "/manuskript", label: "Manuskript", desc: "Oversikt over scener, POV, status og ordantall" },
+  { to: "/karakterer", label: "Karakterer", desc: "Psykologiske profiler — bygg selv eller hent fra manuskript" },
   { to: "/dashboard", label: "Din side", desc: "Alle verktøy og hjelpemidler samlet" },
   { href: "mailto:hei@bragarmål.no?subject=Hilsen%20fra%20BRAGARMÅL", label: "Kontakt", desc: "Send oss en e-post — hei@bragarmål.no" },
 ];
