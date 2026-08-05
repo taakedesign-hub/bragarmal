@@ -19,6 +19,7 @@ import WritePage from "@/pages/WritePage";
 import ManuscriptPage from "@/pages/ManuscriptPage";
 import CharactersPage from "@/pages/CharactersPage";
 import TipsPage from "@/pages/TipsPage";
+import IllustratorsPage from "@/pages/IllustratorsPage";
 import AppShell from "@/components/AppShell";
 
 function AppRouter() {
@@ -37,6 +38,7 @@ function AppRouter() {
       <Route path="/manifest" element={<ManifestPage />} />
       <Route path="/etikk" element={<EthicsPage />} />
       <Route path="/eksempler" element={<ExamplesPage />} />
+      <Route path="/illustratorer" element={<IllustratorsPage />} />
       <Route path="/dashboard" element={<Protected><AppShell><Dashboard /></AppShell></Protected>} />
       <Route path="/prover" element={<Protected><AppShell><SamplesPage /></AppShell></Protected>} />
       <Route path="/stemme" element={<Protected><AppShell><VoicePage /></AppShell></Protected>} />

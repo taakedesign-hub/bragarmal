@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react";
 const ITEMS = [
   { to: "/manifest", label: "Manifest", desc: "Original + AI-redigert side om side" },
   { to: "/eksempler", label: "Eksempler", desc: "Når hjelper Bragarmål deg — seks scenarier" },
+  { to: "/illustratorer", label: "Illustratører", desc: "Åpen katalog — finn eller registrer deg" },
   { to: "/etikk", label: "Etikk", desc: "Etisk AI-skriving. Regler, arbeidsflyt, selvsjekk" },
   { to: "/priser", label: "Priser", desc: "Beta, Grunnlegger, Ordinær — alt i NOK" },
   { to: "/prover", label: "Prøver", desc: "Lim inn, last opp fil, foto av håndskrift, høytlesning" },

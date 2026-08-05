@@ -1156,6 +1156,59 @@ async def delete_character(char_id: str, user: User = Depends(get_current_user))
     return {"ok": True}
 
 
+# ─── Illustrators (public directory) ────────────────────────────────────────
+class IllustratorCreate(BaseModel):
+    name: str
+    email: str
+    portfolio_url: str
+    style: str = ""
+    services: str = ""
+    # Honeypot field — bots often fill it; humans leave empty
+    website: str = ""
+
+
+@api_router.post("/illustrators")
+async def create_illustrator(body: IllustratorCreate):
+    # Honeypot spam guard — silently accept but don't store
+    if (body.website or "").strip():
+        return {"ok": True}
+
+    name = (body.name or "").strip()
+    email = (body.email or "").strip().lower()
+    portfolio = (body.portfolio_url or "").strip()
+
+    if not name or len(name) < 2:
+        raise HTTPException(status_code=400, detail="Navn må fylles ut")
+    if "@" not in email or "." not in email or len(email) < 5:
+        raise HTTPException(status_code=400, detail="Ugyldig e-postadresse")
+    if not portfolio or not (portfolio.startswith("http://") or portfolio.startswith("https://")):
+        raise HTTPException(status_code=400, detail="Portfolio-lenke må begynne med http(s)://")
+
+    doc = {
+        "id": str(uuid.uuid4()),
+        "name": name[:120],
+        "email": email[:200],
+        "portfolio_url": portfolio[:500],
+        "style": (body.style or "").strip()[:600],
+        "services": (body.services or "").strip()[:600],
+        "is_public": True,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.illustrators.insert_one(doc)
+    return {"ok": True, "id": doc["id"]}
+
+
+@api_router.get("/illustrators")
+async def list_illustrators():
+    """Public listing — no email is returned to the client."""
+    items = await db.illustrators.find(
+        {"is_public": True},
+        {"_id": 0, "email": 0},  # hide email from public listing
+    ).sort("created_at", -1).to_list(200)
+    return items
+
+
+
 @api_router.post("/characters/extract")
 async def extract_characters(user: User = Depends(get_current_user)):
     """Read all scenes and ask Claude to extract character profiles."""
