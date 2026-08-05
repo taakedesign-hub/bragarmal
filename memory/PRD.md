@@ -45,6 +45,7 @@ An app that detects the user's unique writing voice and helps them overcome writ
 - 2026-02-27: Removed Grok (xAI) and Resend integrations
 - 2026-02-27: Fixed missing @api_router.get decorator on /api/samples
 - 2026-02-27: Deployment readiness confirmed (WARN status — performance-only, non-blocking)
+- 2026-08-05: Added protected `/tips` page — first entry "Stipend for forfattere" (Stipendportalen search-tips, small legater 10–50k, lokale muligheter). Added Tips-lenke i AppShell-nav. Data-drevet oppsett gjør det lett å legge til flere tips senere.
 
 ## Deployment Status
 - Preview URL: https://echo-writer-2.preview.emergentagent.com
