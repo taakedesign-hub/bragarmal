@@ -48,6 +48,7 @@ export default function Landing() {
           </Link>
           <nav className="flex items-center gap-2 md:gap-6">
             <InfoMenu align="right" />
+            <Link to="/logg-inn" data-testid="nav-forfattere" className="label-ui" style={{ color: "var(--ink-mute)" }}>Forfattere</Link>
             <Link to="/illustratorer" data-testid="nav-illustrators" className="label-ui" style={{ color: "var(--ink-mute)" }}>Illustratører</Link>
             <Link to="/priser" className="label-ui" style={{ color: "var(--ink-mute)" }}>Priser</Link>
             <button
