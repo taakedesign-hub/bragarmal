@@ -51,11 +51,11 @@ export default function Landing() {
           >
             <Logo size={56} />
           </Link>
-          <nav className="flex items-center gap-1 md:gap-2 shrink min-w-0">
+          <nav className="flex items-center gap-0.5 md:gap-2 shrink min-w-0">
             <InfoMenu align="right" />
-            <Link to="/logg-inn" data-testid="nav-skrivepult" className="label-ui px-2 md:px-3 py-2" style={{ color: "var(--ink-mute)" }}>Skrivepult</Link>
-            <Link to="/logg-inn" data-testid="nav-forfattere" className="label-ui px-2 md:px-3 py-2" style={{ color: "var(--ink-mute)" }}>Forfattere</Link>
-            <Link to="/illustratorer" data-testid="nav-illustrators" className="label-ui px-2 md:px-3 py-2" style={{ color: "var(--ink-mute)" }}>Illustratører</Link>
+            <Link to="/logg-inn" data-testid="nav-skrivepult" className="label-ui px-1.5 md:px-3 py-2 whitespace-nowrap" style={{ color: "var(--ink-mute)" }}>Skrivepult</Link>
+            <Link to="/logg-inn" data-testid="nav-forfattere" className="label-ui px-1.5 md:px-3 py-2 whitespace-nowrap" style={{ color: "var(--ink-mute)" }}>Forfatter</Link>
+            <Link to="/illustratorer" data-testid="nav-illustrators" className="label-ui px-1.5 md:px-3 py-2 whitespace-nowrap" style={{ color: "var(--ink-mute)" }}>Illustratør</Link>
             <button
               data-testid={TID.loginBtn}
               onClick={goLogin}

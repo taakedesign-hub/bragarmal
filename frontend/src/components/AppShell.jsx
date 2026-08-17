@@ -24,16 +24,16 @@ export default function AppShell({ children }) {
           </Link>
 
           {/* Kompakt nav — bare 4 elementer, får plass på mobil */}
-          <nav className="flex items-center gap-1 md:gap-2 shrink min-w-0">
+          <nav className="flex items-center gap-0.5 md:gap-2 shrink min-w-0">
             <InfoMenu align="right" />
-            <Link to="/dashboard" data-testid="nav-skrivepult" className="label-ui px-2 md:px-3 py-2" style={{ color: "var(--ink-mute)" }}>
+            <Link to="/dashboard" data-testid="nav-skrivepult" className="label-ui px-1.5 md:px-3 py-2 whitespace-nowrap" style={{ color: "var(--ink-mute)" }}>
               Skrivepult
             </Link>
-            <Link to="/dashboard" data-testid="nav-forfattere" className="label-ui px-2 md:px-3 py-2" style={{ color: "var(--ink-mute)" }}>
-              Forfattere
+            <Link to="/dashboard" data-testid="nav-forfattere" className="label-ui px-1.5 md:px-3 py-2 whitespace-nowrap" style={{ color: "var(--ink-mute)" }}>
+              Forfatter
             </Link>
-            <Link to="/illustratorer" data-testid="nav-illustrators" className="label-ui px-2 md:px-3 py-2" style={{ color: "var(--ink-mute)" }}>
-              Illustratører
+            <Link to="/illustratorer" data-testid="nav-illustrators" className="label-ui px-1.5 md:px-3 py-2 whitespace-nowrap" style={{ color: "var(--ink-mute)" }}>
+              Illustratør
             </Link>
           </nav>
 
@@ -43,7 +43,7 @@ export default function AppShell({ children }) {
               <img
                 src={user.picture}
                 alt=""
-                className="w-7 h-7 rounded-full"
+                className="hidden md:inline-block w-7 h-7 rounded-full"
                 style={{ border: "1px solid var(--line)" }}
               />
             )}
