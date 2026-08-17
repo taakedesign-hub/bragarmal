@@ -81,7 +81,7 @@ export default function Landing() {
                   className="text-left font-serif-display text-base md:text-lg leading-snug hover:underline underline-offset-4"
                 >
                   Prøv gratis i 2 uker
-                  <span className="block font-editor text-[11px] md:text-xs opacity-70 mt-0.5">deretter automatisk 149 kr/mnd</span>
+                  <span className="block font-editor text-[11px] md:text-xs opacity-70 mt-0.5">deretter månedlig medlemskap</span>
                 </button>
               </li>
               <li>

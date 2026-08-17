@@ -54,7 +54,7 @@ export default function PricingPage() {
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Seo
         title="Priser — fair pris, ingen skjulte grenser"
-        description="Bragarmål-medlemskap fra 249 kr/mnd — 14 dagers gratis prøvetid ved førstegangsregistrering. Månedlig, 3, 6 eller 12 måneder. Alle modeller, ubegrenset generering."
+        description="Bragarmål-medlemskap for forfattere fra 249 kr/mnd — 14 dagers gratis prøvetid. Illustratører og kunstnere kan bli oppført i katalogen for 199 kr/mnd."
         path="/priser"
       />
       <div className="hairline-b">
@@ -227,6 +227,46 @@ export default function PricingPage() {
             </button>
           </div>
         )}
+
+        {/* Illustratører & kunstnere — egen prisboks under forfatter-tiers */}
+        <div className="mt-16 max-w-[960px]" data-testid="tier-illustrator">
+          <div className="hairline-t pt-10">
+            <div className="label-ui" style={{ color: "var(--rust)" }}>For illustratører og kunstnere</div>
+            <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
+              Bli oppført i katalogen
+            </h2>
+          </div>
+
+          <div className="paper mt-6 p-8 md:p-10 grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 items-center" style={{ borderColor: "var(--line)" }}>
+            <div className="md:col-span-7">
+              <p className="font-editor text-base md:text-lg leading-relaxed" style={{ color: "var(--ink)" }}>
+                Er du illustratør eller kunstner? Bli en del av den lukkede katalogen der Bragarmål-forfattere
+                søker etter samarbeid. Du styrer selv porteføljelenken, stilen og hva du tilbyr.
+              </p>
+              <ul className="mt-4 font-editor text-sm space-y-1.5" style={{ color: "var(--ink-soft)" }}>
+                <li className="pl-4 relative"><span className="absolute left-0" style={{ color: "var(--rust)" }}>—</span>Katalogen er kun tilgjengelig for innloggede forfattere</li>
+                <li className="pl-4 relative"><span className="absolute left-0" style={{ color: "var(--rust)" }}>—</span>Du kontaktes direkte via porteføljelenken din</li>
+                <li className="pl-4 relative"><span className="absolute left-0" style={{ color: "var(--rust)" }}>—</span>Avslutt når du vil — månedlig medlemskap uten binding</li>
+              </ul>
+            </div>
+            <div className="md:col-span-5 md:border-l md:pl-10" style={{ borderColor: "var(--line)" }}>
+              <div className="flex items-baseline gap-1" style={{ color: "var(--ink)" }}>
+                <span className="font-serif-display text-5xl md:text-6xl">199</span>
+                <span className="font-editor text-sm" style={{ color: "var(--ink-mute)" }}>kr / mnd</span>
+              </div>
+              <p className="font-editor text-xs mt-2" style={{ color: "var(--ink-mute)" }}>
+                Faktureres månedlig. Ingen skjulte kostnader.
+              </p>
+              <Link
+                to="/illustratorer"
+                data-testid="tier-illustrator-cta"
+                className="btn-primary mt-6 inline-flex items-center gap-2 w-full justify-center"
+              >
+                Send inn portefølje <ArrowRight size={14} strokeWidth={1.6} />
+              </Link>
+            </div>
+          </div>
+        </div>
 
         <div className="mt-14 max-w-[62ch] font-editor text-sm space-y-3" style={{ color: "var(--ink-mute)" }}>
           <p>Alle priser i norske kroner.</p>
