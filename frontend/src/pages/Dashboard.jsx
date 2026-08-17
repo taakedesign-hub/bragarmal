@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 import { ArrowRight, BookOpen, PenLine, WandSparkles, FileText, ScanLine, Camera, Mic } from "lucide-react";
 
 export default function Dashboard() {
+  const { t } = useI18n();
   const [samples, setSamples] = useState([]);
   const [profile, setProfile] = useState(null);
 
@@ -27,7 +29,7 @@ export default function Dashboard() {
       <div className="fade-in">
         <div className="label-ui">Din arbeidsbenk</div>
         <h1 className="font-serif-display text-5xl md:text-6xl font-light mt-3" style={{ color: "var(--ink)" }}>
-          Velkommen til <em className="italic" style={{ color: "var(--moss)" }}>skrivepulten</em>.
+          {t("dashboard.welcome")} <em className="italic" style={{ color: "var(--moss)" }}>{t("dashboard.writingDesk")}</em>.
         </h1>
         <p className="font-editor text-lg mt-4 max-w-[60ch]" style={{ color: "var(--ink-soft)" }}>
           {samples.length === 0

@@ -4,6 +4,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { useEffect } from "react";
 import "@/App.css";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { I18nProvider } from "@/lib/i18n";
 import Landing from "@/pages/Landing";
 import LoginPage from "@/pages/LoginPage";
 import PricingPage from "@/pages/PricingPage";
@@ -81,10 +82,12 @@ export default function App() {
   return (
     <HelmetProvider>
       <BrowserRouter>
-        <AuthProvider>
-          <AppRouter />
-          <Toaster position="bottom-center" richColors={false} />
-        </AuthProvider>
+        <I18nProvider>
+          <AuthProvider>
+            <AppRouter />
+            <Toaster position="bottom-center" richColors={false} />
+          </AuthProvider>
+        </I18nProvider>
       </BrowserRouter>
     </HelmetProvider>
   );
