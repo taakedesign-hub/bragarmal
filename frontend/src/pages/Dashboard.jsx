@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
 import { ArrowRight, BookOpen, PenLine, WandSparkles, FileText, ScanLine, Camera, Mic } from "lucide-react";
 
 export default function Dashboard() {
-  const { user } = useAuth();
   const [samples, setSamples] = useState([]);
   const [profile, setProfile] = useState(null);
 
@@ -29,7 +27,7 @@ export default function Dashboard() {
       <div className="fade-in">
         <div className="label-ui">Din arbeidsbenk</div>
         <h1 className="font-serif-display text-5xl md:text-6xl font-light mt-3" style={{ color: "var(--ink)" }}>
-          Velkommen, <em className="italic" style={{ color: "var(--moss)" }}>{user?.name?.split(" ")[0] || "forfatter"}</em>.
+          Velkommen til <em className="italic" style={{ color: "var(--moss)" }}>skrivepulten</em>.
         </h1>
         <p className="font-editor text-lg mt-4 max-w-[60ch]" style={{ color: "var(--ink-soft)" }}>
           {samples.length === 0
