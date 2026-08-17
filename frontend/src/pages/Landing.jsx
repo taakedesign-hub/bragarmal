@@ -42,19 +42,23 @@ export default function Landing() {
       />
       {/* Top rule */}
       <div className="hairline-b">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
-          <Link to="/" className="flex items-center">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-10 py-3 md:py-4 flex items-center justify-between gap-3">
+          <Link
+            to="/"
+            aria-label="Bragarmål — gå til forsiden"
+            data-testid="header-logo-link"
+            className="flex items-center shrink-0 transition-opacity hover:opacity-80 cursor-pointer"
+          >
             <Logo size={56} />
           </Link>
-          <nav className="flex items-center gap-2 md:gap-6">
+          <nav className="flex items-center gap-1 md:gap-2 shrink min-w-0">
             <InfoMenu align="right" />
-            <Link to="/logg-inn" data-testid="nav-forfattere" className="label-ui" style={{ color: "var(--ink-mute)" }}>Forfattere</Link>
-            <Link to="/illustratorer" data-testid="nav-illustrators" className="label-ui" style={{ color: "var(--ink-mute)" }}>Illustratører</Link>
-            <Link to="/priser" className="label-ui" style={{ color: "var(--ink-mute)" }}>Priser</Link>
+            <Link to="/logg-inn" data-testid="nav-forfattere" className="label-ui px-2 md:px-3 py-2" style={{ color: "var(--ink-mute)" }}>Forfattere</Link>
+            <Link to="/illustratorer" data-testid="nav-illustrators" className="label-ui px-2 md:px-3 py-2" style={{ color: "var(--ink-mute)" }}>Illustratører</Link>
             <button
               data-testid={TID.loginBtn}
               onClick={goLogin}
-              className="btn-ghost"
+              className="btn-ghost shrink-0 whitespace-nowrap"
             >
               Logg inn
             </button>

@@ -1,51 +1,41 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Logo from "@/components/Logo";
 import { useAuth } from "@/lib/auth";
 import { TID } from "@/lib/testIds";
-import { Feather, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import InfoMenu from "@/components/InfoMenu";
 import Footer from "@/components/Footer";
 
 export default function AppShell({ children }) {
   const { user, logout } = useAuth();
-  const loc = useLocation();
-
-  const NavLink = ({ to, label, tid }) => {
-    const active = loc.pathname === to;
-    return (
-      <Link
-        to={to}
-        data-testid={tid}
-        className="label-ui px-3 py-2"
-        style={{
-          color: active ? "var(--ink)" : "var(--ink-mute)",
-          borderBottom: active ? "1px solid var(--ink)" : "1px solid transparent",
-        }}
-      >
-        {label}
-      </Link>
-    );
-  };
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <header className="hairline-b sticky top-0 z-30" style={{ background: "var(--bg)" }}>
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-4 flex items-center justify-between gap-4">
-          <Link to="/" aria-label="Bragarmål — gå til forsiden" data-testid="header-logo-link" className="flex items-center transition-opacity hover:opacity-80 cursor-pointer">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-10 py-3 md:py-4 flex items-center justify-between gap-3">
+          {/* Logo — alltid synlig, alltid link til forsiden */}
+          <Link
+            to="/"
+            aria-label="Bragarmål — gå til forsiden"
+            data-testid="header-logo-link"
+            className="flex items-center shrink-0 transition-opacity hover:opacity-80 cursor-pointer"
+          >
             <Logo size={56} />
           </Link>
-          <nav className="flex items-center gap-1 md:gap-2">
-            <NavLink to="/dashboard" label="Hjem" tid={TID.navHome} />
-            <NavLink to="/prover" label="Prøver" tid={TID.navSamples} />
-            <NavLink to="/stemme" label="Stemme" tid={TID.navVoice} />
-            <NavLink to="/skriv" label="Skriv" tid={TID.navWrite} />
-            <NavLink to="/manuskript" label="Manuskript" tid="nav-manuscript" />
-            <NavLink to="/karakterer" label="Karakterer" tid="nav-characters" />
-            <NavLink to="/tips" label="Tips" tid="nav-tips" />
+
+          {/* Kompakt nav — bare 4 elementer, får plass på mobil */}
+          <nav className="flex items-center gap-1 md:gap-2 shrink min-w-0">
             <InfoMenu align="right" />
+            <Link to="/dashboard" data-testid="nav-forfattere" className="label-ui px-2 md:px-3 py-2" style={{ color: "var(--ink-mute)" }}>
+              Forfattere
+            </Link>
+            <Link to="/illustratorer" data-testid="nav-illustrators" className="label-ui px-2 md:px-3 py-2" style={{ color: "var(--ink-mute)" }}>
+              Illustratører
+            </Link>
           </nav>
-          <div className="flex items-center gap-3">
-            <Link to="/priser" className="label-ui hidden sm:inline" style={{ color: "var(--ink-mute)" }}>Priser</Link>
+
+          {/* Bruker + logg ut */}
+          <div className="flex items-center gap-2 md:gap-3 shrink-0">
             {user?.picture && (
               <img
                 src={user.picture}
@@ -54,16 +44,16 @@ export default function AppShell({ children }) {
                 style={{ border: "1px solid var(--line)" }}
               />
             )}
-            <span className="hidden md:inline label-ui">{user?.name}</span>
             <button
               data-testid={TID.navLogout}
               onClick={logout}
               className="label-ui inline-flex items-center gap-1.5"
               style={{ color: "var(--ink-mute)" }}
               title="Logg ut"
+              aria-label="Logg ut"
             >
               <LogOut size={14} strokeWidth={1.5} />
-              Logg ut
+              <span className="hidden sm:inline">Logg ut</span>
             </button>
           </div>
         </div>
