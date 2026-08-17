@@ -26,6 +26,9 @@ export default function AppShell({ children }) {
           {/* Kompakt nav — bare 4 elementer, får plass på mobil */}
           <nav className="flex items-center gap-1 md:gap-2 shrink min-w-0">
             <InfoMenu align="right" />
+            <Link to="/dashboard" data-testid="nav-skrivepult" className="label-ui px-2 md:px-3 py-2" style={{ color: "var(--ink-mute)" }}>
+              Skrivepult
+            </Link>
             <Link to="/dashboard" data-testid="nav-forfattere" className="label-ui px-2 md:px-3 py-2" style={{ color: "var(--ink-mute)" }}>
               Forfattere
             </Link>
