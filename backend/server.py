@@ -1621,6 +1621,74 @@ async def get_voice_profile(user: User = Depends(get_current_user)):
 
 
 # ---------- Generation ----------
+def _anti_slop_rules() -> str:
+    """
+    Kjerneregler mot AI-slop og «corporate-språk».
+    Brukes av /generate, humanisering og «Skriv om i min stemme»-verktøyene.
+    Norsk-spesifikk: fanger opp de faktiske ordene og strukturene som avslører AI-bruk på norsk.
+    """
+    return (
+        "\n\n=== ANTI-SLOP-REGLER (må følges strengt) ===\n"
+        "\n"
+        "── A. FORBUDTE NORSKE FRASER (dette er norsk AI-signatur) ──\n"
+        "«dykk ned i», «la oss se nærmere på», «i en verden der», «i dagens (raske / digitale / travle) verden»,\n"
+        "«i kjernen av», «i essensen av», «til syvende og sist», «når alt kommer til alt», «i lys av»,\n"
+        "«det er verdt å merke seg», «det er viktig å forstå», «det bør bemerkes», «det kan sies at»,\n"
+        "«spiller en sentral rolle», «utgjør en viktig faktor», «har stor betydning for»,\n"
+        "«danner grunnlaget for», «peker på viktigheten av», «legger til rette for», «tar i bruk»,\n"
+        "«utnytte fordelene», «effektivisere prosessen», «på en effektiv måte», «i en travel hverdag»,\n"
+        "«en rekke fordeler», «en rekke muligheter», «en rekke utfordringer»,\n"
+        "«ikke bare … men også», «både … og …» (overbrukt),\n"
+        "«sammenvevd», «sømløst», «robust», «kraftfull», «grunnleggende», «betydningsfull»,\n"
+        "«orkestrere», «revolusjonere», «låse opp potensialet», «utnytte muligheter»,\n"
+        "«dette handler ikke bare om X — det handler om Y», «det er ikke X. Det er Y.» (AI-tvillingpar).\n"
+        "\n"
+        "── B. FORBUDTE OVERGANGER ──\n"
+        "Ikke start setninger med: «Videre», «Dessuten», «Sammenfattet», «For det første/andre/tredje»,\n"
+        "«Til slutt», «For å oppsummere», «Alt i alt», «I det store og hele», «På en annen side».\n"
+        "Engelske ekvivalenter er også forbudt: furthermore, moreover, additionally, in conclusion,\n"
+        "delve, realm, tapestry, testament, seamlessly, leverage, harness, orchestrate.\n"
+        "\n"
+        "── C. BYTT OPPBLÅSTE VERB MED HVERDAGSLIGE ──\n"
+        "«utnytte» → «bruke». «anvende» → «bruke». «gjennomføre» → «gjøre».\n"
+        "«fasilitere» → «hjelpe». «kommunisere» → «si» eller «snakke». «demonstrere» → «vise».\n"
+        "«illustrere» → «vise». «konstatere» → «se». «erverve» → «få». «avvikle» → «avslutte».\n"
+        "«besitte» → «ha». «vedrørende» → «om». «i forbindelse med» → «med». «angående» → «om».\n"
+        "«implementere» → «lage / sette i gang». «optimalisere» → «gjøre bedre».\n"
+        "\n"
+        "── D. RYTME OG SETNINGSSTRUKTUR (viktigst!) ──\n"
+        "1. Bland setningslengder ujevnt. Veldig korte setninger. Så en lang, flerdelt en som beveger seg,\n"
+        "   snubler, tar en pause — og lander. Så en kort igjen.\n"
+        "2. Unngå «tre-regelen»: AI lister opp i grupper på tre (rytme, tone, ordvalg). Bryt mønsteret —\n"
+        "   bruk to, eller fire, eller en enkelt tydelig.\n"
+        "3. Ikke over-forklar. Kutt oppsummeringer på slutten av avsnitt. Kutt meta-kommentarer\n"
+        "   («som nevnt», «som vi har sett», «dette viser at»).\n"
+        "4. Unngå passiv der aktiv er mulig. «Det ble bestemt» → «Hun bestemte».\n"
+        "5. Tillat enkeltordssetninger. Slik. Fordi de bærer.\n"
+        "6. Bruk «og» og «men» som setningsstartere når rytmen ber om det. AI unngår dette — mennesker gjør det.\n"
+        "7. Ellipser og ufullstendige setninger er ok — som når man tenker seg om.\n"
+        "\n"
+        "── E. HVERDAGSNORSK (byggeklosser for menneskelig fortellerstemme) ──\n"
+        "– «Man» sparsommelig. Direkte «jeg», «du», «vi» der det passer.\n"
+        "– Konkrete sanselige detaljer i stedet for abstrakter. «Kaffen ble kald» ikke «en observasjon av kvalitetsmessig forringelse».\n"
+        "– Talespråklige innskudd der forfatterens stemme viser det: «altså», «liksom», «jo», «vel», «kanskje».\n"
+        "– Sammentrekninger og korthet: «jeg er ikke» kan bli «jeg er´kke» hvis stemmen tåler det.\n"
+        "– Norske idiomer og folkelige vendinger som forfatteren faktisk bruker (ikke oppfinn nye).\n"
+        "– Unngå lange sammensatte substantiv («kvalitetsforbedringstiltak») — de skriker byråkrati.\n"
+        "\n"
+        "── F. MENNESKELIG LOGIKK ──\n"
+        "1. Legg til perspektiv. Mennesker kobler og tolker — vi lister ikke bare fakta.\n"
+        "2. Aksepter friksjon. La ideer bevege seg naturlig, uten å begrunne hvert steg.\n"
+        "3. Litt ubalanse er menneskelig. En liten selvmotsigelse, en tanke som skifter retning,\n"
+        "   et poeng som ikke blir helt fulgt opp — det er slik ekte skrift beveger seg.\n"
+        "4. Vær presis der det gjelder, sløv der det ikke gjør det. AI er alltid presis — mennesker vekter.\n"
+        "\n"
+        "── G. LEVERANSE ──\n"
+        "Ikke skriv «her er teksten:». Ingen preamble. Ingen «håper dette hjelper». Ingen etterrasjonalisering.\n"
+        "Bare selve teksten. Punktum.\n"
+    )
+
+
 def build_voice_system_prompt(profile: Optional[dict], samples: List[dict], inspirations: List[dict], humanize_level: int) -> str:
     base = (
         "Du er en skygge-skriver som gjenskaper en spesifikk norsk forfatters stemme perfekt. "
@@ -1632,17 +1700,10 @@ def build_voice_system_prompt(profile: Optional[dict], samples: List[dict], insp
         "deres stemme direkte. Du skal heller ikke navngi dem, låne deres kjente motiver, karakterer "
         "eller kjennemerkevendinger. Referanseforfattere brukes KUN som svakt bakteppe for å hjelpe "
         "deg forstå hvilket landskap brukerens egen stemme beveger seg i. Sluttresultatet skal alltid "
-        "være brukerens egen stemme, slik den fremgår av hennes prøvetekster — aldri en imitasjon.\n\n"
-        "Kritiske krav for å unngå AI-signaturer:\n"
-        "- Ikke bruk fraser som 'i en verden der', 'la oss dykke ned', 'det er verdt å nevne', "
-        "'til syvende og sist', 'i lys av', 'det er viktig å merke seg', 'når alt kommer til alt'.\n"
-        "- Unngå trippel-listestruktur og punktvise oppsummeringer.\n"
-        "- Ikke start setninger med 'Videre,', 'Dessuten,', 'Videre så', 'Sammenfattet,'.\n"
-        "- Bland korte og lange setninger ujevnt. Bruk gjerne enkeltordssetninger for effekt.\n"
-        "- Unngå metaforer som klinger som markedsføring. Bruk konkrete, sanselige detaljer.\n"
-        "- Behold rytmen og pausene forfatteren faktisk bruker.\n"
-        "- Ikke forklar deg selv, ikke skriv 'her er teksten:', bare lever teksten.\n"
+        "være brukerens egen stemme, slik den fremgår av hennes prøvetekster — aldri en imitasjon."
     )
+
+    base += _anti_slop_rules()
 
     if profile:
         base += "\n--- FORFATTERENS STEMME ---\n"
