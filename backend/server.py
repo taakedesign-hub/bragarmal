@@ -124,6 +124,19 @@ app = FastAPI(title="Bragarmål")
 api_router = APIRouter(prefix="/api")
 
 
+# ─── Health probes ──────────────────────────────────────────────
+# Kubernetes / load balancer hits `GET /health` (no `/api` prefix).
+# Also expose `/api/health` for consistency with the rest of the API surface.
+@app.get("/health")
+async def _health():
+    return {"status": "ok"}
+
+
+@api_router.get("/health")
+async def _api_health():
+    return {"status": "ok"}
+
+
 @app.on_event("startup")
 async def _startup():
     init_storage()
