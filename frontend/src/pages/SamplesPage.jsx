@@ -5,7 +5,7 @@ import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
 import {
   Upload, Trash2, FileText, Camera, Mic, Square, ClipboardPaste, ScanLine, Loader2,
-  BookOpen, X as XIcon, Save, ArrowRight, Wand2
+  BookOpen, X as XIcon, Save, ArrowRight, GitCompare
 } from "lucide-react";
 import { useCategories, labelForCategory } from "@/lib/categories";
 
@@ -184,7 +184,7 @@ export default function SamplesPage() {
           }}
           onSendToWrite={(text, mode, temperature) => {
             setOpenSample(null);
-            navigate("/skriv", { state: { draft: text, source: openSample.title, mode, autoRun: mode === "humanize", temperature } });
+            navigate("/skriv", { state: { draft: text, source: openSample.title, mode, autoRun: mode !== "next_steps", temperature } });
           }}
         />
       )}
@@ -317,24 +317,25 @@ function SampleEditorModal({ sample, onClose, onSaved, onSendToWrite }) {
             <div className="flex items-center gap-4 flex-wrap">
               <button
                 data-testid="sample-editor-send-to-write"
-                onClick={() => onSendToWrite(content, "continue", temperature)}
+                onClick={() => onSendToWrite(content, "next_steps", temperature)}
                 disabled={content.trim().length < 20}
                 className="inline-flex items-center gap-2 font-mono-ui text-[11px] tracking-widest hover:opacity-70 transition-opacity disabled:opacity-40"
                 style={{ color: "var(--ink)" }}
+                title="Send til Skrivepulten og be om retninger å utforske videre"
               >
-                SEND TIL SKRIVEPULTEN
+                HJELP MEG VIDERE
                 <ArrowRight size={14} strokeWidth={1.5} />
               </button>
               <button
                 data-testid="sample-editor-humanize"
-                onClick={() => onSendToWrite(content, "humanize", temperature)}
+                onClick={() => onSendToWrite(content, "voice_match", temperature)}
                 disabled={content.trim().length < 20}
                 className="inline-flex items-center gap-2 font-mono-ui text-[11px] tracking-widest hover:opacity-70 transition-opacity disabled:opacity-40"
                 style={{ color: "var(--rust)" }}
-                title="Send til Skrivepulten og start automatisk omskriving i din stemme"
+                title="Sjekk om denne teksten låter som deg — sammenlign mot stemmeprofilen din"
               >
-                <Wand2 size={13} strokeWidth={1.5} />
-                OMSKRIV I MIN STEMME
+                <GitCompare size={13} strokeWidth={1.5} />
+                SAMMENLIGN MED STEMMEN MIN
               </button>
             </div>
             <div className="flex items-center gap-3">

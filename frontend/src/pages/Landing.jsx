@@ -40,7 +40,7 @@ export default function Landing() {
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Seo
         title="AI-skriveverktøy som bevarer din stemme"
-        description="Bragarmål er et norsk AI-skriveverktøy for forfattere og kreative. Vi genererer ikke ord — vi finner din stemme. Tren stemmeprofil, oppdag AI-signaturer, skriv videre uten AI-slop."
+        description="Bragarmål er et norsk AI-skriveverktøy for forfattere og kreative. Vi genererer ikke ord — vi finner din stemme. Tren stemmeprofil, sjekk om teksten låter som deg, skriv videre uten AI-slop."
         path="/"
       />
       {/* Top rule */}

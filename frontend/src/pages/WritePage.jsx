@@ -648,6 +648,13 @@ export default function WritePage() {
       {/* Detection strip */}
       {detection && (
         <div id="detection-strip" data-testid={TID.writeDetectionResult} className="mt-12 scroll-mt-24">
+          <div className="mb-6">
+            <div className="label-ui" style={{ color: "var(--rust)" }}>Stemmesjekk</div>
+            <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
+              Passer dette med min stemme?
+            </h2>
+          </div>
+
           {/* Warning if text was too short for reliable analysis */}
           {detection.too_short && (
             <div
@@ -671,7 +678,7 @@ export default function WritePage() {
               style={{ background: "var(--paper)", border: "1px solid var(--line)" }}
             >
               <div className="flex items-baseline justify-between flex-wrap gap-2">
-                <div className="label-ui">Claudes vurdering</div>
+                <div className="label-ui">Lesning fra Bragarmål</div>
                 {detection.ai_verdict.confidence != null && (
                   <div className="label-ui" style={{ color: "var(--ink-mute)" }}>
                     Sikkerhet: {detection.ai_verdict.confidence}%
