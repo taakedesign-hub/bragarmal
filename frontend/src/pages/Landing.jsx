@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import Logo from "@/components/Logo";
 import { TID } from "@/lib/testIds";
-import { Feather, ArrowRight, Camera, Mic, FileText, ScanLine } from "lucide-react";
+import { Feather, ArrowRight } from "lucide-react";
 import InfoMenu from "@/components/InfoMenu";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Footer from "@/components/Footer";
@@ -274,39 +274,61 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* MANIFEST — teaser, links to full manifest page */}
+      {/* MANIFEST — utdrag som leder til full manifestside */}
       <section className="hairline-t hairline-b">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16 md:py-24">
           <div className="grid grid-cols-12 gap-6 md:gap-10">
             <aside className="col-span-12 md:col-span-3 fade-in stagger-1">
-              <div className="label-ui">{t("manifestSec.fromNina")}</div>
+              <div className="label-ui">Fra Nina</div>
               <div className="rule my-4" />
               <p className="font-editor italic text-sm" style={{ color: "var(--ink-mute)" }}>
-                {t("manifestSec.aside")}
+                Manifest — bearbeidet i samarbeid med Bragarmål.
               </p>
             </aside>
 
             <article className="col-span-12 md:col-span-9 md:pl-4 fade-in stagger-2">
-              <div className="font-editor text-lg md:text-xl leading-[1.85]" style={{ color: "var(--ink)" }}>
-                <p>{t("manifestSec.p1")}</p>
-                <p className="mt-8">
-                  {t("manifestSec.p2a")} <em className="italic" style={{ color: "var(--moss)" }}>Bragarmål</em>{t("manifestSec.p2b")}
-                </p>
-                <p
-                  className="mt-10 font-serif-display text-2xl md:text-3xl leading-snug pl-6"
-                  style={{ color: "var(--ink)", borderLeft: "2px solid var(--moss)" }}
-                >
-                  {t("manifestSec.quote")}
-                </p>
-                <p className="mt-6 font-editor text-lg md:text-xl leading-[1.85]" style={{ color: "var(--ink)" }}>
-                  {t("manifestSec.p3")}
-                </p>
-                <p className="mt-8 font-serif-display text-xl md:text-2xl" style={{ color: "var(--ink)" }}>
-                  {t("manifestSec.p4")}
-                </p>
-                <p className="mt-6" style={{ color: "var(--ink)" }}>
-                  {t("manifestSec.p5a")}
-                  {" "}<em className="italic" style={{ color: "var(--moss)" }}>{t("manifestSec.p5b")}</em>
+              <div className="label-ui" style={{ color: "var(--rust)" }}>Manifest</div>
+              <h2 className="font-serif-display text-4xl md:text-5xl font-light mt-2 leading-[1.1]" style={{ color: "var(--ink)" }}>
+                Norsk skrivehjelp for mennesker som vil <em className="italic" style={{ color: "var(--moss)" }}>skrive selv</em>.
+              </h2>
+
+              <div className="mt-10 font-editor text-lg md:text-xl leading-[1.85]" style={{ color: "var(--ink)" }}>
+                <p>I tre år har jeg jobbet med den samme boka, skrevet, slettet, flyttet scener, begynt på nytt, mistet oversikten og funnet den igjen. Og jeg har hatt skrivesperre.</p>
+                <p className="mt-6">Etter hvert innså jeg at jeg trengte hjelp.</p>
+                <p className="mt-6">Ikke noen som skulle skrive boka for meg, men noen som kunne lese den utenfra, se det jeg selv hadde stirret meg blind på og si fra når noe ikke fungerte.</p>
+                <p className="mt-6">Jeg søkte profesjonell, menneskelig hjelp, men det ble for dyrt for meg.</p>
+                <p className="mt-6">Så jeg begynte å se på hva AI kunne gjøre, og den kunne gjøre mye. Den kunne skrive om, rette, fortsette, gjøre språket glattere og få teksten til å flyte bedre.</p>
+                <p className="mt-6">Men er det en ting jeg ikke vil gi fra meg, så er det stemmen min.</p>
+                <p className="mt-6">Ei heller konseptet mitt til et program som ikke kunne vite hvorfor jeg hadde skrevet akkurat den setningen slik, hvorfor en karakter reagerte som hun gjorde, eller hvorfor noe litt skjevt i språket kanskje skulle få lov til å være skjevt.</p>
+                <p className="mt-6">Jeg ville kort sagt ha hjelp uten å gi fra meg forfatterskapet.</p>
+                <p className="mt-8 font-serif-display text-2xl md:text-3xl italic" style={{ color: "var(--moss)" }}>Derfor laget jeg Bragarmål.</p>
+
+                <h3 className="font-serif-display text-2xl md:text-3xl font-light mt-14" style={{ color: "var(--ink)" }}>Et manus er ikke bare data</h3>
+                <p className="mt-4">Det er år med notater, halvferdige kapitler, tankespinn og ideer. Det er å våkne klokka tre om natta med noe som bare må skrives ned. Det er scener og kapitler som kastes og omskrives, det er parkering på en bussholdeplass for å notere noe du absolutt ikke må glemme, selv om du allerede er sent ute til et bryllup.</p>
+                <p className="mt-6">Et manus er arbeid som ikke kan måles i antall ord, men når det vokser blir det også vanskeligere å se alt.</p>
+
+                <h3 className="font-serif-display text-2xl md:text-3xl font-light mt-14" style={{ color: "var(--ink)" }}>Stemmen din er ikke en oppskrift</h3>
+                <p className="mt-4">AI skal brukes der AI er nyttig. Du skal vite hva som skjer med det du legger inn, hva som lagres, hva som brukes til stemmeprofilen din, og hva som ikke brukes til trening av AI-modeller.</p>
+                <p className="mt-6 font-serif-display text-xl md:text-2xl italic" style={{ color: "var(--ink)" }}>Kontrollen over teksten skal ligge hos deg.</p>
+                <p className="mt-6">Jeg er ikke imot AI, Bragarmål bruker AI, men forskjellen ligger i hva vi ber den om å gjøre.</p>
+                <p className="mt-6">Etter hvert som et manus vokser, kan Bragarmål hjelpe med å holde styr på karakterer, hendelser og sammenhenger, oppdage brudd, se endringer i tempo og stemme, og finne ting du selv har lest så mange ganger at du ikke lenger ser dem.</p>
+                <p className="mt-6">Ikke nødvendigvis for å gi deg svaret, men for å bidra i fremdriften din. Noen ganger trenger en forfatter kanskje bare noen som faktisk stiller spørsmålet.</p>
+                <p className="mt-6">Når teksten plutselig avviker, skal ikke Bragarmåls første reaksjon være:</p>
+                <p className="mt-3 italic" style={{ color: "var(--ink-mute)" }}>Her er en bedre setning…</p>
+                <p className="mt-3">Den bør heller være:</p>
+                <p className="mt-3 italic" style={{ color: "var(--moss)" }}>Her skjer det noe…</p>
+
+                <h3 className="font-serif-display text-2xl md:text-3xl font-light mt-14" style={{ color: "var(--ink)" }}>Redaksjonell motstand skal ikke være forbeholdt dem som har råd</h3>
+                <p className="mt-4">Bragarmål skal ikke erstatte en redaktør eller menneskelig erfaring. Skjønn og litterær forståelse betyr mest, og det skal det også gjøre.</p>
+                <p className="mt-6">Men alternativet for den som ikke har råd til profesjonell hjelp, skal ikke være å måtte sitte helt alene med alle spørsmålene.</p>
+
+                <h3 className="font-serif-display text-2xl md:text-3xl font-light mt-14" style={{ color: "var(--ink)" }}>Målet</h3>
+                <p className="mt-4">Jeg ønsker at Bragarmål etter hvert skal bli en norsk skrivehjelp man kan bruke med rak rygg, der du kan bruke teknologien gjennom arbeidet med boka og fortsatt legge det ferdige manuset på bordet og si:</p>
+                <p className="mt-6 font-serif-display text-2xl md:text-3xl italic" style={{ color: "var(--ink)" }}>Dette skrev jeg.</p>
+                <p className="mt-6">Ikke fordi AI aldri var i rommet, men fordi AI aldri fikk forfatterens plass.</p>
+
+                <p className="mt-10 font-serif-display text-3xl md:text-4xl italic leading-snug" style={{ color: "var(--ink)" }}>
+                  Mennesket skriver. <span style={{ color: "var(--moss)" }}>Bragarmål sparrer.</span>
                 </p>
               </div>
 
@@ -314,11 +336,11 @@ export default function Landing() {
               <div className="mt-6 flex items-center justify-between flex-wrap gap-4">
                 <span className="label-ui">— Nina</span>
                 <div className="flex items-center gap-4">
-                  <Link to="/manifest" className="btn-ghost inline-flex items-center gap-2">
-                    {t("manifestSec.readAll")} <ArrowRight size={14} strokeWidth={1.6} />
+                  <Link to="/manifest" data-testid="landing-manifest-read-all" className="btn-ghost inline-flex items-center gap-2">
+                    Les hele manifestet <ArrowRight size={14} strokeWidth={1.6} />
                   </Link>
                   <Link to="/etikk" className="label-ui" style={{ color: "var(--moss)" }}>
-                    {t("manifestSec.ethicsLink")}
+                    Etisk AI-skriving →
                   </Link>
                 </div>
               </div>
@@ -327,78 +349,8 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Sparringspartner — practice over time */}
-      <section>
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16 md:py-20">
-          <div className="grid grid-cols-12 gap-6 md:gap-10 items-start">
-            <div className="col-span-12 md:col-span-4">
-              <div className="label-ui">{t("sparring.kicker")}</div>
-              <h2 className="font-serif-display text-4xl md:text-5xl font-light mt-2" style={{ color: "var(--ink)" }}>
-                {t("sparring.titleA")} <em className="italic" style={{ color: "var(--moss)" }}>{t("sparring.titleB")}</em>.
-              </h2>
-            </div>
-            <div className="col-span-12 md:col-span-8 md:pl-4 font-editor text-lg md:text-xl leading-[1.85]" style={{ color: "var(--ink)" }}>
-              <p>{t("sparring.intro")}</p>
-              <p
-                className="mt-8 pl-6 font-serif-display text-xl md:text-2xl italic leading-snug"
-                style={{ color: "var(--ink-soft)", borderLeft: "2px solid var(--rust)" }}
-              >
-                {t("sparring.q1")}
-              </p>
-              <p
-                className="mt-6 pl-6 font-serif-display text-xl md:text-2xl italic leading-snug"
-                style={{ color: "var(--ink-soft)", borderLeft: "2px solid var(--rust)" }}
-              >
-                {t("sparring.q2")}
-              </p>
-              <div className="mt-8 label-ui" style={{ color: "var(--ink-mute)" }}>
-                {t("sparring.aiVersion")}
-              </div>
-              <p className="mt-3" style={{ color: "var(--ink-soft)" }}>
-                {t("sparring.aiP1")}
-              </p>
-              <p className="mt-6" style={{ color: "var(--ink-soft)" }}>
-                {t("sparring.aiP2")}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Practical entry-points */}
-      <section className="hairline-t">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16">
-          <div className="label-ui">{t("entry.kicker")}</div>
-          <h2 className="font-serif-display text-4xl md:text-5xl font-light mt-2" style={{ color: "var(--ink)" }}>
-            {t("entry.titleA")} <em className="italic" style={{ color: "var(--moss)" }}>{t("entry.titleB")}</em>{t("entry.titleC")}
-          </h2>
-          <p className="font-editor text-lg mt-4 max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>
-            {t("entry.sub1")} <em className="italic" style={{ color: "var(--moss)" }}>{t("entry.sub2")}</em>{t("entry.sub3")}
-          </p>
-          <div className="mt-10 grid grid-cols-1 md:grid-cols-4 gap-0 hairline-t hairline-b">
-            <EntryTile n="01" icon={<FileText size={20} strokeWidth={1.4} />} title={t("entry.e1t")} body={t("entry.e1b")} />
-            <EntryTile n="02" icon={<ScanLine size={20} strokeWidth={1.4} />} title={t("entry.e2t")} body={t("entry.e2b")} bordered />
-            <EntryTile n="03" icon={<Camera size={20} strokeWidth={1.4} />} title={t("entry.e3t")} body={t("entry.e3b")} bordered />
-            <EntryTile n="04" icon={<Mic size={20} strokeWidth={1.4} />} title={t("entry.e4t")} body={t("entry.e4b")} bordered />
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <Footer />
-    </div>
-  );
-}
-
-function EntryTile({ n, icon, title, body, bordered }) {
-  return (
-    <div className={`p-8 ${bordered ? "md:border-l" : ""}`} style={{ borderColor: "var(--line)" }}>
-      <div className="flex items-start justify-between">
-        <div className="label-ui">{n}</div>
-        <div style={{ color: "var(--moss)" }}>{icon}</div>
-      </div>
-      <h3 className="font-serif-display text-2xl mt-6" style={{ color: "var(--ink)" }}>{title}</h3>
-      <p className="font-editor text-sm mt-3 leading-relaxed" style={{ color: "var(--ink-soft)" }}>{body}</p>
     </div>
   );
 }
