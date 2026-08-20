@@ -20,7 +20,7 @@ export default function Footer() {
           <Link to="/priser" className="label-ui" style={{ color: "var(--ink-mute)" }}>{t("info.pricing")}</Link>
           <a
             data-testid={TID.footerContactLink}
-            href="mailto:hei@bragarmål.no?subject=Hilsen%20fra%20BRAGARMÅL"
+            href="mailto:hei@Bragarmål.no?subject=Hilsen%20fra%20BRAGARMÅL"
             className="label-ui"
             style={{ color: "var(--ink-mute)" }}
           >

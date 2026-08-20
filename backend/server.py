@@ -1762,7 +1762,7 @@ def build_voice_system_prompt(profile: Optional[dict], samples: List[dict], insp
 
 
 class GenerateBody(BaseModel):
-    mode: Literal["prompt", "continue", "humanize"]
+    mode: Literal["prompt", "continue", "humanize", "next_steps", "reflect"]
     text: str
     model: str = "claude-sonnet-4-5"
     humanize_level: int = 1  # 1..3
@@ -1829,6 +1829,27 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
         user_msg = f"{length_hint}\n\nSkriv en tekst basert på dette utgangspunktet, helt i forfatterens stemme:\n\n{body.text}"
     elif body.mode == "continue":
         user_msg = f"{length_hint}\n\nFortsett følgende tekst sømløst i samme stemme og rytme. Ikke gjenta det som allerede står. Start rett der teksten slipper:\n\n---\n{body.text}\n---"
+    elif body.mode == "next_steps":
+        user_msg = (
+            "Du er en litterær sparringspartner — ikke en skriver.\n\n"
+            "Under er en tekst forfatteren jobber med. Skriv IKKE ferdig prosa. Skriv IKKE et neste avsnitt.\n\n"
+            "Din oppgave: Gi 3–5 korte, konkrete forslag til hvor teksten kan gå videre. Retninger, uventede vinkler, "
+            "sanselige detaljer å prøve, spørsmål å utforske, motiv-linjer å strekke. "
+            "Presenter som en nummerert liste (1., 2., 3.). Hvert punkt: én eller to setninger. "
+            "Snakk direkte til forfatteren («du»). Ikke forklar, ikke oppsummer, ikke skriv preamble. "
+            "Vær konkret — ikke generiske råd som «utdyp følelsen». Grip fatt i noe faktisk i teksten.\n\n"
+            f"---\n{body.text}\n---"
+        )
+    elif body.mode == "reflect":
+        user_msg = (
+            "Du er en litterær sparringspartner — ikke en redigerer.\n\n"
+            "Les teksten under. Skriv IKKE forslag til endringer, IKKE ferdig prosa, IKKE en liste over ting "
+            "som kan forbedres. Skriv en kort editorisk lesning: hva du la merke til (bilder, rytme, tone), "
+            "hvor spenningen sitter, hva som er ubesvart, hva stemmen prøver å fortelle deg. "
+            "Personlig og nøktern — ikke overdriv, ikke smiger. 4–7 setninger, én paragraf.\n\n"
+            "Ikke gi råd — bare speil hva du så. Slik en god venn som leser bra kunne gjort det.\n\n"
+            f"---\n{body.text}\n---"
+        )
     else:  # humanize
         user_msg = (
             "Skriv følgende tekst på nytt slik at den fremstår helt menneskelig og i forfatterens stemme. "

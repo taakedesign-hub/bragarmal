@@ -322,7 +322,7 @@ export default function IllustratorsPage() {
             </p>
           </div>
           <a
-            href="mailto:hei@bragarmål.no?subject=Illustrat%C3%B8r-tips"
+            href="mailto:hei@Bragarmål.no?subject=Illustrat%C3%B8r-tips"
             className="btn-ghost inline-flex items-center gap-2"
             data-testid="ill-refer"
           >

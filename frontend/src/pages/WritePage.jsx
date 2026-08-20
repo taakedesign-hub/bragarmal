@@ -3,13 +3,34 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import { api, BACKEND } from "@/lib/api";
 import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
-import { PenLine, Copy, RefreshCcw, Wand2, Gauge, BookmarkPlus, X, Download, Mail, FileText, Share2, Loader2 } from "lucide-react";
+import { Copy, RefreshCcw, Gauge, BookmarkPlus, X, Download, Mail, FileText, Share2, Loader2, Compass, BookOpen, GitCompare } from "lucide-react";
 import jsPDF from "jspdf";
 
 const MODES = [
-  { id: "prompt", label: "Fra frø", hint: "Skriv fra et emne, en åpningslinje eller en idé." },
-  { id: "continue", label: "Fortsett teksten", hint: "Lim inn teksten din — jeg fortsetter der du slapp." },
-  { id: "humanize", label: "Gjør mer menneskelig", hint: "Skriv om en tekst for å fjerne AI-signaturer." },
+  {
+    id: "next_steps",
+    label: "Finn veien videre",
+    hint: "Lim inn teksten din — jeg foreslår retninger, ikke ferdig prosa.",
+    cta: "Foreslå retninger",
+    icon: Compass,
+    outputTitle: "Retninger å utforske",
+  },
+  {
+    id: "reflect",
+    label: "Les det jeg har",
+    hint: "Lim inn teksten din — jeg speiler tilbake hva jeg leser, uten å gi råd.",
+    cta: "Les det jeg har",
+    icon: BookOpen,
+    outputTitle: "Editorisk lesning",
+  },
+  {
+    id: "voice_match",
+    label: "Sammenlign med min stemme",
+    hint: "Lim inn teksten — jeg sammenligner mot stemmeprofilen din, setning for setning.",
+    cta: "Sammenlign",
+    icon: GitCompare,
+    outputTitle: "Sammenligning",
+  },
 ];
 
 const LENGTHS = [
@@ -18,19 +39,12 @@ const LENGTHS = [
   { id: "lang", label: "Lang" },
 ];
 
-const HUMANIZE = [
-  { id: 1, label: "Standard" },
-  { id: 2, label: "Mer menneskelig" },
-  { id: 3, label: "Rå" },
-];
-
 export default function WritePage() {
   const [models, setModels] = useState([]);
   const [model, setModel] = useState("claude-sonnet-4-5");
-  const [mode, setMode] = useState("prompt");
+  const [mode, setMode] = useState("next_steps");
   const [length, setLength] = useState("medium");
   const [temperature, setTemperature] = useState(0.7);
-  const [humanize, setHumanize] = useState(1);
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -49,21 +63,18 @@ export default function WritePage() {
     // Prefill draft when navigated here from a sample ("Send til Skrivepulten")
     const draft = location.state?.draft;
     if (draft && typeof draft === "string") {
-      const requestedMode = location.state?.mode || "continue";
+      const requestedMode = location.state?.mode || "reflect";
       const autoRun = !!location.state?.autoRun;
       const passedTemp = location.state?.temperature;
       setInput(draft);
-      setMode(requestedMode);
+      // Guard: only allow modes that still exist
+      const validModes = MODES.map((m) => m.id);
+      setMode(validModes.includes(requestedMode) ? requestedMode : "reflect");
       if (typeof passedTemp === "number") setTemperature(passedTemp);
-      toast(
-        requestedMode === "humanize"
-          ? `Omskriver «${location.state?.source || "utkast"}» i din stemme…`
-          : `Utkast hentet${location.state?.source ? ` fra "${location.state.source}"` : ""}`
-      );
+      toast(`Utkast hentet${location.state?.source ? ` fra "${location.state.source}"` : ""}`);
       // Clear state so a refresh doesn't refill
       navigate(location.pathname, { replace: true, state: {} });
       if (autoRun) {
-        // Fire generation once state has settled
         setTimeout(() => { generateRef.current?.(); }, 100);
       }
     }
@@ -97,11 +108,30 @@ export default function WritePage() {
     })();
   }, []);
 
-  const activeMode = MODES.find((m) => m.id === mode);
+  const activeMode = MODES.find((m) => m.id === mode) || MODES[0];
+
+  const runVoiceMatch = async () => {
+    if (!input.trim()) { toast("Lim inn tekst først"); return; }
+    setOutput("");
+    setDetection(null);
+    setStreaming(true);
+    try {
+      const r = await api.post("/detect", { text: input });
+      setDetection(r.data);
+      setTimeout(() => {
+        document.getElementById("detection-strip")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    } catch (e) {
+      toast(e?.response?.data?.detail || "Kunne ikke sammenligne — prøv igjen");
+    } finally {
+      setStreaming(false);
+    }
+  };
 
   const generate = async () => {
-    if (!input.trim()) { toast("Skriv noe i input-feltet først"); return; }
+    if (!input.trim()) { toast("Lim inn tekst først"); return; }
     if (streaming) return;
+    if (mode === "voice_match") { return runVoiceMatch(); }
     setOutput("");
     setDetection(null);
     setStreaming(true);
@@ -113,7 +143,7 @@ export default function WritePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ mode, text: input, model, humanize_level: humanize, length, temperature }),
+        body: JSON.stringify({ mode, text: input, model, length, temperature }),
         signal: ctrl.signal,
       });
       if (!res.ok || !res.body) {
@@ -254,7 +284,7 @@ export default function WritePage() {
       }
       pdf.setFontSize(8);
       pdf.setTextColor(122, 118, 110);
-      pdf.text(`Bragarmål · bragarmål.no · ${stamp}`, margin, pageH - margin / 2);
+      pdf.text(`Bragarmål · Bragarmål.no · ${stamp}`, margin, pageH - margin / 2);
       pdf.text(`${i} / ${pageCount}`, pageW - margin, pageH - margin / 2, { align: "right" });
     }
 
@@ -283,7 +313,7 @@ export default function WritePage() {
         await navigator.share({
           files: [file],
           title: "Utkast fra Bragarmål",
-          text: "Skrevet med Bragarmål — bragarmål.no",
+          text: "Skrevet med Bragarmål — Bragarmål.no",
         });
         toast("Delt");
       } else {
@@ -295,14 +325,6 @@ export default function WritePage() {
       if (e && e.name === "AbortError") return; // user cancelled share sheet
       toast("Kunne ikke dele PDF");
     }
-  };
-
-  const humanizeMore = async () => {
-    if (!output.trim()) return;
-    setInput(output);
-    setMode("humanize");
-    setHumanize(Math.min(humanize + 1, 3));
-    setTimeout(() => generate(), 50);
   };
 
   const openSave = () => {
@@ -331,29 +353,7 @@ export default function WritePage() {
     }
   };
 
-  const [detecting, setDetecting] = useState(false);
   const [composition, setComposition] = useState(false);
-  const runDetect = async () => {
-    const text = output || input;
-    if (!text.trim()) {
-      toast("Skriv eller lim inn tekst først");
-      return;
-    }
-    setDetecting(true);
-    try {
-      const r = await api.post("/detect", { text });
-      setDetection(r.data);
-      // Auto-scroll to the detection strip so the user actually sees it
-      setTimeout(() => {
-        document.getElementById("detection-strip")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 100);
-    } catch (e) {
-      console.debug("detect failed", e);
-      toast(e?.response?.data?.detail || "Kunne ikke sjekke AI-signatur. Prøv igjen.");
-    } finally {
-      setDetecting(false);
-    }
-  };
 
   return (
     <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-12">
@@ -362,7 +362,7 @@ export default function WritePage() {
           <div>
             <div className="label-ui">Skrivepult</div>
             <h1 className="font-serif-display text-5xl font-light mt-3" style={{ color: "var(--ink)" }}>
-              Bryt sperren.
+              Sparr med deg selv.
             </h1>
           </div>
           <div className="flex items-center gap-4 flex-wrap">
@@ -381,28 +381,56 @@ export default function WritePage() {
               className="font-mono-ui text-[11px] tracking-widest hover:underline inline-flex items-center gap-1.5"
               style={{ color: "var(--rust)" }}
             >
-              SE TESTPROMPTER →
+              SE EKSEMPLER →
             </Link>
           </div>
         </div>
-        <p className="font-editor mt-4 max-w-[60ch]" style={{ color: "var(--ink-soft)" }}>
+        <p className="font-editor mt-4 max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>
+          Ikke en tekstautomat. En sparringspartner. Skriv teksten din selv —
+          {" "}Bragarmål foreslår retninger, speiler det du har, og sammenligner mot din egen stemme.
+          {" "}
           {profileReady
-            ? "Stemmen din er lastet. Skriv et frø eller lim inn teksten din."
+            ? "Stemmen din er lastet."
             : samplesReady
             ? "Tips: kjør stemmeanalyse under «Stemme» for skarpere resultater."
             : "Tips: legg inn noen prøver under «Prøver» først — kvaliteten hopper."}
         </p>
       </div>
 
+      {/* Mode-fanene (nye) — de tre kjernemodusene */}
+      <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-0 hairline-t hairline-b">
+        {MODES.map((m, i) => {
+          const Icon = m.icon;
+          const active = mode === m.id;
+          return (
+            <button
+              key={m.id}
+              data-testid={`write-mode-${m.id}`}
+              onClick={() => { setMode(m.id); setOutput(""); setDetection(null); }}
+              className={`text-left p-5 md:p-6 ${i > 0 ? "sm:border-l" : ""} transition-colors`}
+              style={{
+                borderColor: "var(--line)",
+                background: active ? "var(--paper)" : "transparent",
+                cursor: "pointer",
+              }}
+            >
+              <div className="flex items-center gap-2" style={{ color: active ? "var(--moss)" : "var(--ink-mute)" }}>
+                <Icon size={18} strokeWidth={1.4} />
+                <div className="font-mono-ui text-[10px] tracking-widest">{String(i + 1).padStart(2, "0")}</div>
+              </div>
+              <div className="mt-3 font-serif-display text-xl md:text-2xl leading-tight" style={{ color: "var(--ink)" }}>
+                {m.label}
+              </div>
+              <div className="mt-2 font-editor text-sm" style={{ color: "var(--ink-soft)" }}>
+                {m.hint}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Controls row */}
-      <div className="mt-10 hairline-t hairline-b py-5 grid grid-cols-2 md:grid-cols-4 gap-4">
-        <ControlSelect
-          label="Modus"
-          tid={TID.writeModeSelect}
-          value={mode}
-          onChange={setMode}
-          options={MODES.map((m) => ({ value: m.id, label: m.label }))}
-        />
+      <div className="mt-8 hairline-t hairline-b py-5 grid grid-cols-2 md:grid-cols-3 gap-4">
         <ControlSelect
           label="Modell"
           tid={TID.writeModelSelect}
@@ -410,31 +438,28 @@ export default function WritePage() {
           onChange={setModel}
           options={models.map((m) => ({ value: m.id, label: m.label }))}
         />
-        <ControlSelect
-          label="Lengde"
-          tid={TID.writeLengthSelect}
-          value={length}
-          onChange={setLength}
-          options={LENGTHS.map((l) => ({ value: l.id, label: l.label }))}
-        />
-        <ControlSelect
-          label="Humanisering"
-          tid={TID.writeHumanizeSelect}
-          value={humanize}
-          onChange={(v) => setHumanize(Number(v))}
-          options={HUMANIZE.map((h) => ({ value: h.id, label: h.label }))}
-        />
-        <ControlSelect
-          label="Temperatur"
-          tid="write-temperature-select"
-          value={String(temperature)}
-          onChange={(v) => setTemperature(Number(v))}
-          options={[
-            { value: "0.3", label: "Lav · trygg og kontrollert" },
-            { value: "0.7", label: "Middels · naturlig balanse" },
-            { value: "1", label: "Høy · frekk og kreativ" },
-          ]}
-        />
+        {mode !== "voice_match" && (
+          <ControlSelect
+            label="Temperatur"
+            tid="write-temperature-select"
+            value={String(temperature)}
+            onChange={(v) => setTemperature(Number(v))}
+            options={[
+              { value: "0.3", label: "Lav · trygg og kontrollert" },
+              { value: "0.7", label: "Middels · naturlig balanse" },
+              { value: "1", label: "Høy · frekk og kreativ" },
+            ]}
+          />
+        )}
+        {mode === "reflect" && (
+          <ControlSelect
+            label="Lengde på lesning"
+            tid={TID.writeLengthSelect}
+            value={length}
+            onChange={setLength}
+            options={LENGTHS.map((l) => ({ value: l.id, label: l.label }))}
+          />
+        )}
       </div>
       <div className="mt-3 flex items-center justify-end">
         <Link
@@ -451,19 +476,13 @@ export default function WritePage() {
         {/* Input */}
         <div>
           <div className="flex items-center justify-between">
-            <div className="label-ui">Input</div>
+            <div className="label-ui">Din tekst</div>
             <div className="label-ui">{activeMode?.hint}</div>
           </div>
           <textarea
             data-testid={TID.writePromptInput}
             className="textarea-editor paper p-6 min-h-[380px] mt-3"
-            placeholder={
-              mode === "prompt"
-                ? "F.eks: «En natt i november da telefonen ringte tre ganger…»"
-                : mode === "continue"
-                ? "Lim inn teksten du vil at jeg skal fortsette…"
-                : "Lim inn en tekst som skal skrives om…"
-            }
+            placeholder="Lim inn eller skriv teksten din her…"
             value={input}
             onChange={(e) => setInput(e.target.value)}
           />
@@ -474,120 +493,100 @@ export default function WritePage() {
                 onClick={generate}
                 className="btn-primary inline-flex items-center gap-2"
               >
-                <PenLine size={16} strokeWidth={1.5} /> Skriv
+                {activeMode?.icon && <activeMode.icon size={16} strokeWidth={1.5} />} {activeMode?.cta}
               </button>
             ) : (
               <button onClick={stop} className="btn-ghost">Stopp</button>
             )}
-            <button
-              data-testid={TID.writeDetectBtn}
-              onClick={runDetect}
-              className="btn-ghost inline-flex items-center gap-2"
-              disabled={detecting || (!input && !output)}
-            >
-              {detecting ? <Loader2 size={16} className="animate-spin" /> : <Gauge size={16} strokeWidth={1.5} />}
-              {detecting ? "Analyserer…" : "Sjekk AI-signatur"}
-            </button>
           </div>
         </div>
 
         {/* Output */}
         <div>
           <div className="flex items-center justify-between">
-            <div className="label-ui">Utkast i din stemme</div>
+            <div className="label-ui">{activeMode?.outputTitle}</div>
             {streaming && <span className="label-ui"><span className="pulse-dot" /> Skriver…</span>}
           </div>
-          <div
-            data-testid={TID.writeOutput}
-            className="paper p-6 min-h-[380px] mt-3 font-editor text-[1.05rem] leading-relaxed whitespace-pre-wrap"
-            style={{
-              color: "var(--ink)",
-              // Faint yellow tint so AI-generated text is visually distinct from user's own writing.
-              // Fades out when field is empty (no output yet).
-              background: output ? "rgba(255, 236, 130, 0.22)" : undefined,
-              borderLeft: output ? "3px solid rgba(255, 200, 60, 0.55)" : undefined,
-            }}
-          >
-            {output || <span style={{ color: "var(--ink-mute)" }} className="italic">Utkastet dukker opp her.</span>}
-          </div>
-          {output && (
-            <div className="mt-2 flex items-center gap-2 label-ui" style={{ color: "var(--ink-mute)" }}>
-              <span
-                aria-hidden
-                className="inline-block"
-                style={{ width: 12, height: 12, background: "rgba(255, 236, 130, 0.55)", border: "1px solid rgba(255, 200, 60, 0.7)" }}
-              />
-              Gul markering = AI-generert innhold
+          {mode !== "voice_match" && (
+            <>
+              <div
+                data-testid={TID.writeOutput}
+                className="paper p-6 min-h-[380px] mt-3 font-editor text-[1.05rem] leading-relaxed whitespace-pre-wrap"
+                style={{ color: "var(--ink)" }}
+              >
+                {output || <span style={{ color: "var(--ink-mute)" }} className="italic">
+                  {mode === "next_steps"
+                    ? "Retningsforslag dukker opp her — konkrete måter å ta teksten videre."
+                    : "Lesningen dukker opp her — det jeg legger merke til i teksten din."}
+                </span>}
+              </div>
+              <div className="mt-4 flex items-center gap-3 flex-wrap">
+                <button
+                  data-testid={TID.writeCopyBtn}
+                  onClick={copyOut}
+                  className="btn-ghost inline-flex items-center gap-2"
+                  disabled={!output}
+                >
+                  <Copy size={16} strokeWidth={1.5} /> Kopier
+                </button>
+                <button
+                  data-testid={TID.writeRegenerateBtn}
+                  onClick={generate}
+                  className="btn-ghost inline-flex items-center gap-2"
+                  disabled={streaming || !input}
+                >
+                  <RefreshCcw size={16} strokeWidth={1.5} /> Kjør på nytt
+                </button>
+                <button
+                  data-testid={TID.writeSaveAsSampleBtn}
+                  onClick={openSave}
+                  className="btn-ghost inline-flex items-center gap-2"
+                  disabled={streaming || !output}
+                >
+                  <BookmarkPlus size={16} strokeWidth={1.5} /> Lagre som prøve
+                </button>
+                <button
+                  data-testid={TID.writeDownloadBtn}
+                  onClick={downloadTxt}
+                  className="btn-ghost inline-flex items-center gap-2"
+                  disabled={streaming || !output}
+                >
+                  <Download size={16} strokeWidth={1.5} /> Last ned .txt
+                </button>
+                <button
+                  data-testid={TID.writePdfBtn}
+                  onClick={downloadPdf}
+                  className="btn-ghost inline-flex items-center gap-2"
+                  disabled={streaming || !output}
+                >
+                  <FileText size={16} strokeWidth={1.5} /> Last ned .pdf
+                </button>
+                {canSharePdf && (
+                  <button
+                    data-testid={TID.writeSharePdfBtn}
+                    onClick={sharePdf}
+                    className="btn-ghost inline-flex items-center gap-2"
+                    disabled={streaming || !output}
+                  >
+                    <Share2 size={16} strokeWidth={1.5} /> Del PDF
+                  </button>
+                )}
+                <button
+                  data-testid={TID.writeEmailBtn}
+                  onClick={emailOut}
+                  className="btn-ghost inline-flex items-center gap-2"
+                  disabled={streaming || !output}
+                >
+                  <Mail size={16} strokeWidth={1.5} /> Send til e-post
+                </button>
+              </div>
+            </>
+          )}
+          {mode === "voice_match" && !detection && (
+            <div className="paper p-6 min-h-[380px] mt-3 font-editor text-[1.05rem] leading-relaxed" style={{ color: "var(--ink-mute)" }}>
+              <span className="italic">Trykk «Sammenlign» — så viser jeg deg hva som ligner deg og hva som ikke gjør det, setning for setning.</span>
             </div>
           )}
-          <div className="mt-4 flex items-center gap-3 flex-wrap">
-            <button
-              data-testid={TID.writeCopyBtn}
-              onClick={copyOut}
-              className="btn-ghost inline-flex items-center gap-2"
-              disabled={!output}
-            >
-              <Copy size={16} strokeWidth={1.5} /> Kopier
-            </button>
-            <button
-              data-testid={TID.writeRegenerateBtn}
-              onClick={generate}
-              className="btn-ghost inline-flex items-center gap-2"
-              disabled={streaming || !input}
-            >
-              <RefreshCcw size={16} strokeWidth={1.5} /> Skriv på nytt
-            </button>
-            <button
-              data-testid={TID.writeHumanizeMoreBtn}
-              onClick={humanizeMore}
-              className="btn-ghost inline-flex items-center gap-2"
-              disabled={streaming || !output}
-            >
-              <Wand2 size={16} strokeWidth={1.5} /> Gjør mer menneskelig
-            </button>
-            <button
-              data-testid={TID.writeSaveAsSampleBtn}
-              onClick={openSave}
-              className="btn-ghost inline-flex items-center gap-2"
-              disabled={streaming || !output}
-            >
-              <BookmarkPlus size={16} strokeWidth={1.5} /> Lagre som prøve
-            </button>
-            <button
-              data-testid={TID.writeDownloadBtn}
-              onClick={downloadTxt}
-              className="btn-ghost inline-flex items-center gap-2"
-              disabled={streaming || !output}
-            >
-              <Download size={16} strokeWidth={1.5} /> Last ned .txt
-            </button>
-            <button
-              data-testid={TID.writePdfBtn}
-              onClick={downloadPdf}
-              className="btn-ghost inline-flex items-center gap-2"
-              disabled={streaming || !output}
-            >
-              <FileText size={16} strokeWidth={1.5} /> Last ned .pdf
-            </button>
-            {canSharePdf && (
-              <button
-                data-testid={TID.writeSharePdfBtn}
-                onClick={sharePdf}
-                className="btn-ghost inline-flex items-center gap-2"
-                disabled={streaming || !output}
-              >
-                <Share2 size={16} strokeWidth={1.5} /> Del PDF
-              </button>
-            )}
-            <button
-              data-testid={TID.writeEmailBtn}
-              onClick={emailOut}
-              className="btn-ghost inline-flex items-center gap-2"
-              disabled={streaming || !output}
-            >
-              <Mail size={16} strokeWidth={1.5} /> Send til e-post
-            </button>
-          </div>
         </div>
       </div>
 
@@ -745,7 +744,7 @@ export default function WritePage() {
               </div>
             </div>
             <div className="md:border-l md:pl-6" style={{ borderColor: "var(--line)" }}>
-              <div className="label-ui">AI-fraser funnet</div>
+              <div className="label-ui">Klisjéer funnet</div>
               <div className="font-serif-display text-3xl mt-1" style={{ color: "var(--ink)" }}>
                 {(detection.ai_markers || []).reduce((a, m) => a + m.count, 0)}
               </div>
@@ -838,15 +837,15 @@ export default function WritePage() {
                           .join(" ");
                         if (!foreignText) return;
                         setInput(foreignText);
-                        setMode("humanize");
+                        setMode("reflect");
                         setDetection(null);
                         if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
-                        toast("Alle røde setninger satt til omskriving");
+                        toast("Alle røde setninger klare for lesning i «Les det jeg har»");
                       }}
                       className="btn-primary"
                       style={{ padding: "0.4rem 0.9rem", fontSize: "0.7rem" }}
                     >
-                      Skriv om alle røde
+                      Les de røde nærmere
                     </button>
                   )}
                 </div>
@@ -856,7 +855,7 @@ export default function WritePage() {
                 <div className="label-ui mb-4">
                   <span className="inline-flex items-center gap-2">
                     <span className="inline-block w-1 h-1 rounded-full" style={{ background: "var(--ink-mute)" }} />
-                    Trykk på hvilken som helst setning for å sende den til omskriving
+                    Trykk på hvilken som helst setning for å lese den nærmere
                   </span>
                 </div>
                 {detection.highlights.map((h, i) => {
@@ -871,18 +870,18 @@ export default function WritePage() {
                       key={i}
                       onClick={() => {
                         setInput(h.sentence);
-                        setMode("humanize");
+                        setMode("reflect");
                         setDetection(null);
                         if (typeof window !== "undefined") {
                           window.scrollTo({ top: 0, behavior: "smooth" });
                         }
                         toast(
                           h.foreign
-                            ? "Setning satt til omskriving i din stemme"
-                            : "Setning klar for finpuss"
+                            ? "Setning satt til nærlesning i «Les det jeg har»"
+                            : "Setning klar for lesning"
                         );
                       }}
-                      title={`Trykk for å skrive om · Likhet ${h.similarity}/100${h.ai_marker_hit ? " · AI-frase" : ""}${h.foreign_words?.length ? " · " + h.foreign_words.join(", ") : ""}`}
+                      title={`Trykk for å lese nærmere · Likhet ${h.similarity}/100${h.ai_marker_hit ? " · Klisjé" : ""}${h.foreign_words?.length ? " · " + h.foreign_words.join(", ") : ""}`}
                       data-testid={`highlight-sentence-${i}`}
                       style={{
                         background: bg,

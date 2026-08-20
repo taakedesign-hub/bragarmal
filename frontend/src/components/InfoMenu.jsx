@@ -42,7 +42,7 @@ export default function InfoMenu({ align = "right" }) {
     {
       heading: t("info.contact"),
       items: [
-        { href: "mailto:hei@bragarmål.no?subject=Hilsen%20fra%20BRAGARMÅL", label: t("info.sendEmail"), desc: "hei@bragarmål.no" },
+        { href: "mailto:hei@Bragarmål.no?subject=Hilsen%20fra%20BRAGARMÅL", label: t("info.sendEmail"), desc: "hei@Bragarmål.no" },
       ],
     },
   ].filter(Boolean);

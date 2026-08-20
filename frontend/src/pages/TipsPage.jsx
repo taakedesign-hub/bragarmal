@@ -725,7 +725,7 @@ export default function TipsPage() {
       <div className="mt-20 hairline-t pt-10 font-editor text-sm italic" style={{ color: "var(--ink-mute)" }}>
         Flere tips kommer. Har du noe du synes andre forfattere burde vite?{" "}
         <a
-          href="mailto:hei@bragarmål.no?subject=Tips%20til%20Bragarmål"
+          href="mailto:hei@Bragarmål.no?subject=Tips%20til%20Bragarmål"
           className="underline decoration-1 underline-offset-4"
           style={{ color: "var(--moss)" }}
           data-testid="tips-send-suggestion"
