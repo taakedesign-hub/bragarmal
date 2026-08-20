@@ -1764,7 +1764,9 @@ def build_voice_system_prompt(profile: Optional[dict], samples: List[dict], insp
 class GenerateBody(BaseModel):
     mode: Literal["prompt", "continue", "humanize", "next_steps", "reflect"]
     text: str
-    model: str = "claude-sonnet-4-5"
+    # Bragarmål velger automatisk beste modell for skriving (Claude Sonnet 4.6).
+    # Denne kan fortsatt overstyres av interne kall (f.eks. helper:<id> BYOK).
+    model: str = "claude-sonnet-4-6"
     humanize_level: int = 1  # 1..3
     length: Literal["kort", "medium", "lang"] = "medium"
     temperature: float = 0.7  # 0.2..1.2 — låg = trygt, høg = kreativ

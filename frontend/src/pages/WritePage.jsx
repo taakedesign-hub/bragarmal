@@ -40,8 +40,6 @@ const LENGTHS = [
 ];
 
 export default function WritePage() {
-  const [models, setModels] = useState([]);
-  const [model, setModel] = useState("claude-sonnet-4-5");
   const [mode, setMode] = useState("next_steps");
   const [length, setLength] = useState("medium");
   const [temperature, setTemperature] = useState(0.7);
@@ -94,10 +92,6 @@ export default function WritePage() {
   useEffect(() => {
     (async () => {
       try {
-        const r = await api.get("/models");
-        setModels(r.data || []);
-      } catch (e) { console.debug("models fetch failed", e); }
-      try {
         const s = await api.get("/samples");
         setSamplesReady((s.data || []).length > 0);
       } catch (e) { console.debug("samples fetch failed", e); }
@@ -143,7 +137,7 @@ export default function WritePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ mode, text: input, model, length, temperature }),
+        body: JSON.stringify({ mode, text: input, length, temperature }),
         signal: ctrl.signal,
       });
       if (!res.ok || !res.body) {
@@ -430,14 +424,7 @@ export default function WritePage() {
       </div>
 
       {/* Controls row */}
-      <div className="mt-8 hairline-t hairline-b py-5 grid grid-cols-2 md:grid-cols-3 gap-4">
-        <ControlSelect
-          label="Modell"
-          tid={TID.writeModelSelect}
-          value={model}
-          onChange={setModel}
-          options={models.map((m) => ({ value: m.id, label: m.label }))}
-        />
+      <div className="mt-8 hairline-t hairline-b py-5 grid grid-cols-2 gap-4">
         {mode !== "voice_match" && (
           <ControlSelect
             label="Temperatur"

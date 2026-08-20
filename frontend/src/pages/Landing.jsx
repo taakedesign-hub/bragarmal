@@ -384,27 +384,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Model row */}
-      <section className="hairline-t hairline-b">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-10 flex flex-wrap items-center gap-6 justify-between">
-          <div className="label-ui">{t("modelRow.kicker")}</div>
-          <div className="flex flex-wrap gap-3 items-center">
-            <span className="chip">Claude Sonnet 4.5</span>
-            <span className="chip">Claude Sonnet 4.6</span>
-            <span className="chip">GPT 5.2</span>
-            <span className="chip">GPT 5.4</span>
-            <span className="chip">Gemini 3.1 Pro</span>
-            <Link
-              to="/logg-inn"
-              className="chip inline-flex items-center gap-1.5"
-              style={{ background: "var(--sky-soft)", color: "var(--ink)", borderColor: "var(--sky)" }}
-            >
-              {t("modelRow.byok")} <span style={{ color: "var(--ink-mute)" }}>{t("modelRow.byokSub")}</span>
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <Footer />
     </div>
