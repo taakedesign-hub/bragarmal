@@ -282,7 +282,7 @@ export default function Landing() {
               <div className="label-ui">Fra Nina</div>
               <div className="rule my-4" />
               <p className="font-editor italic text-sm" style={{ color: "var(--ink-mute)" }}>
-                Manifest — bearbeidet i samarbeid med Bragarmål.
+                Manifest — fra meg, Nina.
               </p>
             </aside>
 
