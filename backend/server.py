@@ -200,13 +200,25 @@ class VoiceProfile(BaseModel):
 
 
 ALLOWED_MODELS = {
+    # Claude — Anthropic. claude-sonnet-4-6 er anbefalt for kreativ skriving.
     "claude-sonnet-4-5": ("anthropic", "claude-sonnet-4-5-20250929"),
     "claude-sonnet-4-6": ("anthropic", "claude-sonnet-4-6"),
+    "claude-sonnet-5":   ("anthropic", "claude-sonnet-5"),
+    "claude-opus-4-7":   ("anthropic", "claude-opus-4-7"),  # tunge analytiske oppgaver
+    "claude-opus-5":     ("anthropic", "claude-opus-5"),
+    # OpenAI
     "gpt-5.2": ("openai", "gpt-5.2"),
     "gpt-5.4": ("openai", "gpt-5.4"),
-    "gemini-3-pro": ("gemini", "gemini-3.1-pro-preview"),
+    # Google Gemini
+    "gemini-3-pro":   ("gemini", "gemini-3.1-pro-preview"),
     "gemini-3-flash": ("gemini", "gemini-3-flash-preview"),
 }
+
+# Intern «beste-modell»-router. Bragarmål velger automatisk — brukeren ser ikke dette.
+# Claude Sonnet 4.6 er anbefalt for kreativ norsk skriving; egne kanaler for spesifikke behov.
+BRAGR_MODEL_WRITING = ("anthropic", "claude-sonnet-4-6")    # /generate + humaniser
+BRAGR_MODEL_ANALYSIS = ("anthropic", "claude-sonnet-4-6")   # stemmeprofil, karakterer, AI-detektor
+BRAGR_MODEL_VISION = ("anthropic", "claude-sonnet-4-6")     # OCR / håndskriftscan
 
 
 # ---------- Auth ----------
@@ -611,7 +623,7 @@ TEKSTER:
         api_key=EMERGENT_LLM_KEY,
         session_id=f"analyze-{uuid.uuid4().hex[:8]}",
         system_message=system,
-    ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+    ).with_model(*BRAGR_MODEL_ANALYSIS)
 
     try:
         parts = []
@@ -773,7 +785,7 @@ async def scan_handwritten(
         api_key=EMERGENT_LLM_KEY,
         session_id=f"ocr-{user.user_id}-{uuid.uuid4().hex[:6]}",
         system_message=system,
-    ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+    ).with_model(*BRAGR_MODEL_VISION)
 
     msg = UserMessage(
         text="Transkriber all håndskrevet norsk tekst i dette bildet ordrett.",
@@ -1260,7 +1272,7 @@ async def extract_characters(user: User = Depends(get_current_user)):
         api_key=EMERGENT_LLM_KEY,
         session_id=f"chars-{uuid.uuid4().hex[:8]}",
         system_message=system,
-    ).with_model("anthropic", "claude-sonnet-4-5-20250929").with_params(temperature=0.4)
+    ).with_model(*BRAGR_MODEL_ANALYSIS).with_params(temperature=0.4)
     try:
         parts = []
         async for ev in chat.stream_message(UserMessage(text=prompt)):
@@ -1963,7 +1975,7 @@ async def _ai_verdict(text: str) -> dict:
         api_key=EMERGENT_LLM_KEY,
         session_id=f"detect-{uuid.uuid4().hex[:8]}",
         system_message=system,
-    ).with_model("anthropic", "claude-sonnet-4-5-20250929").with_params(temperature=0.3)
+    ).with_model(*BRAGR_MODEL_ANALYSIS).with_params(temperature=0.3)
     try:
         parts = []
         async for ev in chat.stream_message(UserMessage(text=prompt)):
@@ -2236,9 +2248,17 @@ async def compute_personal_style_score(user_id: str, text: str, words: List[str]
 # ---------- Models list ----------
 @api_router.get("/models")
 async def list_models():
+    """
+    Public list of supported LLM models. Since Bragarmål picks the best model
+    automatically for the user, this endpoint is mostly used internally / for
+    admin/dev tooling. UI does not expose model selection anymore.
+    """
     return [
         {"id": "claude-sonnet-4-5", "label": "Claude Sonnet 4.5", "provider": "Anthropic"},
-        {"id": "claude-sonnet-4-6", "label": "Claude Sonnet 4.6", "provider": "Anthropic"},
+        {"id": "claude-sonnet-4-6", "label": "Claude Sonnet 4.6 (Bragarmål-standard)", "provider": "Anthropic"},
+        {"id": "claude-sonnet-5",   "label": "Claude Sonnet 5",   "provider": "Anthropic"},
+        {"id": "claude-opus-4-7",   "label": "Claude Opus 4.7",   "provider": "Anthropic"},
+        {"id": "claude-opus-5",     "label": "Claude Opus 5",     "provider": "Anthropic"},
         {"id": "gpt-5.2", "label": "GPT 5.2", "provider": "OpenAI"},
         {"id": "gpt-5.4", "label": "GPT 5.4", "provider": "OpenAI"},
         {"id": "gemini-3-pro", "label": "Gemini 3.1 Pro", "provider": "Google"},
