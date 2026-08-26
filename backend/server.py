@@ -194,6 +194,9 @@ class VoiceProfile(BaseModel):
     tone_description: str = ""
     style_summary: str = ""
     signature_phrases: List[str] = []
+    # Runde 2 — stemmeprofilen som intellekt
+    deviations: List[str] = []          # «Dette avviker» — mønstre som glir bort fra din vanlige stemme
+    watch_out_for: List[str] = []       # «Dette bør du passe på» — konkrete ting å være oppmerksom på
 
 
 ALLOWED_MODELS = {
@@ -564,7 +567,7 @@ def analyze_voice(samples: List[dict]) -> dict:
 async def build_style_summary(samples: List[dict], stats: dict) -> dict:
     """Use Claude to describe user's tone and signature phrases in Norwegian."""
     if not samples or not EMERGENT_LLM_KEY:
-        return {"tone_description": "", "style_summary": "", "signature_phrases": []}
+        return {"tone_description": "", "style_summary": "", "signature_phrases": [], "deviations": [], "watch_out_for": []}
 
     # Ensure ALL samples are represented — take proportional slices from each
     # (avoids the bug where newest samples get truncated away by a naive [:12000] cut)
@@ -592,11 +595,13 @@ async def build_style_summary(samples: List[dict], stats: dict) -> dict:
 1. `tone_description`: 1-2 setninger på norsk som beskriver tonen (rytme, temperatur, distanse, humor, alvor).
 2. `style_summary`: 2-3 setninger på norsk om setningsbygning, ordvalg og typiske grep.
 3. `signature_phrases`: 5-8 karakteristiske uttrykk, ord eller vendinger forfatteren faktisk bruker (kopier direkte fra tekstene).
+4. `deviations`: 3-5 korte observasjoner om hvor teksten noen ganger glir vekk fra forfatterens vanlige stemme. Konkret. F.eks. «Passasjer om arbeid glir mot mer formell tone», «Følelsesmessig ladede scener bruker lengre setninger enn hennes vanlige knappe rytme», «Enkelte dialoger virker skrevet for høyt — mister det hverdagslige som ellers preger stemmen». Ikke råd — bare observasjoner.
+5. `watch_out_for`: 3-5 konkrete ting forfatteren kan være oppmerksom på i eget arbeid. Ikke pekefinger — vennlige merknader. F.eks. «Gjentakelser av ordet 'liksom' i påfølgende setninger», «Tendens til å forklare følelser i stedet for å vise dem», «Komma-feilstillinger i lange innskudd», «Overgangsfraser som 'og så' som lener rytmen».
 
 Statistikk: gjennomsnittlig setningslengde {stats.get('avg_sentence_length')} ord, ordforråd-rikhet {stats.get('vocabulary_richness')}.
 
 Svar i dette JSON-formatet, ingen forklaring utenfor JSON:
-{{"tone_description": "...", "style_summary": "...", "signature_phrases": ["...", "..."]}}
+{{"tone_description": "...", "style_summary": "...", "signature_phrases": ["...", "..."], "deviations": ["...", "..."], "watch_out_for": ["...", "..."]}}
 
 TEKSTER:
 {joined}
@@ -625,10 +630,12 @@ TEKSTER:
             "tone_description": parsed.get("tone_description", ""),
             "style_summary": parsed.get("style_summary", ""),
             "signature_phrases": parsed.get("signature_phrases", [])[:8],
+            "deviations": parsed.get("deviations", [])[:6],
+            "watch_out_for": parsed.get("watch_out_for", [])[:6],
         }
     except Exception as e:
         logger.warning(f"Style summary failed: {e}")
-        return {"tone_description": "", "style_summary": "", "signature_phrases": []}
+        return {"tone_description": "", "style_summary": "", "signature_phrases": [], "deviations": [], "watch_out_for": []}
 
 
 # ---------- Sample endpoints ----------
