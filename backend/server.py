@@ -1591,6 +1591,64 @@ async def get_voice_profile(user: User = Depends(get_current_user)):
     return doc
 
 
+VOICE_SCOPE_MIN_WORDS = 40
+
+
+class VoiceAnalyzeScopeBody(BaseModel):
+    scope: Literal["scene", "sample", "text"]
+    id: Optional[str] = None  # scene_id or sample_id — required for scope in {scene, sample}
+    text: Optional[str] = None  # required for scope == text
+
+
+@api_router.post("/voice/analyze-scope")
+async def analyze_voice_scope(body: VoiceAnalyzeScopeBody, user: User = Depends(get_current_user)):
+    """
+    Kjør samme stemmeanalyse som /voice/analyze, men kun på én enkelt enhet
+    (én scene, én prøve, eller et limt inn avsnitt) i stedet for alle prøver
+    samlet. Resultatet lagres IKKE som brukerens hovedprofil i voice_profiles —
+    det er en engangsrapport for den valgte enheten.
+    """
+    label = ""
+    if body.scope == "scene":
+        if not body.id:
+            raise HTTPException(status_code=400, detail="Mangler scene-id")
+        scene = await db.scenes.find_one({"id": body.id, "user_id": user.user_id}, {"_id": 0})
+        if not scene:
+            raise HTTPException(status_code=404, detail="Scene ikke funnet")
+        content = scene.get("content", "")
+        label = scene.get("title") or "Uten tittel"
+    elif body.scope == "sample":
+        if not body.id:
+            raise HTTPException(status_code=400, detail="Mangler prøve-id")
+        sample = await db.samples.find_one({"id": body.id, "user_id": user.user_id}, {"_id": 0})
+        if not sample:
+            raise HTTPException(status_code=404, detail="Prøve ikke funnet")
+        content = sample.get("content", "")
+        label = sample.get("title") or "Uten tittel"
+    else:  # text
+        content = (body.text or "").strip()
+        label = "Limt inn avsnitt"
+
+    word_count = _word_count(content)
+    if word_count < VOICE_SCOPE_MIN_WORDS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"For lite tekst for en pålitelig analyse — minst {VOICE_SCOPE_MIN_WORDS} ord, denne enheten har {word_count}."
+        )
+
+    unit = [{"content": content}]
+    stats = analyze_voice(unit)
+    ai_stuff = await build_style_summary(unit, stats)
+
+    return {
+        "scope": body.scope,
+        "scope_label": label,
+        "word_count": word_count,
+        **stats,
+        **ai_stuff,
+    }
+
+
 # ---------- Generation ----------
 def _anti_slop_rules() -> str:
     """

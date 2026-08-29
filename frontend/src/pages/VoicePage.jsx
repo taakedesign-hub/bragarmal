@@ -4,12 +4,28 @@ import { api } from "@/lib/api";
 import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
-import { Sparkles, RefreshCcw, User, AlertTriangle, Eye } from "lucide-react";
+import { Sparkles, RefreshCcw, User, AlertTriangle, Eye, ScanSearch } from "lucide-react";
+
+const SCOPE_TABS = [
+  { id: "scene", label: "Scene" },
+  { id: "sample", label: "Prøve" },
+  { id: "text", label: "Avsnitt" },
+];
 
 export default function VoicePage() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [samplesCount, setSamplesCount] = useState(0);
+
+  // Per-unit analyse (scene / prøve / limt inn avsnitt)
+  const [scenes, setScenes] = useState([]);
+  const [samples, setSamples] = useState([]);
+  const [scopeTab, setScopeTab] = useState("scene");
+  const [scopeSceneId, setScopeSceneId] = useState("");
+  const [scopeSampleId, setScopeSampleId] = useState("");
+  const [scopeText, setScopeText] = useState("");
+  const [scopeResult, setScopeResult] = useState(null);
+  const [scopeLoading, setScopeLoading] = useState(false);
 
   const load = async () => {
     try {
@@ -19,7 +35,12 @@ export default function VoicePage() {
       ]);
       setProfile(p.data || null);
       setSamplesCount((s.data || []).length);
+      setSamples(s.data || []);
     } catch (e) { console.debug("voice load failed", e); }
+    try {
+      const sc = await api.get("/manuscript");
+      setScenes(sc.data || []);
+    } catch (e) { console.debug("scenes load failed", e); }
   };
   useEffect(() => { load(); }, []);
 
@@ -29,6 +50,7 @@ export default function VoicePage() {
       try {
         const s = await api.get("/samples");
         setSamplesCount((s.data || []).length);
+        setSamples(s.data || []);
       } catch (e) { console.debug("samples refresh failed", e); }
       const r = await api.post("/voice/analyze");
       setProfile(r.data);
@@ -38,6 +60,31 @@ export default function VoicePage() {
       toast(e?.response?.data?.detail || "Kunne ikke analysere");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const runScope = async () => {
+    const body =
+      scopeTab === "scene" ? { scope: "scene", id: scopeSceneId } :
+      scopeTab === "sample" ? { scope: "sample", id: scopeSampleId } :
+      { scope: "text", text: scopeText };
+
+    if (scopeTab === "scene" && !scopeSceneId) { toast("Velg en scene først"); return; }
+    if (scopeTab === "sample" && !scopeSampleId) { toast("Velg en prøve først"); return; }
+    if (scopeTab === "text" && !scopeText.trim()) { toast("Lim inn et avsnitt først"); return; }
+
+    setScopeLoading(true);
+    setScopeResult(null);
+    try {
+      const r = await api.post("/voice/analyze-scope", body);
+      setScopeResult(r.data);
+      setTimeout(() => {
+        document.getElementById("scope-result")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    } catch (e) {
+      toast(e?.response?.data?.detail || "Kunne ikke analysere denne enheten");
+    } finally {
+      setScopeLoading(false);
     }
   };
 
@@ -80,152 +127,267 @@ export default function VoicePage() {
         </div>
       ) : (
         <div data-testid={TID.voiceProfileCard} className="mt-12">
-          {/* Numbers row */}
-          <div className="hairline-t hairline-b grid grid-cols-2 md:grid-cols-4">
-            <Metric label="Prøver" value={profile.total_samples} />
-            <Metric label="Ord totalt" value={profile.total_words?.toLocaleString("nb-NO")} b />
-            <Metric label="Setn.lengde" value={profile.avg_sentence_length} b />
-            <Metric label="Ordforråd" value={`${Math.round((profile.vocabulary_richness || 0) * 100)}%`} b />
-          </div>
-
-          {/* Section 01 — Slik skriver jeg */}
-          <Section
-            n="01"
-            icon={<User size={16} strokeWidth={1.4} />}
-            kicker="Slik skriver jeg"
-            title="Din stemme, slik den er nå"
-            subtitle="Tonen, stilen og signaturuttrykkene som gjør skriften din gjenkjennelig."
-            tid="voice-section-slik"
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-              <div className="lg:col-span-7">
-                <div className="label-ui mb-3">Tone</div>
-                <p className="font-editor text-xl leading-relaxed" style={{ color: "var(--ink)" }}>
-                  {profile.tone_description || <span className="italic" style={{ color: "var(--ink-mute)" }}>—</span>}
-                </p>
-                <div className="rule my-8" />
-                <div className="label-ui mb-3">Stil</div>
-                <p className="font-editor text-lg leading-relaxed" style={{ color: "var(--ink-soft)" }}>
-                  {profile.style_summary || <span className="italic" style={{ color: "var(--ink-mute)" }}>—</span>}
-                </p>
-                <div className="rule my-8" />
-                <div className="label-ui mb-3">Signaturuttrykk</div>
-                <div className="flex flex-wrap gap-2">
-                  {(profile.signature_phrases || []).length === 0 ? (
-                    <span className="font-editor italic" style={{ color: "var(--ink-mute)" }}>—</span>
-                  ) : (
-                    profile.signature_phrases.map((p, i) => (
-                      <span key={p + i} className="chip">{p}</span>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              <div className="lg:col-span-5">
-                <div className="label-ui mb-3">Setningslengde-fordeling</div>
-                <div style={{ width: "100%", height: 260 }}>
-                  <ResponsiveContainer>
-                    <BarChart data={profile.sentence_length_distribution || []} margin={{ top: 10, right: 0, left: 0, bottom: 10 }}>
-                      <XAxis dataKey="range" tick={{ fill: "#7A7772", fontSize: 11, fontFamily: "IBM Plex Sans" }} axisLine={{ stroke: "#D9D4C7" }} tickLine={false} />
-                      <YAxis tick={{ fill: "#7A7772", fontSize: 11, fontFamily: "IBM Plex Sans" }} axisLine={{ stroke: "#D9D4C7" }} tickLine={false} />
-                      <Tooltip contentStyle={{ background: "#FFFFFF", border: "1px solid #D9D4C7", borderRadius: 2, fontFamily: "IBM Plex Sans", fontSize: 12 }} cursor={{ fill: "rgba(74,93,78,0.08)" }} />
-                      <Bar dataKey="count" fill="#4A5D4E" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="label-ui mt-8 mb-3">Ord du bruker ofte</div>
-                <ul>
-                  {(profile.top_words || []).slice(0, 10).map((w, i) => (
-                    <li key={w.word + i} className="flex items-center justify-between py-1.5 hairline-b">
-                      <span className="font-editor" style={{ color: "var(--ink)" }}>{w.word}</span>
-                      <span className="label-ui">{w.count}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </Section>
-
-          {/* Section 02 — Dette avviker */}
-          <Section
-            n="02"
-            icon={<Eye size={16} strokeWidth={1.4} />}
-            kicker="Dette avviker"
-            title="Der stemmen din glir bort fra seg selv"
-            subtitle="Mønstre Bragarmål har lagt merke til — ikke feil, bare observasjoner. Du bestemmer om det er verdt å endre."
-            tid="voice-section-avviker"
-          >
-            {(profile.deviations || []).length === 0 ? (
-              <div className="font-editor italic" style={{ color: "var(--ink-mute)" }}>
-                Ingen tydelige avvik ennå. Legg til flere prøver — særlig fra ulike sjangre og perioder — så blir mønstrene skarpere.
-              </div>
-            ) : (
-              <ul className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {profile.deviations.map((d, i) => (
-                  <li
-                    key={d.slice(0, 30) + i}
-                    className="p-5 md:p-6"
-                    style={{ background: "var(--linen)", borderLeft: "2px solid var(--rust)" }}
-                    data-testid={`voice-deviation-${i + 1}`}
-                  >
-                    <div className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--rust)" }}>
-                      {String(i + 1).padStart(2, "0")}
-                    </div>
-                    <p className="mt-2 font-editor text-base md:text-lg leading-relaxed" style={{ color: "var(--ink)" }}>
-                      {d}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Section>
-
-          {/* Section 03 — Dette bør jeg passe på */}
-          <Section
-            n="03"
-            icon={<AlertTriangle size={16} strokeWidth={1.4} />}
-            kicker="Dette bør jeg passe på"
-            title="Vennlige merknader"
-            subtitle="Konkrete ting å være oppmerksom på. Ikke pekefinger — bare påminnelser fra en som har lest deg tett."
-            tid="voice-section-passe-paa"
-          >
-            {(profile.watch_out_for || []).length === 0 ? (
-              <div className="font-editor italic" style={{ color: "var(--ink-mute)" }}>
-                Ingen påminnelser ennå. Kjør analysen på nytt når du har lagt til flere prøver.
-              </div>
-            ) : (
-              <ul className="space-y-3">
-                {profile.watch_out_for.map((w, i) => (
-                  <li
-                    key={w.slice(0, 30) + i}
-                    className="p-4 md:p-5 flex items-start gap-4"
-                    style={{ background: "var(--paper)", border: "1px solid var(--line)" }}
-                    data-testid={`voice-watch-${i + 1}`}
-                  >
-                    <span
-                      className="mt-1 shrink-0 inline-flex items-center justify-center font-mono-ui text-[10px] tracking-widest"
-                      style={{ background: "var(--moss)", color: "white", width: 22, height: 22 }}
-                    >
-                      !
-                    </span>
-                    <p className="font-editor text-base md:text-lg leading-relaxed" style={{ color: "var(--ink)" }}>
-                      {w}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <div className="mt-6 label-ui" style={{ color: "var(--ink-mute)" }}>
-              Vil du sjekke en konkret tekst mot dette?{" "}
-              <Link to="/skriv" data-testid="voice-goto-compare" className="underline underline-offset-4" style={{ color: "var(--moss)" }}>
-                Bruk «Sammenlign med min stemme» i Skrivepulten →
-              </Link>
-            </div>
-          </Section>
+          <VoiceReport
+            data={profile}
+            firstMetric={{ label: "Prøver", value: profile.total_samples }}
+          />
         </div>
       )}
 
+      {/* Analyse av én enkelt enhet — scene, prøve eller limt inn avsnitt */}
+      <div className="mt-24 hairline-t pt-10">
+        <div className="label-ui" style={{ color: "var(--rust)" }}>Nærlesning</div>
+        <h2 className="font-serif-display text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
+          Analyser <em className="italic" style={{ color: "var(--moss)" }}>én enhet for seg</em>.
+        </h2>
+        <p className="font-editor mt-4 max-w-[65ch]" style={{ color: "var(--ink-soft)" }}>
+          Samme analyse som over, men kjørt på kun én scene, én prøve, eller et avsnitt du limer inn —
+          i stedet for alt samlet. Lagres ikke som hovedprofilen din.
+        </p>
+
+        <div className="mt-8 flex items-center gap-1 hairline-b">
+          {SCOPE_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              data-testid={`voice-scope-tab-${tab.id}`}
+              onClick={() => { setScopeTab(tab.id); setScopeResult(null); }}
+              className="label-ui px-4 py-3"
+              style={{
+                color: scopeTab === tab.id ? "var(--moss)" : "var(--ink-mute)",
+                borderBottom: scopeTab === tab.id ? "2px solid var(--moss)" : "2px solid transparent",
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-6 max-w-2xl">
+          {scopeTab === "scene" && (
+            scenes.length === 0 ? (
+              <div className="font-editor italic" style={{ color: "var(--ink-mute)" }}>
+                Ingen scener ennå. Legg til scener under «Manuskript».
+              </div>
+            ) : (
+              <select
+                data-testid="voice-scope-scene-select"
+                className="select-line w-full"
+                value={scopeSceneId}
+                onChange={(e) => setScopeSceneId(e.target.value)}
+              >
+                <option value="">Velg scene…</option>
+                {scenes.map((s) => (
+                  <option key={s.id} value={s.id}>{s.title} · {s.word_count || 0} ord</option>
+                ))}
+              </select>
+            )
+          )}
+          {scopeTab === "sample" && (
+            samples.length === 0 ? (
+              <div className="font-editor italic" style={{ color: "var(--ink-mute)" }}>
+                Ingen prøver ennå. Legg til prøver under «Prøver».
+              </div>
+            ) : (
+              <select
+                data-testid="voice-scope-sample-select"
+                className="select-line w-full"
+                value={scopeSampleId}
+                onChange={(e) => setScopeSampleId(e.target.value)}
+              >
+                <option value="">Velg prøve…</option>
+                {samples.map((s) => (
+                  <option key={s.id} value={s.id}>{s.title}</option>
+                ))}
+              </select>
+            )
+          )}
+          {scopeTab === "text" && (
+            <textarea
+              data-testid="voice-scope-text-input"
+              className="textarea-editor paper p-4 min-h-[160px] w-full"
+              placeholder="Lim inn avsnittet du vil analysere…"
+              value={scopeText}
+              onChange={(e) => setScopeText(e.target.value)}
+            />
+          )}
+
+          <div className="mt-5">
+            <button
+              data-testid="voice-scope-run-btn"
+              className="btn-primary inline-flex items-center gap-2"
+              onClick={runScope}
+              disabled={scopeLoading}
+            >
+              {scopeLoading ? <RefreshCcw size={16} strokeWidth={1.5} className="animate-spin" /> : <ScanSearch size={16} strokeWidth={1.5} />}
+              Analyser denne enheten
+            </button>
+          </div>
+        </div>
+
+        {scopeResult && (
+          <div id="scope-result" className="mt-12 scroll-mt-24">
+            <div className="p-4 md:p-5 mb-4" style={{ background: "var(--linen)", border: "1px solid var(--line)" }}>
+              <span className="label-ui" style={{ color: "var(--rust)" }}>Analyse av: </span>
+              <span className="font-serif-display text-lg" style={{ color: "var(--ink)" }}>{scopeResult.scope_label}</span>
+              <span className="label-ui ml-3" style={{ color: "var(--ink-mute)" }}>{scopeResult.word_count} ord</span>
+            </div>
+            <VoiceReport
+              data={scopeResult}
+              firstMetric={{ label: "Ord i enheten", value: scopeResult.word_count }}
+            />
+          </div>
+        )}
+      </div>
     </div>
+  );
+}
+
+function VoiceReport({ data, firstMetric }) {
+  return (
+    <>
+      {/* Numbers row */}
+      <div className="hairline-t hairline-b grid grid-cols-2 md:grid-cols-4">
+        <Metric label={firstMetric.label} value={firstMetric.value} />
+        <Metric label="Ord totalt" value={data.total_words?.toLocaleString("nb-NO")} b />
+        <Metric label="Setn.lengde" value={data.avg_sentence_length} b />
+        <Metric label="Ordforråd" value={`${Math.round((data.vocabulary_richness || 0) * 100)}%`} b />
+      </div>
+
+      {/* Section 01 — Slik skriver jeg */}
+      <Section
+        n="01"
+        icon={<User size={16} strokeWidth={1.4} />}
+        kicker="Slik skriver jeg"
+        title="Din stemme, slik den er nå"
+        subtitle="Tonen, stilen og signaturuttrykkene som gjør skriften din gjenkjennelig."
+        tid="voice-section-slik"
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          <div className="lg:col-span-7">
+            <div className="label-ui mb-3">Tone</div>
+            <p className="font-editor text-xl leading-relaxed" style={{ color: "var(--ink)" }}>
+              {data.tone_description || <span className="italic" style={{ color: "var(--ink-mute)" }}>—</span>}
+            </p>
+            <div className="rule my-8" />
+            <div className="label-ui mb-3">Stil</div>
+            <p className="font-editor text-lg leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+              {data.style_summary || <span className="italic" style={{ color: "var(--ink-mute)" }}>—</span>}
+            </p>
+            <div className="rule my-8" />
+            <div className="label-ui mb-3">Signaturuttrykk</div>
+            <div className="flex flex-wrap gap-2">
+              {(data.signature_phrases || []).length === 0 ? (
+                <span className="font-editor italic" style={{ color: "var(--ink-mute)" }}>—</span>
+              ) : (
+                data.signature_phrases.map((p, i) => (
+                  <span key={p + i} className="chip">{p}</span>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="lg:col-span-5">
+            <div className="label-ui mb-3">Setningslengde-fordeling</div>
+            <div style={{ width: "100%", height: 260 }}>
+              <ResponsiveContainer>
+                <BarChart data={data.sentence_length_distribution || []} margin={{ top: 10, right: 0, left: 0, bottom: 10 }}>
+                  <XAxis dataKey="range" tick={{ fill: "#7A7772", fontSize: 11, fontFamily: "IBM Plex Sans" }} axisLine={{ stroke: "#D9D4C7" }} tickLine={false} />
+                  <YAxis tick={{ fill: "#7A7772", fontSize: 11, fontFamily: "IBM Plex Sans" }} axisLine={{ stroke: "#D9D4C7" }} tickLine={false} />
+                  <Tooltip contentStyle={{ background: "#FFFFFF", border: "1px solid #D9D4C7", borderRadius: 2, fontFamily: "IBM Plex Sans", fontSize: 12 }} cursor={{ fill: "rgba(74,93,78,0.08)" }} />
+                  <Bar dataKey="count" fill="#4A5D4E" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="label-ui mt-8 mb-3">Ord du bruker ofte</div>
+            <ul>
+              {(data.top_words || []).slice(0, 10).map((w, i) => (
+                <li key={w.word + i} className="flex items-center justify-between py-1.5 hairline-b">
+                  <span className="font-editor" style={{ color: "var(--ink)" }}>{w.word}</span>
+                  <span className="label-ui">{w.count}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </Section>
+
+      {/* Section 02 — Dette avviker */}
+      <Section
+        n="02"
+        icon={<Eye size={16} strokeWidth={1.4} />}
+        kicker="Dette avviker"
+        title="Der stemmen din glir bort fra seg selv"
+        subtitle="Mønstre Bragarmål har lagt merke til — ikke feil, bare observasjoner. Du bestemmer om det er verdt å endre."
+        tid="voice-section-avviker"
+      >
+        {(data.deviations || []).length === 0 ? (
+          <div className="font-editor italic" style={{ color: "var(--ink-mute)" }}>
+            Ingen tydelige avvik ennå. Legg til flere prøver — særlig fra ulike sjangre og perioder — så blir mønstrene skarpere.
+          </div>
+        ) : (
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {data.deviations.map((d, i) => (
+              <li
+                key={d.slice(0, 30) + i}
+                className="p-5 md:p-6"
+                style={{ background: "var(--linen)", borderLeft: "2px solid var(--rust)" }}
+                data-testid={`voice-deviation-${i + 1}`}
+              >
+                <div className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--rust)" }}>
+                  {String(i + 1).padStart(2, "0")}
+                </div>
+                <p className="mt-2 font-editor text-base md:text-lg leading-relaxed" style={{ color: "var(--ink)" }}>
+                  {d}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
+
+      {/* Section 03 — Dette bør jeg passe på */}
+      <Section
+        n="03"
+        icon={<AlertTriangle size={16} strokeWidth={1.4} />}
+        kicker="Dette bør jeg passe på"
+        title="Vennlige merknader"
+        subtitle="Konkrete ting å være oppmerksom på. Ikke pekefinger — bare påminnelser fra en som har lest deg tett."
+        tid="voice-section-passe-paa"
+      >
+        {(data.watch_out_for || []).length === 0 ? (
+          <div className="font-editor italic" style={{ color: "var(--ink-mute)" }}>
+            Ingen påminnelser ennå. Kjør analysen på nytt når du har lagt til flere prøver.
+          </div>
+        ) : (
+          <ul className="space-y-3">
+            {data.watch_out_for.map((w, i) => (
+              <li
+                key={w.slice(0, 30) + i}
+                className="p-4 md:p-5 flex items-start gap-4"
+                style={{ background: "var(--paper)", border: "1px solid var(--line)" }}
+                data-testid={`voice-watch-${i + 1}`}
+              >
+                <span
+                  className="mt-1 shrink-0 inline-flex items-center justify-center font-mono-ui text-[10px] tracking-widest"
+                  style={{ background: "var(--moss)", color: "white", width: 22, height: 22 }}
+                >
+                  !
+                </span>
+                <p className="font-editor text-base md:text-lg leading-relaxed" style={{ color: "var(--ink)" }}>
+                  {w}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-6 label-ui" style={{ color: "var(--ink-mute)" }}>
+          Vil du sjekke en konkret tekst mot dette?{" "}
+          <Link to="/skriv" data-testid="voice-goto-compare" className="underline underline-offset-4" style={{ color: "var(--moss)" }}>
+            Bruk «Sammenlign med min stemme» i Skrivepulten →
+          </Link>
+        </div>
+      </Section>
+    </>
   );
 }
 
