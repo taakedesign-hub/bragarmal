@@ -182,9 +182,9 @@ export default function SamplesPage() {
             setSamples((s) => s.map((x) => (x.id === updated.id ? updated : x)));
             setOpenSample(updated);
           }}
-          onSendToWrite={(text, mode, temperature) => {
+          onSendToWrite={(text, mode) => {
             setOpenSample(null);
-            navigate("/skriv", { state: { draft: text, source: openSample.title, mode, autoRun: mode !== "next_steps", temperature } });
+            navigate("/skriv", { state: { draft: text, source: openSample.title, mode, autoRun: mode !== "next_steps" } });
           }}
         />
       )}
@@ -200,7 +200,6 @@ function SampleEditorModal({ sample, onClose, onSaved, onSendToWrite }) {
   const [title, setTitle] = useState(sample.title || "");
   const [content, setContent] = useState(sample.content || "");
   const [saving, setSaving] = useState(false);
-  const [temperature, setTemperature] = useState(0.7);
 
   useEffect(() => {
     const handler = (e) => { if (e.key === "Escape") onClose(); };
@@ -287,37 +286,11 @@ function SampleEditorModal({ sample, onClose, onSaved, onSendToWrite }) {
 
         {/* Footer — actions */}
         <div className="px-6 py-4 hairline-t space-y-3">
-          {/* Temperature — governs the tone of the humanize/continue run */}
-          <div className="flex items-center gap-2 flex-wrap" data-testid="sample-editor-temperature-row">
-            <span className="font-mono-ui text-[10px] tracking-widest mr-1" style={{ color: "var(--ink-mute)" }}>
-              TEMPERATUR
-            </span>
-            {[
-              { v: 0.3, label: "Lav" },
-              { v: 0.7, label: "Middels" },
-              { v: 1.0, label: "Høy" },
-            ].map((t) => (
-              <button
-                key={t.v}
-                data-testid={`sample-editor-temp-${t.v}`}
-                onClick={() => setTemperature(t.v)}
-                className="px-3 py-1 font-mono-ui text-[10px] tracking-widest transition-all"
-                style={{
-                  border: `1px solid ${temperature === t.v ? "var(--rust)" : "var(--line)"}`,
-                  background: temperature === t.v ? "var(--rust)" : "transparent",
-                  color: temperature === t.v ? "var(--paper)" : "var(--ink)",
-                }}
-              >
-                {t.label} · {t.v.toFixed(1)}
-              </button>
-            ))}
-          </div>
-
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-4 flex-wrap">
               <button
                 data-testid="sample-editor-send-to-write"
-                onClick={() => onSendToWrite(content, "next_steps", temperature)}
+                onClick={() => onSendToWrite(content, "next_steps")}
                 disabled={content.trim().length < 20}
                 className="inline-flex items-center gap-2 font-mono-ui text-[11px] tracking-widest hover:opacity-70 transition-opacity disabled:opacity-40"
                 style={{ color: "var(--ink)" }}
@@ -328,7 +301,7 @@ function SampleEditorModal({ sample, onClose, onSaved, onSendToWrite }) {
               </button>
               <button
                 data-testid="sample-editor-humanize"
-                onClick={() => onSendToWrite(content, "voice_match", temperature)}
+                onClick={() => onSendToWrite(content, "voice_match")}
                 disabled={content.trim().length < 20}
                 className="inline-flex items-center gap-2 font-mono-ui text-[11px] tracking-widest hover:opacity-70 transition-opacity disabled:opacity-40"
                 style={{ color: "var(--rust)" }}

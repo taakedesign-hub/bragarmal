@@ -3,7 +3,7 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import { api, BACKEND } from "@/lib/api";
 import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
-import { Copy, RefreshCcw, Gauge, BookmarkPlus, X, Download, Mail, FileText, Share2, Loader2, Compass, BookOpen, GitCompare } from "lucide-react";
+import { Copy, RefreshCcw, BookmarkPlus, X, Download, Mail, FileText, Share2, Loader2, Compass, BookOpen, GitCompare } from "lucide-react";
 import jsPDF from "jspdf";
 
 const MODES = [
@@ -42,7 +42,6 @@ const LENGTHS = [
 export default function WritePage() {
   const [mode, setMode] = useState("next_steps");
   const [length, setLength] = useState("medium");
-  const [temperature, setTemperature] = useState(0.7);
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -63,12 +62,10 @@ export default function WritePage() {
     if (draft && typeof draft === "string") {
       const requestedMode = location.state?.mode || "reflect";
       const autoRun = !!location.state?.autoRun;
-      const passedTemp = location.state?.temperature;
       setInput(draft);
       // Guard: only allow modes that still exist
       const validModes = MODES.map((m) => m.id);
       setMode(validModes.includes(requestedMode) ? requestedMode : "reflect");
-      if (typeof passedTemp === "number") setTemperature(passedTemp);
       toast(`Utkast hentet${location.state?.source ? ` fra "${location.state.source}"` : ""}`);
       // Clear state so a refresh doesn't refill
       navigate(location.pathname, { replace: true, state: {} });
@@ -137,7 +134,7 @@ export default function WritePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ mode, text: input, length, temperature }),
+        body: JSON.stringify({ mode, text: input, length }),
         signal: ctrl.signal,
       });
       if (!res.ok || !res.body) {
@@ -424,21 +421,8 @@ export default function WritePage() {
       </div>
 
       {/* Controls row */}
-      <div className="mt-8 hairline-t hairline-b py-5 grid grid-cols-2 gap-4">
-        {mode !== "voice_match" && (
-          <ControlSelect
-            label="Temperatur"
-            tid="write-temperature-select"
-            value={String(temperature)}
-            onChange={(v) => setTemperature(Number(v))}
-            options={[
-              { value: "0.3", label: "Lav · trygg og kontrollert" },
-              { value: "0.7", label: "Middels · naturlig balanse" },
-              { value: "1", label: "Høy · frekk og kreativ" },
-            ]}
-          />
-        )}
-        {mode === "reflect" && (
+      {mode === "reflect" && (
+        <div className="mt-8 hairline-t hairline-b py-5 grid grid-cols-2 gap-4">
           <ControlSelect
             label="Lengde på lesning"
             tid={TID.writeLengthSelect}
@@ -446,18 +430,8 @@ export default function WritePage() {
             onChange={setLength}
             options={LENGTHS.map((l) => ({ value: l.id, label: l.label }))}
           />
-        )}
-      </div>
-      <div className="mt-3 flex items-center justify-end">
-        <Link
-          to="/eksempler#temperatur"
-          className="font-mono-ui text-[10px] tracking-widest hover:underline"
-          style={{ color: "var(--ink-mute)" }}
-          data-testid="write-temperature-help-link"
-        >
-          HVA ER TEMPERATUR? →
-        </Link>
-      </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10">
         {/* Input */}

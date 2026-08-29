@@ -364,28 +364,6 @@ export default function ExamplesPage() {
         </div>
       </section>
 
-      {/* Temperatur — still relevant to reflect/next_steps */}
-      <section id="temperatur" className="hairline-t scroll-mt-24">
-        <div className="max-w-[1200px] mx-auto px-6 md:px-10 py-16 md:py-20">
-          <div className="grid grid-cols-12 gap-6 md:gap-10 items-start">
-            <div className="col-span-12 md:col-span-4">
-              <div className="label-ui">Temperatur</div>
-              <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
-                Hvor <em className="italic" style={{ color: "var(--moss)" }}>frekk</em> skal Bragarmål være?
-              </h2>
-              <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
-                Temperatur styrer hvor «trygg» eller «kreativ» forslagene blir i «Finn veien videre» og «Les det jeg har». Du velger — det finnes ingen fasit.
-              </p>
-            </div>
-            <div className="col-span-12 md:col-span-8 space-y-6">
-              <TempTier range="0.3" title="Lav" desc="Forsiktig, stabil, «korrekt». Trygg — men kan føles flat." />
-              <TempTier range="0.7" title="Middels" recommended desc="Balanse mellom kontroll og variasjon. Beste utgangspunkt for de fleste." />
-              <TempTier range="1.0" title="Høy" desc="Frekkere, mer uforutsigbar. Mer personlighet — men kan spore av." />
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
       <section className="hairline-t">
         <div className="max-w-[1200px] mx-auto px-6 md:px-10 py-14 flex items-center justify-between flex-wrap gap-6">
@@ -487,17 +465,3 @@ function TipCard({ title, body }) {
   );
 }
 
-function TempTier({ range, title, desc, recommended }) {
-  return (
-    <div className="p-5 md:p-6 flex items-start gap-5 md:gap-6" style={{ background: "var(--paper)", border: `1px solid ${recommended ? "var(--moss)" : "var(--line)"}` }}>
-      <div className="shrink-0 w-20">
-        <div className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--ink-mute)" }}>{range}</div>
-        <div className="font-serif-display text-xl mt-1" style={{ color: "var(--ink)" }}>{title}</div>
-        {recommended && (
-          <span className="mt-2 inline-block font-mono-ui text-[9px] tracking-widest px-1.5 py-0.5" style={{ background: "var(--moss)", color: "white" }}>ANBEFALT</span>
-        )}
-      </div>
-      <p className="font-editor text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>{desc}</p>
-    </div>
-  );
-}
