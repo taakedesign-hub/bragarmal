@@ -1,11 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
-import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 
 export default function InfoMenu({ align = "right" }) {
-  const { user } = useAuth();
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -27,18 +25,6 @@ export default function InfoMenu({ align = "right" }) {
         { to: "/priser",    label: t("info.pricing"),   desc: t("info.pricingDesc") },
       ],
     },
-    user ? {
-      heading: t("info.yourTools"),
-      items: [
-        { to: "/dashboard",  label: t("info.yourPage"),    desc: t("info.yourPageDesc") },
-        { to: "/prover",     label: t("info.samples"),     desc: t("info.samplesDesc") },
-        { to: "/stemme",     label: t("info.voice"),       desc: t("info.voiceDesc") },
-        { to: "/skriv",      label: t("info.write"),       desc: t("info.writeDesc") },
-        { to: "/manuskript", label: t("info.manuscript"),  desc: t("info.manuscriptDesc") },
-        { to: "/karakterer", label: t("info.characters"),  desc: t("info.charactersDesc") },
-        { to: "/tips",       label: t("info.tips"),        desc: t("info.tipsDesc") },
-      ],
-    } : null,
     {
       heading: t("info.contact"),
       items: [

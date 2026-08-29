@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Logo from "@/components/Logo";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -8,9 +8,20 @@ import InfoMenu from "@/components/InfoMenu";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Footer from "@/components/Footer";
 
+const TOOLS = [
+  { to: "/dashboard", tid: "toolnav-dashboard", key: "info.yourPage" },
+  { to: "/prover", tid: "toolnav-prover", key: "info.samples" },
+  { to: "/stemme", tid: "toolnav-stemme", key: "info.voice" },
+  { to: "/skriv", tid: "toolnav-skriv", key: "info.write" },
+  { to: "/manuskript", tid: "toolnav-manuskript", key: "info.manuscript" },
+  { to: "/karakterer", tid: "toolnav-karakterer", key: "info.characters" },
+  { to: "/tips", tid: "toolnav-tips", key: "info.tips" },
+];
+
 export default function AppShell({ children }) {
   const { user, logout } = useAuth();
   const { t } = useI18n();
+  const location = useLocation();
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
@@ -29,12 +40,6 @@ export default function AppShell({ children }) {
           {/* Kompakt nav */}
           <nav className="flex items-center gap-0.5 md:gap-2 shrink min-w-0">
             <InfoMenu align="right" />
-            <Link to="/dashboard" data-testid="nav-skrivepult" className="label-ui px-1.5 md:px-3 py-2 whitespace-nowrap" style={{ color: "var(--ink-mute)" }}>
-              {t("nav.tools")}
-            </Link>
-            <Link to="/dashboard" data-testid="nav-forfattere" className="label-ui px-1.5 md:px-3 py-2 whitespace-nowrap" style={{ color: "var(--ink-mute)" }}>
-              {t("nav.author")}
-            </Link>
             <Link to="/illustratorer" data-testid="nav-illustrators" className="label-ui px-1.5 md:px-3 py-2 whitespace-nowrap" style={{ color: "var(--ink-mute)" }}>
               {t("nav.illustrator")}
             </Link>
@@ -62,6 +67,29 @@ export default function AppShell({ children }) {
               <LogOut size={14} strokeWidth={1.5} />
               <span className="hidden sm:inline">{t("nav.logout")}</span>
             </button>
+          </div>
+        </div>
+
+        {/* Verktøylinje — alltid synlig, direkte lenke til hvert verktøy fra hver side i skrivepulten */}
+        <div className="hairline-t overflow-x-auto">
+          <div className="max-w-[1400px] mx-auto px-4 md:px-10 flex items-center gap-1 md:gap-2">
+            {TOOLS.map((tool) => {
+              const active = location.pathname === tool.to;
+              return (
+                <Link
+                  key={tool.to}
+                  to={tool.to}
+                  data-testid={tool.tid}
+                  className="label-ui px-2.5 md:px-3 py-2.5 whitespace-nowrap shrink-0"
+                  style={{
+                    color: active ? "var(--moss)" : "var(--ink-mute)",
+                    borderBottom: active ? "2px solid var(--moss)" : "2px solid transparent",
+                  }}
+                >
+                  {t(tool.key)}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </header>
