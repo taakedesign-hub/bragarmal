@@ -1463,54 +1463,6 @@ async def delete_snapshot(snapshot_id: str, user: User = Depends(get_current_use
     return {"ok": True}
 
 
-# ---------- Inspirations (reference authors) ----------
-class InspirationCreate(BaseModel):
-    name: str
-    note: Optional[str] = ""
-
-
-@api_router.get("/inspirations")
-async def list_inspirations(user: User = Depends(get_current_user)):
-    docs = await db.inspirations.find(
-        {"user_id": user.user_id}, {"_id": 0}
-    ).sort("created_at", 1).to_list(100)
-    return docs
-
-
-@api_router.post("/inspirations")
-async def add_inspiration(body: InspirationCreate, user: User = Depends(get_current_user)):
-    name = body.name.strip()
-    if not name:
-        raise HTTPException(status_code=400, detail="Forfatternavn kan ikke være tomt")
-    if len(name) > 120:
-        raise HTTPException(status_code=400, detail="Navnet er for langt")
-    existing = await db.inspirations.find_one(
-        {"user_id": user.user_id, "name_lower": name.lower()}, {"_id": 0}
-    )
-    if existing:
-        raise HTTPException(status_code=400, detail="Denne forfatteren finnes allerede")
-    doc = {
-        "id": str(uuid.uuid4()),
-        "user_id": user.user_id,
-        "name": name,
-        "name_lower": name.lower(),
-        "note": (body.note or "").strip()[:400],
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    }
-    await db.inspirations.insert_one(doc)
-    doc.pop("name_lower", None)
-    doc.pop("_id", None)
-    return doc
-
-
-@api_router.delete("/inspirations/{insp_id}")
-async def delete_inspiration(insp_id: str, user: User = Depends(get_current_user)):
-    r = await db.inspirations.delete_one({"id": insp_id, "user_id": user.user_id})
-    if r.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Ikke funnet")
-    return {"ok": True}
-
-
 # ---------- Custom AI helpers (user's own key + persona) ----------
 HELPER_PROVIDERS = {"openai", "anthropic", "gemini"}
 
@@ -1708,18 +1660,13 @@ def _anti_slop_rules() -> str:
     )
 
 
-def build_voice_system_prompt(profile: Optional[dict], samples: List[dict], inspirations: List[dict], humanize_level: int) -> str:
+def build_voice_system_prompt(profile: Optional[dict], samples: List[dict], humanize_level: int) -> str:
     base = (
         "Du er en skygge-skriver som gjenskaper en spesifikk norsk forfatters stemme perfekt. "
         "Du skriver ALLTID på norsk (bokmål med mindre prøvene tydelig er nynorsk). "
         "Målet er tekst som verken føles maskinell eller generisk. "
-        "\n\n"
-        "ABSOLUTT REGEL OM REFERANSEFORFATTERE: Hvis brukeren har oppgitt litterære slektninger "
-        "(referanseforfattere), skal du ALDRI, under noen omstendighet, plagiere eller kopiere "
-        "deres stemme direkte. Du skal heller ikke navngi dem, låne deres kjente motiver, karakterer "
-        "eller kjennemerkevendinger. Referanseforfattere brukes KUN som svakt bakteppe for å hjelpe "
-        "deg forstå hvilket landskap brukerens egen stemme beveger seg i. Sluttresultatet skal alltid "
-        "være brukerens egen stemme, slik den fremgår av hennes prøvetekster — aldri en imitasjon."
+        "Sluttresultatet skal alltid være brukerens egen stemme, slik den fremgår av hennes "
+        "prøvetekster — aldri en imitasjon av noen andre."
     )
 
     base += _anti_slop_rules()
@@ -1747,23 +1694,6 @@ def build_voice_system_prompt(profile: Optional[dict], samples: List[dict], insp
                 break
         base += "\n--- REFERANSE FRA FORFATTERENS EGNE TEKSTER (etterlign rytme og ordvalg) ---\n"
         base += "\n\n---\n\n".join(excerpts)
-
-    if inspirations:
-        base += "\n\n--- LITTERÆRE SLEKTNINGER (KUN BAKTEPPE — ALDRI PLAGIER) ---\n"
-        base += (
-            "Forfatteren kjenner seg beslektet med disse. Bruk dem som et svakt "
-            "orienteringspunkt — for å forstå hvilket landskap brukerens stemme beveger seg i. "
-            "IKKE etterlign dem. IKKE nevn dem. IKKE lån kjente vendinger eller motiver fra dem. "
-            "Brukerens egen stemme, slik den fremgår av hennes prøvetekster, kommer alltid først.\n"
-        )
-        lines = []
-        for i in inspirations[:10]:
-            note = (i.get("note") or "").strip()
-            if note:
-                lines.append(f"- {i['name']} — {note}")
-            else:
-                lines.append(f"- {i['name']}")
-        base += "\n".join(lines)
 
     if humanize_level >= 2:
         base += (
@@ -1824,11 +1754,8 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
     all_samples = await db.samples.find({"user_id": user.user_id}, {"_id": 0}).sort("created_at", -1).to_list(30)
     # Only use HUMAN samples as style anchors for generation
     samples = [s for s in all_samples if s.get("category", "ren_menneske_ny") in HUMAN_CATEGORIES][:20]
-    inspirations = await db.inspirations.find(
-        {"user_id": user.user_id}, {"_id": 0, "name_lower": 0}
-    ).sort("created_at", 1).to_list(20)
 
-    system = build_voice_system_prompt(profile, samples, inspirations, body.humanize_level)
+    system = build_voice_system_prompt(profile, samples, body.humanize_level)
 
     if helper_persona:
         system += (

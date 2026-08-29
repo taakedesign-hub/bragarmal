@@ -4,27 +4,21 @@ import { api } from "@/lib/api";
 import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
-import { Sparkles, RefreshCcw, Plus, X, User, AlertTriangle, Eye } from "lucide-react";
+import { Sparkles, RefreshCcw, User, AlertTriangle, Eye } from "lucide-react";
 
 export default function VoicePage() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [samplesCount, setSamplesCount] = useState(0);
-  const [inspirations, setInspirations] = useState([]);
-  const [inspName, setInspName] = useState("");
-  const [inspNote, setInspNote] = useState("");
-  const [addingInsp, setAddingInsp] = useState(false);
 
   const load = async () => {
     try {
-      const [p, s, i] = await Promise.all([
+      const [p, s] = await Promise.all([
         api.get("/voice/profile"),
         api.get("/samples"),
-        api.get("/inspirations"),
       ]);
       setProfile(p.data || null);
       setSamplesCount((s.data || []).length);
-      setInspirations(i.data || []);
     } catch (e) { console.debug("voice load failed", e); }
   };
   useEffect(() => { load(); }, []);
@@ -44,33 +38,6 @@ export default function VoicePage() {
       toast(e?.response?.data?.detail || "Kunne ikke analysere");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const addInsp = async (e) => {
-    e?.preventDefault?.();
-    const name = inspName.trim();
-    if (!name) return;
-    setAddingInsp(true);
-    try {
-      const r = await api.post("/inspirations", { name, note: inspNote.trim() });
-      setInspirations((arr) => [...arr, r.data]);
-      setInspName("");
-      setInspNote("");
-      toast("Lagt til");
-    } catch (e) {
-      toast(e?.response?.data?.detail || "Kunne ikke legge til");
-    } finally {
-      setAddingInsp(false);
-    }
-  };
-
-  const removeInsp = async (id) => {
-    try {
-      await api.delete(`/inspirations/${id}`);
-      setInspirations((arr) => arr.filter((i) => i.id !== id));
-    } catch {
-      toast("Kunne ikke fjerne");
     }
   };
 
@@ -258,95 +225,6 @@ export default function VoicePage() {
         </div>
       )}
 
-      {/* Inspirations section */}
-      <div className="mt-24">
-        <div className="hairline-t pt-10">
-          <div className="label-ui">Litterære slektninger</div>
-          <h2 className="font-serif-display text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
-            Forfattere hvis stemme ligner din
-          </h2>
-          <p className="font-editor mt-4 max-w-[65ch]" style={{ color: "var(--ink-soft)" }}>
-            Legg til navn på forfattere du har lest mye eller kjenner deg beslektet med.
-            De brukes som et svakt bakteppe i generering — aldri for å imitere direkte,
-            men for å nikke til rytmen og tematikken du kjenner igjen i deg selv.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mt-10">
-          <form onSubmit={addInsp} className="lg:col-span-5">
-            <div className="label-ui mb-2">Navn</div>
-            <input
-              data-testid={TID.inspirationNameInput}
-              className="input-line"
-              placeholder="F.eks. Karin Fossum"
-              value={inspName}
-              onChange={(e) => setInspName(e.target.value)}
-            />
-            <div className="label-ui mt-6 mb-2">Notat (valgfritt)</div>
-            <input
-              data-testid={TID.inspirationNoteInput}
-              className="input-line"
-              placeholder="Hva du gjenkjenner — f.eks. «psykologisk uro, korte kapitler»"
-              value={inspNote}
-              onChange={(e) => setInspNote(e.target.value)}
-              maxLength={400}
-            />
-            <div className="mt-6">
-              <button
-                data-testid={TID.inspirationAddBtn}
-                type="submit"
-                className="btn-primary inline-flex items-center gap-2"
-                disabled={addingInsp || !inspName.trim()}
-              >
-                <Plus size={16} strokeWidth={1.5} /> {addingInsp ? "Legger til…" : "Legg til"}
-              </button>
-            </div>
-          </form>
-
-          <div className="lg:col-span-7">
-            <div className="hairline-b pb-3 flex items-center justify-between">
-              <span className="label-ui">Dine slektninger</span>
-              <span className="label-ui">{inspirations.length}</span>
-            </div>
-            {inspirations.length === 0 ? (
-              <div className="mt-6 font-editor italic" style={{ color: "var(--ink-mute)" }}>
-                Ingen lagt til ennå.
-              </div>
-            ) : (
-              <ul className="mt-2">
-                {inspirations.map((i) => (
-                  <li
-                    key={i.id}
-                    data-testid={TID.inspirationItem(i.id)}
-                    className="hairline-b py-4 flex items-start gap-4"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="font-serif-display text-xl" style={{ color: "var(--ink)" }}>
-                        {i.name}
-                      </div>
-                      {i.note && (
-                        <div className="font-editor text-sm mt-1" style={{ color: "var(--ink-soft)" }}>
-                          {i.note}
-                        </div>
-                      )}
-                    </div>
-                    <button
-                      data-testid={TID.inspirationDeleteBtn(i.id)}
-                      onClick={() => removeInsp(i.id)}
-                      aria-label="Fjern"
-                      title="Fjern"
-                      className="p-2"
-                      style={{ color: "var(--ink-mute)" }}
-                    >
-                      <X size={16} strokeWidth={1.4} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

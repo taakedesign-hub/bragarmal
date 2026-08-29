@@ -60,10 +60,4 @@ export const TID = {
   writeEmailBtn: "write-email-btn",
   // Footer
   footerContactLink: "footer-contact-link",
-  // Inspirations
-  inspirationNameInput: "inspiration-name-input",
-  inspirationNoteInput: "inspiration-note-input",
-  inspirationAddBtn: "inspiration-add-btn",
-  inspirationItem: (id) => `inspiration-item-${id}`,
-  inspirationDeleteBtn: (id) => `inspiration-delete-${id}`,
 };
