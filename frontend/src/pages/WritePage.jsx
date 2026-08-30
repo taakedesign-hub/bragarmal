@@ -73,6 +73,9 @@ export default function WritePage() {
         setTimeout(() => { generateRef.current?.(); }, 100);
       }
     }
+    // Intentionally only re-runs when a new draft arrives via navigation state —
+    // the other location.state/navigate reads are one-shot consumption of that same payload.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state?.draft]);
 
   // Keep a stable ref to generate so the effect above can call it without stale closure
