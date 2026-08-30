@@ -5,6 +5,8 @@ import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
 import { Copy, RefreshCcw, BookmarkPlus, X, Download, Mail, FileText, Share2, Loader2, Compass, BookOpen, GitCompare } from "lucide-react";
 import jsPDF from "jspdf";
+import { useWrittenForm } from "@/lib/writtenForm";
+import WrittenFormToggle from "@/components/WrittenFormToggle";
 
 const MODES = [
   {
@@ -351,6 +353,7 @@ export default function WritePage() {
   };
 
   const [composition, setComposition] = useState(false);
+  const [writtenForm, setWrittenForm] = useWrittenForm();
 
   return (
     <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-12">
@@ -469,9 +472,12 @@ export default function WritePage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10">
         {/* Input */}
         <div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="label-ui">Din tekst</div>
-            <div className="label-ui">{activeMode?.hint}</div>
+            <div className="flex items-center gap-3">
+              <WrittenFormToggle form={writtenForm} onChange={setWrittenForm} />
+              <div className="label-ui">{activeMode?.hint}</div>
+            </div>
           </div>
           <textarea
             data-testid={TID.writePromptInput}
@@ -479,6 +485,8 @@ export default function WritePage() {
             placeholder="Lim inn eller skriv teksten din her…"
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            lang={writtenForm}
+            spellCheck="true"
           />
           <div className="mt-4 flex items-center gap-3">
             {!streaming ? (
@@ -932,13 +940,14 @@ export default function WritePage() {
           input={input}
           onInputChange={setInput}
           onClose={() => setComposition(false)}
+          writtenForm={writtenForm}
         />
       )}
     </div>
   );
 }
 
-function CompositionMode({ input, onInputChange, onClose }) {
+function CompositionMode({ input, onInputChange, onClose, writtenForm }) {
   useEffect(() => {
     const h = (e) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", h);
@@ -968,6 +977,8 @@ function CompositionMode({ input, onInputChange, onClose }) {
           placeholder="Skriv fritt. Ingen andre distraksjoner nå."
           className="w-full h-full max-w-[70ch] mx-auto px-8 py-16 bg-transparent font-editor text-lg md:text-xl leading-[1.9] outline-none resize-none"
           style={{ color: "var(--ink)", minHeight: "calc(100vh - 80px)" }}
+          lang={writtenForm}
+          spellCheck="true"
         />
       </div>
     </div>

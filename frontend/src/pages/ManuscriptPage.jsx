@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { api, BACKEND } from "@/lib/api";
 import { toast } from "sonner";
 import { Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, X as XIcon, Loader2, BookOpen, Save, Download, ScrollText, Camera, RotateCcw, Target, Rows3, LayoutGrid, UserRound } from "lucide-react";
+import { useWrittenForm } from "@/lib/writtenForm";
+import WrittenFormToggle from "@/components/WrittenFormToggle";
 
 const STATUS_META = {
   skisse:   { label: "Skisse",   color: "#a6a29a" },
@@ -404,6 +406,7 @@ function SceneContentEditor({ scene, characters = [], onClose, onSaved, onSnapsh
   const [title, setTitle] = useState(scene.title || "");
   const [saving, setSaving] = useState(false);
   const [viewingChar, setViewingChar] = useState(null);
+  const [writtenForm, setWrittenForm] = useWrittenForm();
 
   useEffect(() => {
     const h = (e) => { if (e.key === "Escape") onClose(); };
@@ -446,9 +449,12 @@ function SceneContentEditor({ scene, characters = [], onClose, onSaved, onSnapsh
       >
         <div className="flex items-center justify-between px-6 py-4 hairline-b">
           <span className="label-ui">Sceneinnhold · {wc} ord</span>
-          <button onClick={onClose} className="p-2 hover:opacity-70" style={{ color: "var(--ink-mute)" }}>
-            <XIcon size={18} strokeWidth={1.3} />
-          </button>
+          <div className="flex items-center gap-3">
+            <WrittenFormToggle form={writtenForm} onChange={setWrittenForm} />
+            <button onClick={onClose} className="p-2 hover:opacity-70" style={{ color: "var(--ink-mute)" }}>
+              <XIcon size={18} strokeWidth={1.3} />
+            </button>
+          </div>
         </div>
         <div className="flex-1 overflow-auto px-6 py-5">
           <input
@@ -465,6 +471,8 @@ function SceneContentEditor({ scene, characters = [], onClose, onSaved, onSnapsh
             placeholder="Skriv scenen …"
             className="w-full mt-4 bg-transparent font-editor text-base outline-none resize-none leading-relaxed"
             style={{ color: "var(--ink)", minHeight: "50vh" }}
+            lang={writtenForm}
+            spellCheck="true"
           />
           {mentioned.length > 0 && (
             <div className="mt-4 pt-4 hairline-t flex items-center gap-2 flex-wrap">

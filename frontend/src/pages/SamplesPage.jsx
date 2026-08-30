@@ -8,6 +8,8 @@ import {
   BookOpen, X as XIcon, Save, ArrowRight, GitCompare
 } from "lucide-react";
 import { useCategories, labelForCategory } from "@/lib/categories";
+import { useWrittenForm } from "@/lib/writtenForm";
+import WrittenFormToggle from "@/components/WrittenFormToggle";
 
 const TABS = [
   { id: "paste", label: "Lim inn", icon: ClipboardPaste, tid: "tab-paste" },
@@ -201,6 +203,7 @@ function SampleEditorModal({ sample, onClose, onSaved, onSendToWrite }) {
   const [content, setContent] = useState(sample.content || "");
   const [saving, setSaving] = useState(false);
   const [temperature, setTemperature] = useState(0.7);
+  const [writtenForm, setWrittenForm] = useWrittenForm();
 
   useEffect(() => {
     const handler = (e) => { if (e.key === "Escape") onClose(); };
@@ -252,15 +255,18 @@ function SampleEditorModal({ sample, onClose, onSaved, onSendToWrite }) {
               {sourceLabel(sample.source)} · {wordCount} ord
             </span>
           </div>
-          <button
-            onClick={onClose}
-            aria-label="Lukk"
-            className="p-2 hover:opacity-70 transition-opacity"
-            style={{ color: "var(--ink-mute)" }}
-            data-testid="sample-editor-close"
-          >
-            <XIcon size={18} strokeWidth={1.3} />
-          </button>
+          <div className="flex items-center gap-3 shrink-0">
+            <WrittenFormToggle form={writtenForm} onChange={setWrittenForm} />
+            <button
+              onClick={onClose}
+              aria-label="Lukk"
+              className="p-2 hover:opacity-70 transition-opacity"
+              style={{ color: "var(--ink-mute)" }}
+              data-testid="sample-editor-close"
+            >
+              <XIcon size={18} strokeWidth={1.3} />
+            </button>
+          </div>
         </div>
 
         {/* Body — title + content */}
@@ -282,6 +288,8 @@ function SampleEditorModal({ sample, onClose, onSaved, onSendToWrite }) {
             placeholder="Skriv eller rediger teksten din …"
             className="w-full mt-4 bg-transparent font-editor text-base outline-none border-none resize-none leading-relaxed"
             style={{ color: "var(--ink)", minHeight: "50vh" }}
+            lang={writtenForm}
+            spellCheck="true"
           />
         </div>
 
@@ -371,6 +379,7 @@ function PasteForm({ onSaved }) {
   const [category, setCategory] = useState("ren_menneske_ny");
   const [submitting, setSubmitting] = useState(false);
   const cats = useCategories();
+  const [writtenForm, setWrittenForm] = useWrittenForm();
 
   const submit = async (e) => {
     e?.preventDefault?.();
@@ -395,12 +404,17 @@ function PasteForm({ onSaved }) {
         value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
+      <div className="mt-6 flex justify-end">
+        <WrittenFormToggle form={writtenForm} onChange={setWrittenForm} />
+      </div>
       <textarea
         data-testid={TID.sampleContentInput}
-        className="textarea-editor paper p-6 min-h-[280px] mt-6"
+        className="textarea-editor paper p-6 min-h-[280px] mt-2"
         placeholder="Lim inn en tekst du har skrevet — en scene, et essay, en dagbokoppføring…"
         value={content}
         onChange={(e) => setContent(e.target.value)}
+        lang={writtenForm}
+        spellCheck="true"
       />
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
         <div>
@@ -493,6 +507,7 @@ function ScanForm({ onSaved }) {
   const [title, setTitle] = useState("");
   const [preview, setPreview] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [writtenForm, setWrittenForm] = useWrittenForm();
 
   const scan = async (file) => {
     if (!file) return;
@@ -573,12 +588,17 @@ function ScanForm({ onSaved }) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
+          <div className="mt-6 flex justify-end">
+            <WrittenFormToggle form={writtenForm} onChange={setWrittenForm} />
+          </div>
           <textarea
             data-testid={TID.sampleScanReviewInput}
-            className="textarea-editor paper p-6 min-h-[240px] mt-6"
+            className="textarea-editor paper p-6 min-h-[240px] mt-2"
             placeholder="Transkribert tekst vises her — juster feil før du lagrer"
             value={text}
             onChange={(e) => setText(e.target.value)}
+            lang={writtenForm}
+            spellCheck="true"
           />
           <div className="mt-6 flex items-center justify-between">
             <span className="label-ui">
@@ -607,6 +627,7 @@ function AudioForm({ onSaved }) {
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [writtenForm, setWrittenForm] = useWrittenForm();
   const mediaRef = useRef(null);
   const chunksRef = useRef([]);
   const startedAtRef = useRef(0);
@@ -745,12 +766,17 @@ function AudioForm({ onSaved }) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
+          <div className="mt-6 flex justify-end">
+            <WrittenFormToggle form={writtenForm} onChange={setWrittenForm} />
+          </div>
           <textarea
             data-testid={TID.sampleAudioReviewInput}
-            className="textarea-editor paper p-6 min-h-[220px] mt-6"
+            className="textarea-editor paper p-6 min-h-[220px] mt-2"
             placeholder="Transkriberingen dukker opp her — rett feil før du lagrer"
             value={text}
             onChange={(e) => setText(e.target.value)}
+            lang={writtenForm}
+            spellCheck="true"
           />
           <div className="mt-6 flex items-center justify-between">
             <span className="label-ui">
