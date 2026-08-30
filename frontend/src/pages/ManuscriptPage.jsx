@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, BACKEND } from "@/lib/api";
 import { toast } from "sonner";
-import { Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, X as XIcon, Loader2, BookOpen, Save, Download, ScrollText, Camera, RotateCcw, Target } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, X as XIcon, Loader2, BookOpen, Save, Download, ScrollText, Camera, RotateCcw, Target, Rows3, LayoutGrid } from "lucide-react";
 
 const STATUS_META = {
   skisse:   { label: "Skisse",   color: "#a6a29a" },
@@ -32,6 +32,7 @@ export default function ManuscriptPage() {
   const [goals, setGoals] = useState({ total_goal: 0, session_goal: 0 });
   const [goalOpen, setGoalOpen] = useState(false);
   const [snapshotsFor, setSnapshotsFor] = useState(null);
+  const [view, setView] = useState("table"); // "table" | "grid"
 
   const load = async () => {
     setLoading(true);
@@ -149,6 +150,16 @@ export default function ManuscriptPage() {
               {showSynopsis ? "SKJUL SYNOPSIS" : "VIS SYNOPSIS"}
             </button>
             <button
+              onClick={() => setView((v) => (v === "table" ? "grid" : "table"))}
+              className="inline-flex items-center gap-2 font-mono-ui text-[11px] tracking-widest hover:underline"
+              style={{ color: "var(--ink-mute)" }}
+              data-testid="ms-toggle-view"
+              title="Bytt mellom tabell og rutenett"
+            >
+              {view === "table" ? <LayoutGrid size={13} strokeWidth={1.5} /> : <Rows3 size={13} strokeWidth={1.5} />}
+              {view === "table" ? "RUTENETT" : "TABELL"}
+            </button>
+            <button
               onClick={addScene}
               className="inline-flex items-center gap-2 px-4 py-2 font-mono-ui text-[11px] tracking-widest"
               style={{ background: "var(--ink)", color: "var(--paper)" }}
@@ -162,6 +173,7 @@ export default function ManuscriptPage() {
         <p className="font-editor mt-4 max-w-[65ch]" style={{ color: "var(--ink-soft)" }}>
           Se hele manuskriptet på ett brett. Sorter, rediger og hold oversikt over
           POV, stedslegninger, statuser og ordantall. Klikk på en scene for å redigere innholdet.
+          Bytt til rutenett for å se strukturen visuelt — nyttig for å oppdage hull i tempoet.
         </p>
       </div>
 
@@ -172,7 +184,17 @@ export default function ManuscriptPage() {
         onEdit={() => setGoalOpen(true)}
       />
 
-      {/* Table */}
+      {/* Table or grid */}
+      {view === "grid" ? (
+        <PlotGrid
+          scenes={[...scenes].sort((a, b) => a.order - b.order)}
+          loading={loading}
+          onOpen={setEditorScene}
+          onSnapshots={setSnapshotsFor}
+          onDelete={removeScene}
+          onMove={moveScene}
+        />
+      ) : (
       <div className="mt-10 overflow-x-auto">
         <table className="w-full text-left" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
           <thead>
@@ -329,6 +351,7 @@ export default function ManuscriptPage() {
           </tbody>
         </table>
       </div>
+      )}
 
       {editorScene && (
         <SceneContentEditor
@@ -466,6 +489,81 @@ function SceneContentEditor({ scene, onClose, onSaved, onSnapshot }) {
 }
 
 // -------- Sub-components --------
+
+function PlotGrid({ scenes, loading, onOpen, onSnapshots, onDelete, onMove }) {
+  if (loading) {
+    return (
+      <div className="mt-10 py-16 text-center">
+        <Loader2 size={20} className="animate-spin inline" style={{ color: "var(--ink-mute)" }} />
+      </div>
+    );
+  }
+  if (scenes.length === 0) {
+    return (
+      <div className="mt-10 py-16 text-center font-editor italic" style={{ color: "var(--ink-mute)" }}>
+        Ingen scener ennå. Klikk «Ny scene» for å komme i gang.
+      </div>
+    );
+  }
+  return (
+    <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" data-testid="ms-plot-grid">
+      {scenes.map((s, i) => {
+        const meta = STATUS_META[s.status] || STATUS_META.skisse;
+        return (
+          <div
+            key={s.id}
+            className="paper p-5 flex flex-col"
+            style={{ borderLeft: `3px solid ${meta.color}` }}
+            data-testid={`ms-grid-card-${s.id}`}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--ink-mute)" }}>
+                {String(i + 1).padStart(2, "0")}
+              </div>
+              <div className="font-mono-ui text-[10px] tracking-widest" style={{ color: meta.color }}>
+                {meta.label.toUpperCase()}
+              </div>
+            </div>
+            <button
+              onClick={() => onOpen(s)}
+              className="mt-2 text-left font-serif-display text-lg leading-tight hover:opacity-70"
+              style={{ color: "var(--ink)" }}
+            >
+              {s.title || "Uten tittel"}
+            </button>
+            <p className="mt-2 font-editor text-sm leading-relaxed flex-1" style={{ color: "var(--ink-soft)" }}>
+              {s.synopsis || <span className="italic" style={{ color: "var(--ink-mute)" }}>Ingen synopsis</span>}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--ink-mute)" }}>
+              {s.pov && <span>POV: {s.pov}</span>}
+              {s.location && <span>{s.location}</span>}
+              {s.scene_date && <span>{s.scene_date}</span>}
+              <span>{s.word_count || 0} ord</span>
+            </div>
+            <div className="mt-4 pt-3 hairline-t flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <button onClick={() => onMove(s.id, "up")} title="Flytt opp" className="p-1.5 hover:bg-neutral-100" style={{ color: "var(--ink-mute)" }}>
+                  <ArrowUp size={13} strokeWidth={1.5} />
+                </button>
+                <button onClick={() => onMove(s.id, "down")} title="Flytt ned" className="p-1.5 hover:bg-neutral-100" style={{ color: "var(--ink-mute)" }}>
+                  <ArrowDown size={13} strokeWidth={1.5} />
+                </button>
+              </div>
+              <div className="flex items-center gap-1">
+                <button onClick={() => onSnapshots(s)} title="Øyeblikksbilder" className="p-1.5 hover:bg-neutral-100" style={{ color: "var(--ink-mute)" }}>
+                  <Camera size={13} strokeWidth={1.5} />
+                </button>
+                <button onClick={() => onDelete(s.id)} title="Slett" className="p-1.5 hover:bg-neutral-100" style={{ color: "var(--ink-mute)" }}>
+                  <Trash2 size={13} strokeWidth={1.5} />
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function GoalStrip({ totalWords, goals, onEdit }) {
   const totalPct = goals.total_goal > 0 ? Math.min(100, Math.round((totalWords / goals.total_goal) * 100)) : 0;
