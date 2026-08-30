@@ -12,6 +12,7 @@ import asyncio
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Literal
+from urllib.parse import urlencode
 
 import httpx
 import bcrypt
@@ -19,7 +20,7 @@ import secrets
 import requests
 import stripe
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, UploadFile, File, Form, Query, Header
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import StreamingResponse, JSONResponse, RedirectResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -381,29 +382,9 @@ async def _record_failed_login(identifier: str):
     )
 
 
-@api_router.post("/auth/session")
-async def create_session(request: Request, response: Response):
-    """Exchange session_id from Emergent Auth for a session cookie."""
-    body = await request.json()
-    session_id = body.get("session_id")
-    if not session_id:
-        raise HTTPException(status_code=400, detail="Mangler session_id")
-
-    async with httpx.AsyncClient(timeout=15) as h:
-        r = await h.get(
-            "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
-            headers={"X-Session-ID": session_id},
-        )
-        if r.status_code != 200:
-            raise HTTPException(status_code=401, detail="Kunne ikke bekrefte økt")
-        data = r.json()
-
-    email = data["email"]
-    name = data.get("name", email)
-    picture = data.get("picture")
-    session_token = data["session_token"]
-
-    # Upsert user
+async def _upsert_user_and_start_session(response: Response, email: str, name: str, picture: Optional[str]) -> dict:
+    """Shared by every login path (Emergent-relayed or direct Google OAuth):
+    upsert the user, mint a session token, set the cookie."""
     existing = await db.users.find_one({"email": email}, {"_id": 0})
     if existing:
         user_id = existing["user_id"]
@@ -421,6 +402,7 @@ async def create_session(request: Request, response: Response):
             "created_at": datetime.now(timezone.utc).isoformat(),
         })
 
+    session_token = secrets.token_urlsafe(32)
     expires_at = datetime.now(timezone.utc) + timedelta(days=7)
     await db.user_sessions.insert_one({
         "user_id": user_id,
@@ -444,7 +426,100 @@ async def create_session(request: Request, response: Response):
         "email": email,
         "name": name,
         "picture": picture,
+        "session_token": session_token,
     }
+
+
+@api_router.post("/auth/session")
+async def create_session(request: Request, response: Response):
+    """Exchange session_id from Emergent Auth for a session cookie."""
+    body = await request.json()
+    session_id = body.get("session_id")
+    if not session_id:
+        raise HTTPException(status_code=400, detail="Mangler session_id")
+
+    async with httpx.AsyncClient(timeout=15) as h:
+        r = await h.get(
+            "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
+            headers={"X-Session-ID": session_id},
+        )
+        if r.status_code != 200:
+            raise HTTPException(status_code=401, detail="Kunne ikke bekrefte økt")
+        data = r.json()
+
+    result = await _upsert_user_and_start_session(
+        response, data["email"], data.get("name", data["email"]), data.get("picture")
+    )
+    result.pop("session_token", None)
+    return result
+
+
+# ---------- Direct Google OAuth (Emergent-independent login) ----------
+# Only active once GOOGLE_OAUTH_CLIENT_ID/SECRET are configured — otherwise these
+# routes 404 and the Emergent-relayed flow above keeps working unchanged.
+GOOGLE_OAUTH_CLIENT_ID = os.environ.get('GOOGLE_OAUTH_CLIENT_ID')
+GOOGLE_OAUTH_CLIENT_SECRET = os.environ.get('GOOGLE_OAUTH_CLIENT_SECRET')
+GOOGLE_OAUTH_REDIRECT_URI = os.environ.get('GOOGLE_OAUTH_REDIRECT_URI')  # e.g. https://api.bragarmål.no/api/auth/google/callback
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://bragarmål.no')
+
+_oauth_states: dict = {}  # state -> created_at (short-lived, in-memory CSRF guard)
+
+
+@api_router.get("/auth/google/start")
+async def google_login_start():
+    if not (GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_REDIRECT_URI):
+        raise HTTPException(status_code=503, detail="Direkte Google-innlogging er ikke konfigurert ennå")
+    state = secrets.token_urlsafe(24)
+    _oauth_states[state] = datetime.now(timezone.utc)
+    # Prune anything older than 10 minutes so this dict never grows unbounded
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=10)
+    for k in [k for k, v in _oauth_states.items() if v < cutoff]:
+        _oauth_states.pop(k, None)
+
+    params = {
+        "client_id": GOOGLE_OAUTH_CLIENT_ID,
+        "redirect_uri": GOOGLE_OAUTH_REDIRECT_URI,
+        "response_type": "code",
+        "scope": "openid email profile",
+        "state": state,
+        "access_type": "online",
+        "prompt": "select_account",
+    }
+    return JSONResponse({"auth_url": f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}"})
+
+
+@api_router.get("/auth/google/callback")
+async def google_login_callback(response: Response, code: Optional[str] = None, state: Optional[str] = None, error: Optional[str] = None):
+    if error or not code or not state or state not in _oauth_states:
+        return RedirectResponse(f"{FRONTEND_URL}/logg-inn?feil=innlogging_avbrutt")
+    _oauth_states.pop(state, None)
+
+    async with httpx.AsyncClient(timeout=15) as h:
+        token_r = await h.post("https://oauth2.googleapis.com/token", data={
+            "code": code,
+            "client_id": GOOGLE_OAUTH_CLIENT_ID,
+            "client_secret": GOOGLE_OAUTH_CLIENT_SECRET,
+            "redirect_uri": GOOGLE_OAUTH_REDIRECT_URI,
+            "grant_type": "authorization_code",
+        })
+        if token_r.status_code != 200:
+            return RedirectResponse(f"{FRONTEND_URL}/logg-inn?feil=google_token")
+        access_token = token_r.json()["access_token"]
+
+        userinfo_r = await h.get(
+            "https://www.googleapis.com/oauth2/v3/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        if userinfo_r.status_code != 200:
+            return RedirectResponse(f"{FRONTEND_URL}/logg-inn?feil=google_userinfo")
+        profile = userinfo_r.json()
+
+    result = await _upsert_user_and_start_session(
+        response, profile["email"], profile.get("name", profile["email"]), profile.get("picture")
+    )
+    # The cookie is already set on this redirect response — no need to round-trip
+    # a session_id through the frontend hash like the Emergent flow required.
+    return RedirectResponse(f"{FRONTEND_URL}/dashboard")
 
 
 @api_router.get("/auth/me")
