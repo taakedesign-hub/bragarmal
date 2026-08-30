@@ -26,8 +26,14 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, ConfigDict
 
-from emergentintegrations.llm.chat import LlmChat, UserMessage, TextDelta, StreamDone, ImageContent
-from emergentintegrations.llm.openai import OpenAISpeechToText
+try:
+    # Only installable inside Emergent's own build environment — everywhere else
+    # (e.g. an independent host like Railway) this stays unavailable, and every
+    # call site already checks EMERGENT_LLM_KEY first and raises before touching it.
+    from emergentintegrations.llm.chat import LlmChat, UserMessage, TextDelta, StreamDone, ImageContent
+    from emergentintegrations.llm.openai import OpenAISpeechToText
+except ImportError:
+    LlmChat = UserMessage = TextDelta = StreamDone = ImageContent = OpenAISpeechToText = None
 from openai import AsyncOpenAI
 
 # Extraction libs
@@ -1883,6 +1889,8 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
         if body.model not in ALLOWED_MODELS:
             raise HTTPException(status_code=400, detail="Ukjent modell")
         provider, model = ALLOWED_MODELS[body.model]
+        if not EMERGENT_LLM_KEY:
+            raise HTTPException(status_code=503, detail="KI-generering er ikke tilgjengelig på denne serveren ennå")
 
     profile = await db.voice_profiles.find_one({"user_id": user.user_id}, {"_id": 0})
     all_samples = await db.samples.find({"user_id": user.user_id}, {"_id": 0}).sort("created_at", -1).to_list(30)
