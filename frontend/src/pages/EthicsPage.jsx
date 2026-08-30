@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import Logo from "@/components/Logo";
-import { Feather, ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import InfoMenu from "@/components/InfoMenu";
 import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";

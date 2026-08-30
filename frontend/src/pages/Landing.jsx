@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import Logo from "@/components/Logo";
 import { TID } from "@/lib/testIds";
-import { Feather, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import InfoMenu from "@/components/InfoMenu";
 import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
@@ -143,6 +143,7 @@ export default function Landing() {
             <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-90">03</div>
             <div>
               <div className="font-serif-display text-3xl md:text-5xl leading-none tracking-tight">ILLUSTRATØRER</div>
+              <div className="mt-1 font-serif-display italic text-sm md:text-base opacity-80">& kunstnere</div>
               <div className="mt-3 font-editor text-xs md:text-sm opacity-90 flex items-center gap-2">
                 {t("landing.box3Cta")} <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
               </div>

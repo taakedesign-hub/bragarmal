@@ -3,7 +3,7 @@ import Logo from "@/components/Logo";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { Feather, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import InfoMenu from "@/components/InfoMenu";
 import Footer from "@/components/Footer";

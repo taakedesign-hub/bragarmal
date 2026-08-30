@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Logo from "@/components/Logo";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "@/lib/api";
-import { Feather, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 
 export default function PaymentStatusPage({ variant }) {
   const [params] = useSearchParams();
