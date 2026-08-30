@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, BACKEND } from "@/lib/api";
 import { toast } from "sonner";
-import { Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, X as XIcon, Loader2, BookOpen, Save, Download, ScrollText, Camera, RotateCcw, Target, Rows3, LayoutGrid } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, X as XIcon, Loader2, BookOpen, Save, Download, ScrollText, Camera, RotateCcw, Target, Rows3, LayoutGrid, UserRound } from "lucide-react";
 
 const STATUS_META = {
   skisse:   { label: "Skisse",   color: "#a6a29a" },
@@ -33,16 +33,19 @@ export default function ManuscriptPage() {
   const [goalOpen, setGoalOpen] = useState(false);
   const [snapshotsFor, setSnapshotsFor] = useState(null);
   const [view, setView] = useState("table"); // "table" | "grid"
+  const [characters, setCharacters] = useState([]);
 
   const load = async () => {
     setLoading(true);
     try {
-      const [r, g] = await Promise.all([
+      const [r, g, c] = await Promise.all([
         api.get("/manuscript"),
         api.get("/manuscript/goals"),
+        api.get("/characters"),
       ]);
       setScenes(r.data || []);
       setGoals(g.data || { total_goal: 0, session_goal: 0 });
+      setCharacters(c.data || []);
     } catch (e) {
       console.debug("manuscript load failed", e);
       toast("Kunne ikke laste manuskript");
@@ -356,6 +359,7 @@ export default function ManuscriptPage() {
       {editorScene && (
         <SceneContentEditor
           scene={editorScene}
+          characters={characters}
           onClose={() => setEditorScene(null)}
           onSaved={(u) => { setScenes((arr) => arr.map((s) => s.id === u.id ? u : s)); setEditorScene(u); }}
           onSnapshot={async () => {
@@ -395,10 +399,11 @@ export default function ManuscriptPage() {
   );
 }
 
-function SceneContentEditor({ scene, onClose, onSaved, onSnapshot }) {
+function SceneContentEditor({ scene, characters = [], onClose, onSaved, onSnapshot }) {
   const [content, setContent] = useState(scene.content || "");
   const [title, setTitle] = useState(scene.title || "");
   const [saving, setSaving] = useState(false);
+  const [viewingChar, setViewingChar] = useState(null);
 
   useEffect(() => {
     const h = (e) => { if (e.key === "Escape") onClose(); };
@@ -409,6 +414,11 @@ function SceneContentEditor({ scene, onClose, onSaved, onSnapshot }) {
 
   const dirty = title !== (scene.title || "") || content !== (scene.content || "");
   const wc = content.trim() ? content.trim().split(/\s+/).length : 0;
+
+  const mentioned = useMemo(() => {
+    const text = content.toLowerCase();
+    return characters.filter((c) => c.name && text.includes(c.name.toLowerCase()));
+  }, [content, characters]);
 
   const save = async () => {
     setSaving(true);
@@ -456,6 +466,25 @@ function SceneContentEditor({ scene, onClose, onSaved, onSnapshot }) {
             className="w-full mt-4 bg-transparent font-editor text-base outline-none resize-none leading-relaxed"
             style={{ color: "var(--ink)", minHeight: "50vh" }}
           />
+          {mentioned.length > 0 && (
+            <div className="mt-4 pt-4 hairline-t flex items-center gap-2 flex-wrap">
+              <span className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--ink-mute)" }}>
+                KARAKTERER I DENNE SCENEN:
+              </span>
+              {mentioned.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => setViewingChar(c)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 font-mono-ui text-[11px] hover:opacity-70"
+                  style={{ border: "1px solid var(--line)", color: "var(--ink)" }}
+                  data-testid={`ms-mentioned-${c.id}`}
+                >
+                  <UserRound size={11} strokeWidth={1.5} />
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex items-center justify-between gap-3 px-6 py-4 hairline-t">
           <button
@@ -482,6 +511,55 @@ function SceneContentEditor({ scene, onClose, onSaved, onSnapshot }) {
               LAGRE
             </button>
           </div>
+        </div>
+      </div>
+      {viewingChar && (
+        <CharacterQuickView character={viewingChar} onClose={() => setViewingChar(null)} />
+      )}
+    </div>
+  );
+}
+
+const CHARACTER_FIELDS = [
+  { key: "role",            label: "Rolle" },
+  { key: "appearance",      label: "Utseende" },
+  { key: "inner_struggle",  label: "Indre kamp" },
+  { key: "outer_struggle",  label: "Ytre kamp" },
+  { key: "relationships",   label: "Relasjoner" },
+  { key: "arc",             label: "Karakterbue" },
+  { key: "voice_notes",     label: "Stemme/dialog" },
+];
+
+function CharacterQuickView({ character, onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      style={{ background: "rgba(20,18,15,0.55)", backdropFilter: "blur(4px)" }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md max-h-[80vh] flex flex-col"
+        style={{ background: "var(--paper)", border: "1px solid var(--line)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-6 py-4 hairline-b flex items-center justify-between">
+          <span className="font-serif-display text-2xl" style={{ color: "var(--ink)" }}>{character.name}</span>
+          <button onClick={onClose} style={{ color: "var(--ink-mute)" }}><XIcon size={16} strokeWidth={1.3} /></button>
+        </div>
+        <div className="flex-1 overflow-auto px-6 py-5 space-y-4">
+          {CHARACTER_FIELDS.filter((f) => character[f.key]).map((f) => (
+            <div key={f.key}>
+              <div className="label-ui">{f.label}</div>
+              <p className="mt-1 font-editor text-sm leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+                {character[f.key]}
+              </p>
+            </div>
+          ))}
+          {CHARACTER_FIELDS.every((f) => !character[f.key]) && (
+            <p className="font-editor italic text-sm" style={{ color: "var(--ink-mute)" }}>
+              Ingen detaljer lagt inn ennå — rediger i Persongalleriet.
+            </p>
+          )}
         </div>
       </div>
     </div>
