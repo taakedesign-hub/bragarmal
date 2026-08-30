@@ -5,7 +5,6 @@ import { useI18n } from "@/lib/i18n";
 import { TID } from "@/lib/testIds";
 import { LogOut } from "lucide-react";
 import InfoMenu from "@/components/InfoMenu";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Footer from "@/components/Footer";
 
 const TOOLS = [
@@ -45,9 +44,8 @@ export default function AppShell({ children }) {
             </Link>
           </nav>
 
-          {/* Språk + bruker + logg ut */}
+          {/* Bruker + logg ut */}
           <div className="flex items-center gap-2 md:gap-3 shrink-0">
-            <LanguageSwitcher />
             {user?.picture && (
               <img
                 src={user.picture}

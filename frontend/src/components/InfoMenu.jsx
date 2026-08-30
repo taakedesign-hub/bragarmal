@@ -22,6 +22,7 @@ export default function InfoMenu({ align = "right" }) {
         { to: "/manifest",  label: t("info.manifest"),  desc: t("info.manifestDesc") },
         { to: "/eksempler", label: t("info.examples"),  desc: t("info.examplesDesc") },
         { to: "/etikk",     label: t("info.ethics"),    desc: t("info.ethicsDesc") },
+        { to: "/personvern", label: t("info.privacy"),  desc: t("info.privacyDesc") },
         { to: "/priser",    label: t("info.pricing"),   desc: t("info.pricingDesc") },
       ],
     },

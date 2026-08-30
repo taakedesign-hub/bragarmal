@@ -3,7 +3,6 @@ import Logo from "@/components/Logo";
 import { TID } from "@/lib/testIds";
 import { Feather, ArrowRight } from "lucide-react";
 import InfoMenu from "@/components/InfoMenu";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
 import { useAuth } from "@/lib/auth";
@@ -58,7 +57,6 @@ export default function Landing() {
             <InfoMenu align="right" />
             <Link to="/logg-inn" data-testid="nav-skrivepult" className="label-ui px-1.5 md:px-3 py-2 whitespace-nowrap" style={{ color: "var(--ink-mute)" }}>{t("nav.tools")}</Link>
             <Link to="/illustratorer" data-testid="nav-illustrators" className="label-ui px-1.5 md:px-3 py-2 whitespace-nowrap" style={{ color: "var(--ink-mute)" }}>{t("nav.illustrator")}</Link>
-            <LanguageSwitcher className="ml-1" />
             <button
               data-testid={TID.loginBtn}
               onClick={goLogin}

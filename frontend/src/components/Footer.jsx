@@ -17,6 +17,7 @@ export default function Footer() {
         <div className="flex items-center gap-6 flex-wrap">
           <Link to="/manifest" className="label-ui" style={{ color: "var(--ink-mute)" }}>{t("info.manifest")}</Link>
           <Link to="/etikk" className="label-ui" style={{ color: "var(--ink-mute)" }}>{t("info.ethics")}</Link>
+          <Link to="/personvern" className="label-ui" style={{ color: "var(--ink-mute)" }}>{t("info.privacy")}</Link>
           <Link to="/priser" className="label-ui" style={{ color: "var(--ink-mute)" }}>{t("info.pricing")}</Link>
           <a
             data-testid={TID.footerContactLink}
