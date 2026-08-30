@@ -79,7 +79,7 @@ const STIPEND_PRACTICAL = [
           target="_blank"
           rel="noopener noreferrer"
           className="underline decoration-1 underline-offset-4"
-          style={{ color: "var(--moss)" }}
+          style={{ color: "var(--rust)" }}
           data-testid="tips-stipendportalen-link"
         >
           Stipendportalen.no
@@ -412,7 +412,7 @@ export default function TipsPage() {
           Tips til forfattere
         </div>
         <h1 className="font-serif-display text-5xl md:text-6xl font-light mt-3" style={{ color: "var(--ink)" }}>
-          Praktiske råd, <em className="italic" style={{ color: "var(--moss)" }}>samlet på ett sted</em>.
+          Praktiske råd, <em className="italic" style={{ color: "var(--rust)" }}>samlet på ett sted</em>.
         </h1>
         <p className="font-editor text-lg mt-4 max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>
           Ting som er nyttige å vite når du skriver.
@@ -440,7 +440,7 @@ export default function TipsPage() {
           />
         </div>
         <div className="lg:col-span-8">
-          <div className="label-ui" style={{ color: "var(--moss)" }}>Seks metoder</div>
+          <div className="label-ui" style={{ color: "var(--rust)" }}>Seks metoder</div>
           <ol className="mt-4">
             {DISPOSISJON_METHODS.map((m) => (
               <li key={m.n} className="hairline-t py-6" data-testid={`disposisjon-method-${m.n}`}>
@@ -477,7 +477,7 @@ export default function TipsPage() {
           />
         </div>
         <div className="lg:col-span-8">
-          <div className="label-ui" style={{ color: "var(--moss)" }}>Fem steder å se</div>
+          <div className="label-ui" style={{ color: "var(--rust)" }}>Fem steder å se</div>
           <ol className="mt-4">
             {STIPEND_ORGS.map((org) => (
               <li key={org.n} className="hairline-t py-6" data-testid={`stipend-org-${org.n}`}>
@@ -490,7 +490,7 @@ export default function TipsPage() {
                 <ul className="mt-3 font-editor text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>
                   {org.points.map((p, i) => (
                     <li key={i} className="pl-4 relative mt-2">
-                      <span className="absolute left-0" style={{ color: "var(--moss)" }}>—</span>
+                      <span className="absolute left-0" style={{ color: "var(--rust)" }}>—</span>
                       {p}
                     </li>
                   ))}
@@ -519,7 +519,7 @@ export default function TipsPage() {
           />
         </div>
         <div className="lg:col-span-8">
-          <div className="label-ui" style={{ color: "var(--moss)" }}>Seks trinn</div>
+          <div className="label-ui" style={{ color: "var(--rust)" }}>Seks trinn</div>
           <ol className="mt-4">
             {FORLAG_STEPS.map((s, i) => (
               <li key={i} className="hairline-t py-6" data-testid={`forlag-step-${i + 1}`}>
@@ -527,7 +527,7 @@ export default function TipsPage() {
                   <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--rust)" }}>
                     {String(i + 1).padStart(2, "0")}
                   </div>
-                  <span style={{ color: "var(--moss)" }}>{s.icon}</span>
+                  <span style={{ color: "var(--rust)" }}>{s.icon}</span>
                   <h3 className="font-serif-display text-xl md:text-2xl leading-snug" style={{ color: "var(--ink)" }}>
                     {s.title}
                   </h3>
@@ -540,7 +540,7 @@ export default function TipsPage() {
           </ol>
 
           <div className="mt-10 hairline-t pt-8">
-            <div className="label-ui" style={{ color: "var(--moss)" }}>De største forlagene</div>
+            <div className="label-ui" style={{ color: "var(--rust)" }}>De største forlagene</div>
             <p className="mt-3 font-editor text-sm" style={{ color: "var(--ink-soft)" }}>
               Tradisjonelle forlag som tar imot uoppfordrede innsendinger — uten at forfatter må betale.
             </p>
@@ -588,11 +588,11 @@ export default function TipsPage() {
           </div>
 
           <div className="mt-10 hairline-t pt-8">
-            <div className="label-ui" style={{ color: "var(--moss)" }}>Andre forlag som tar imot manus</div>
+            <div className="label-ui" style={{ color: "var(--rust)" }}>Andre forlag som tar imot manus</div>
             <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
               {FORLAG_OTHER.map((f) => (
                 <li key={f.name} className="font-editor text-base flex items-baseline gap-2" data-testid={`forlag-other-${f.name}`}>
-                  <span className="shrink-0" style={{ color: "var(--moss)" }}>—</span>
+                  <span className="shrink-0" style={{ color: "var(--rust)" }}>—</span>
                   <span>
                     <strong style={{ color: "var(--ink)" }}>{f.name}</strong>
                     {f.note && <span style={{ color: "var(--ink-soft)" }}> · {f.note}</span>}
@@ -603,7 +603,7 @@ export default function TipsPage() {
           </div>
 
           <div className="mt-10 hairline-t pt-8">
-            <div className="label-ui" style={{ color: "var(--moss)" }}>Viktige punkter</div>
+            <div className="label-ui" style={{ color: "var(--rust)" }}>Viktige punkter</div>
             <ul className="mt-4 space-y-3">
               {FORLAG_KEYPOINTS.map((p, i) => (
                 <li key={i} className="flex items-start gap-3 font-editor text-base leading-relaxed" style={{ color: "var(--ink)" }}>
@@ -636,7 +636,7 @@ export default function TipsPage() {
         </div>
         <div className="lg:col-span-8">
           {/* Grunnregelen */}
-          <div className="label-ui" style={{ color: "var(--moss)" }}>Grunnregelen</div>
+          <div className="label-ui" style={{ color: "var(--rust)" }}>Grunnregelen</div>
           <p className="mt-3 font-editor text-base leading-relaxed" style={{ color: "var(--ink)" }}>
             Forlagene får svært mange manus. De fleste følgebrev blir skumlest på under et minutt.
             Hvis brevet er langt, uklart eller for personlig, mister det fort interessen.
@@ -647,7 +647,7 @@ export default function TipsPage() {
           <ul className="mt-3 space-y-2">
             {FOLGEBREV_PRINCIPLES.map((p, i) => (
               <li key={i} className="pl-5 relative font-editor text-base" style={{ color: "var(--ink)" }} data-testid={`folgebrev-principle-${i + 1}`}>
-                <span className="absolute left-0" style={{ color: "var(--moss)" }}>—</span>
+                <span className="absolute left-0" style={{ color: "var(--rust)" }}>—</span>
                 {p}
               </li>
             ))}
@@ -655,7 +655,7 @@ export default function TipsPage() {
 
           {/* Anbefalt struktur */}
           <div className="mt-10 hairline-t pt-8">
-            <div className="label-ui" style={{ color: "var(--moss)" }}>Anbefalt struktur</div>
+            <div className="label-ui" style={{ color: "var(--rust)" }}>Anbefalt struktur</div>
             <ol className="mt-4">
               {FOLGEBREV_STRUCTURE.map((s) => (
                 <li key={s.n} className="hairline-t py-6" data-testid={`folgebrev-step-${s.n}`}>
@@ -705,7 +705,7 @@ export default function TipsPage() {
 
           {/* Tone */}
           <div className="mt-10 hairline-t pt-8">
-            <div className="label-ui inline-flex items-center gap-2" style={{ color: "var(--moss)" }}>
+            <div className="label-ui inline-flex items-center gap-2" style={{ color: "var(--rust)" }}>
               <MessageSquare size={14} strokeWidth={1.5} />
               Tone
             </div>
@@ -727,7 +727,7 @@ export default function TipsPage() {
         <a
           href="mailto:hei@Bragarmål.no?subject=Tips%20til%20Bragarmål"
           className="underline decoration-1 underline-offset-4"
-          style={{ color: "var(--moss)" }}
+          style={{ color: "var(--rust)" }}
           data-testid="tips-send-suggestion"
         >
           Send det inn
@@ -747,7 +747,7 @@ function TipHeader({ n, tag, icon, title, subtitle }) {
         <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--rust)" }}>{n}</div>
         <div className="label-ui" style={{ color: "var(--ink-mute)" }}>{tag}</div>
       </div>
-      <div className="mt-4 inline-flex items-center gap-3" style={{ color: "var(--moss)" }}>{icon}</div>
+      <div className="mt-4 inline-flex items-center gap-3" style={{ color: "var(--rust)" }}>{icon}</div>
       <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-3 leading-tight" style={{ color: "var(--ink)" }}>
         {title}
       </h2>
@@ -759,11 +759,11 @@ function TipHeader({ n, tag, icon, title, subtitle }) {
 function PracticalList({ items }) {
   return (
     <div className="mt-10 hairline-t pt-8">
-      <div className="label-ui" style={{ color: "var(--moss)" }}>Praktiske råd</div>
+      <div className="label-ui" style={{ color: "var(--rust)" }}>Praktiske råd</div>
       <ul className="mt-4 space-y-4">
         {items.map((p, i) => (
           <li key={i} className="flex items-start gap-3">
-            <span className="mt-1 shrink-0" style={{ color: "var(--moss)" }}>{p.icon}</span>
+            <span className="mt-1 shrink-0" style={{ color: "var(--rust)" }}>{p.icon}</span>
             <div className="font-editor text-base leading-relaxed" style={{ color: "var(--ink)" }}>
               {p.text}
             </div>
@@ -780,7 +780,7 @@ function Aside({ children }) {
       className="mt-8 p-5 md:p-6 font-editor text-sm md:text-base leading-relaxed"
       style={{
         background: "var(--bg-alt, #faf7f1)",
-        borderLeft: "2px solid var(--moss)",
+        borderLeft: "2px solid var(--rust)",
         color: "var(--ink)",
       }}
     >

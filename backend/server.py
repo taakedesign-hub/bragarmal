@@ -1305,6 +1305,7 @@ async def create_illustrator(body: IllustratorCreate):
         "style": (body.style or "").strip()[:600],
         "services": (body.services or "").strip()[:600],
         "is_public": True,
+        "is_featured": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.illustrators.insert_one(doc)
@@ -1313,12 +1314,47 @@ async def create_illustrator(body: IllustratorCreate):
 
 @api_router.get("/illustrators")
 async def list_illustrators():
-    """Public listing — no email is returned to the client."""
+    """Public listing — no email is returned to the client. Featured listings sort first."""
     items = await db.illustrators.find(
         {"is_public": True},
         {"_id": 0, "email": 0},  # hide email from public listing
-    ).sort("created_at", -1).to_list(200)
+    ).sort([("is_featured", -1), ("created_at", -1)]).to_list(200)
     return items
+
+
+class IllustratorCheckoutRequest(BaseModel):
+    illustrator_id: str
+    origin_url: str
+
+
+@api_router.post("/illustrators/checkout")
+async def illustrator_checkout(body: IllustratorCheckoutRequest):
+    """Guest checkout for the optional 'fremhevet' (featured) upgrade — illustrators
+    don't have accounts, so we identify the listing by id and email Stripe directly."""
+    illustrator = await db.illustrators.find_one({"id": body.illustrator_id}, {"_id": 0})
+    if not illustrator:
+        raise HTTPException(status_code=404, detail="Oppføring ikke funnet")
+
+    prices = stripe.Price.list(lookup_keys=["bragr_illustrator_featured_nok"], active=True, limit=1).data
+    if not prices:
+        raise HTTPException(status_code=500, detail="Pris ikke funnet")
+    price = prices[0]
+
+    origin_ascii = _ascii_url(body.origin_url)
+
+    session = stripe.checkout.Session.create(
+        customer_email=illustrator["email"],
+        line_items=[{"price": price.id, "quantity": 1}],
+        mode="subscription",
+        success_url=f"{origin_ascii}/illustratorer?fremhevet=1",
+        cancel_url=f"{origin_ascii}/illustratorer",
+        metadata={"illustrator_id": body.illustrator_id},
+        managed_payments={"enabled": True},
+        subscription_data={"metadata": {"illustrator_id": body.illustrator_id}},
+        automatic_tax={"enabled": False},
+        adaptive_pricing={"enabled": False},
+    )
+    return {"checkout_url": session.url}
 
 
 
@@ -2463,6 +2499,20 @@ async def ensure_beta_flag(user_id: str):
         )
 
 
+def _ascii_url(url: str) -> str:
+    """Stripe requires ASCII URLs — encode IDN hostnames (bragarmål.no → xn--bragarml-g0a.no)."""
+    try:
+        from urllib.parse import urlsplit, urlunsplit
+        parts = urlsplit(url)
+        host = parts.hostname or ""
+        ascii_host = host.encode("idna").decode("ascii") if host else host
+        if parts.port:
+            ascii_host = f"{ascii_host}:{parts.port}"
+        return urlunsplit((parts.scheme, ascii_host, parts.path, parts.query, parts.fragment))
+    except Exception:
+        return url
+
+
 class CheckoutRequest(BaseModel):
     lookup_key: str
     origin_url: str
@@ -2509,19 +2559,6 @@ async def billing_checkout(body: CheckoutRequest, user: User = Depends(get_curre
         )
         customer_id = cust.id
         await db.users.update_one({"user_id": user.user_id}, {"$set": {"stripe_customer_id": customer_id}})
-
-    # Stripe requires ASCII URLs — encode IDN hostnames (bragarmål.no → xn--bragarml-g0a.no)
-    def _ascii_url(url: str) -> str:
-        try:
-            from urllib.parse import urlsplit, urlunsplit
-            parts = urlsplit(url)
-            host = parts.hostname or ""
-            ascii_host = host.encode("idna").decode("ascii") if host else host
-            if parts.port:
-                ascii_host = f"{ascii_host}:{parts.port}"
-            return urlunsplit((parts.scheme, ascii_host, parts.path, parts.query, parts.fragment))
-        except Exception:
-            return url
 
     origin_ascii = _ascii_url(body.origin_url)
 
@@ -2668,32 +2705,47 @@ async def stripe_webhook(request: Request):
         )
 
     elif t in ("customer.subscription.created", "customer.subscription.updated"):
-        user_id = (obj.get("metadata") or {}).get("user_id")
-        lookup_key = (obj.get("metadata") or {}).get("lookup_key")
-        if not user_id:
-            # Look up by customer
-            user_doc = await db.users.find_one({"stripe_customer_id": obj.get("customer")}, {"_id": 0})
-            user_id = user_doc.get("user_id") if user_doc else None
-        if user_id:
-            await db.subscriptions.update_one(
-                {"stripe_subscription_id": obj["id"]},
+        illustrator_id = (obj.get("metadata") or {}).get("illustrator_id")
+        if illustrator_id:
+            await db.illustrators.update_one(
+                {"id": illustrator_id},
                 {"$set": {
-                    "user_id": user_id,
+                    "is_featured": obj.get("status") in ("active", "trialing"),
                     "stripe_subscription_id": obj["id"],
-                    "stripe_customer_id": obj.get("customer"),
-                    "status": obj.get("status"),
-                    "lookup_key": lookup_key or "bragr_monthly_nok",
-                    "current_period_end": datetime.fromtimestamp(obj["current_period_end"], tz=timezone.utc).isoformat() if obj.get("current_period_end") else None,
-                    "cancel_at_period_end": obj.get("cancel_at_period_end", False),
                     "updated_at": now,
                 }},
-                upsert=True,
             )
+        else:
+            user_id = (obj.get("metadata") or {}).get("user_id")
+            lookup_key = (obj.get("metadata") or {}).get("lookup_key")
+            if not user_id:
+                # Look up by customer
+                user_doc = await db.users.find_one({"stripe_customer_id": obj.get("customer")}, {"_id": 0})
+                user_id = user_doc.get("user_id") if user_doc else None
+            if user_id:
+                await db.subscriptions.update_one(
+                    {"stripe_subscription_id": obj["id"]},
+                    {"$set": {
+                        "user_id": user_id,
+                        "stripe_subscription_id": obj["id"],
+                        "stripe_customer_id": obj.get("customer"),
+                        "status": obj.get("status"),
+                        "lookup_key": lookup_key or "bragr_monthly_nok",
+                        "current_period_end": datetime.fromtimestamp(obj["current_period_end"], tz=timezone.utc).isoformat() if obj.get("current_period_end") else None,
+                        "cancel_at_period_end": obj.get("cancel_at_period_end", False),
+                        "updated_at": now,
+                    }},
+                    upsert=True,
+                )
 
     elif t == "customer.subscription.deleted":
         await db.subscriptions.update_one(
             {"stripe_subscription_id": obj["id"]},
             {"$set": {"status": "canceled", "updated_at": now}},
+        )
+        await db.illustrators.update_one(
+            {"stripe_subscription_id": obj["id"]},
+            {"$set": {"is_featured": False, "updated_at": now}},
         )
 
     return {"received": True}

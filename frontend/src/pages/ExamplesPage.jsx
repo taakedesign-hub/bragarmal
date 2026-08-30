@@ -117,7 +117,7 @@ export default function ExamplesPage() {
       <section className="max-w-[1200px] mx-auto px-6 md:px-10 pt-12 md:pt-16 pb-6">
         <div className="label-ui mb-4">Eksempler <span className="marker-ornament" /> når det låser seg</div>
         <h1 className="font-serif-display font-light text-4xl md:text-6xl leading-[1.05] tracking-tight" style={{ color: "var(--ink)" }}>
-          Når hjelper <em className="italic" style={{ color: "var(--moss)" }}>Bragarmål</em> deg?
+          Når hjelper <em className="italic" style={{ color: "var(--rust)" }}>Bragarmål</em> deg?
         </h1>
         <p className="mt-6 font-editor text-lg md:text-xl max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>
           Konkrete situasjoner — og hvilket verktøy i Bragarmål som hjelper deg videre. Uten å ta over.
@@ -132,7 +132,7 @@ export default function ExamplesPage() {
             Den gjenkjenner mønstre — rytme, tone, ordvalg og intensjon — ut fra det du faktisk skriver.
             Når den ikke kjenner din personlige måte å snakke og tenke på, kan den bomme.
           </p>
-          <p className="font-serif-display text-xl md:text-2xl italic" style={{ color: "var(--moss)" }}>
+          <p className="font-serif-display text-xl md:text-2xl italic" style={{ color: "var(--rust)" }}>
             Det er faktisk et godt tegn.
           </p>
           <p>Det betyr at den slutter å gjette og begynner å være ærlig.</p>
@@ -148,7 +148,7 @@ export default function ExamplesPage() {
           {SCENARIOS.map((ex, i) => (
             <div key={i} data-testid={`example-${i + 1}`} className="hairline-t pt-6 md:pt-8">
               <div className="flex items-baseline gap-3 flex-wrap">
-                <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--moss)" }}>
+                <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--rust)" }}>
                   {String(i + 1).padStart(2, "0")}
                 </div>
                 <div className="label-ui" style={{ color: "var(--rust)" }}>{ex.tool}</div>
@@ -171,7 +171,7 @@ export default function ExamplesPage() {
             <div className="col-span-12 md:col-span-4">
               <div className="label-ui">Skrivepulten</div>
               <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
-                Tre måter å <em className="italic" style={{ color: "var(--moss)" }}>sparre</em> — konkret.
+                Tre måter å <em className="italic" style={{ color: "var(--rust)" }}>sparre</em> — konkret.
               </h2>
               <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
                 Ikke autopilot. Aldri ferdig prosa. Under er ekte eksempler på hva du får tilbake fra
@@ -196,16 +196,16 @@ export default function ExamplesPage() {
                 <Layers size={14} strokeWidth={1.5} /> Manuskript
               </div>
               <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
-                Hold <em className="italic" style={{ color: "var(--moss)" }}>oversikten</em>.
+                Hold <em className="italic" style={{ color: "var(--rust)" }}>oversikten</em>.
               </h2>
               <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
                 Alle scener i én tabell. POV, status, ordantall, rekkefølge. Snapshots før du redigerer noe kritisk. Eksporter hele manuset som DOCX når du er klar for redaktør eller korrektur.
               </p>
               <ul className="mt-4 font-editor text-sm space-y-1.5" style={{ color: "var(--ink-soft)" }}>
-                <li className="pl-4 relative"><span className="absolute left-0" style={{ color: "var(--moss)" }}>—</span>Sceneoversikt med filter på POV og status</li>
-                <li className="pl-4 relative"><span className="absolute left-0" style={{ color: "var(--moss)" }}>—</span>Word-mål: totalt og per skriveøkt</li>
-                <li className="pl-4 relative"><span className="absolute left-0" style={{ color: "var(--moss)" }}>—</span>Scrivenings-visning (les scener sammenhengende)</li>
-                <li className="pl-4 relative"><span className="absolute left-0" style={{ color: "var(--moss)" }}>—</span>Komposisjonsmodus (fullskjerm, ingen distraksjon)</li>
+                <li className="pl-4 relative"><span className="absolute left-0" style={{ color: "var(--rust)" }}>—</span>Sceneoversikt med filter på POV og status</li>
+                <li className="pl-4 relative"><span className="absolute left-0" style={{ color: "var(--rust)" }}>—</span>Word-mål: totalt og per skriveøkt</li>
+                <li className="pl-4 relative"><span className="absolute left-0" style={{ color: "var(--rust)" }}>—</span>Scrivenings-visning (les scener sammenhengende)</li>
+                <li className="pl-4 relative"><span className="absolute left-0" style={{ color: "var(--rust)" }}>—</span>Komposisjonsmodus (fullskjerm, ingen distraksjon)</li>
               </ul>
             </div>
             <div className="col-span-12 md:col-span-8">
@@ -229,14 +229,14 @@ export default function ExamplesPage() {
                     <div className="col-span-4" style={{ color: "var(--ink)" }}>{title}</div>
                     <div className="col-span-2" style={{ color: "var(--ink-soft)" }}>{pov}</div>
                     <div className="col-span-2 label-ui" style={{
-                      color: tone === "moss" ? "var(--moss)" : tone === "rust" ? "var(--rust)" : tone === "mute" ? "var(--ink-mute)" : "var(--ink)",
+                      color: tone === "rust" ? "var(--rust)" : tone === "mute" ? "var(--ink-mute)" : "var(--ink)",
                     }}>{status}</div>
                     <div className="col-span-3 text-right font-mono-ui text-xs" style={{ color: "var(--ink)" }}>{words}</div>
                   </div>
                 ))}
                 <div className="mt-4 flex items-center justify-between label-ui" style={{ color: "var(--ink-mute)" }}>
                   <span>5 scener · 2 930 ord totalt</span>
-                  <span style={{ color: "var(--moss)" }}>Ordmål i dag: 500 / 800</span>
+                  <span style={{ color: "var(--rust)" }}>Ordmål i dag: 500 / 800</span>
                 </div>
               </div>
             </div>
@@ -253,7 +253,7 @@ export default function ExamplesPage() {
                 <Users size={14} strokeWidth={1.5} /> Karakterer
               </div>
               <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
-                Psykologiske <em className="italic" style={{ color: "var(--moss)" }}>profiler</em>.
+                Psykologiske <em className="italic" style={{ color: "var(--rust)" }}>profiler</em>.
               </h2>
               <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
                 Bygg karakterene manuelt — eller la Bragarmål hente ut profiler fra manuskript-scenene dine automatisk. Beholder du oversikten når karakterer er komplekse og manuset er langt.
@@ -266,7 +266,7 @@ export default function ExamplesPage() {
                     <h3 className="font-serif-display text-2xl md:text-3xl" style={{ color: "var(--ink)" }}>Ellen Wold</h3>
                     <p className="mt-1 label-ui" style={{ color: "var(--ink-mute)" }}>Hovedkarakter · protagonist</p>
                   </div>
-                  <span className="label-ui" style={{ color: "var(--moss)" }}>Ekstrahert fra 12 scener</span>
+                  <span className="label-ui" style={{ color: "var(--rust)" }}>Ekstrahert fra 12 scener</span>
                 </div>
 
                 <div className="mt-6 space-y-5 font-editor text-base leading-relaxed" style={{ color: "var(--ink)" }}>
@@ -288,7 +288,7 @@ export default function ExamplesPage() {
             <div className="col-span-12 md:col-span-4">
               <div className="label-ui">Stemmeprofil</div>
               <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
-                Slik <em className="italic" style={{ color: "var(--moss)" }}>ser Bragarmål</em> stemmen din.
+                Slik <em className="italic" style={{ color: "var(--rust)" }}>ser Bragarmål</em> stemmen din.
               </h2>
               <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
                 Etter noen prøver bygger Bragarmål en analyse av tone og stil.
@@ -323,7 +323,7 @@ export default function ExamplesPage() {
             <div className="col-span-12 md:col-span-4">
               <div className="label-ui">Prøver</div>
               <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
-                Alt du har, i <em className="italic" style={{ color: "var(--moss)" }}>din stemme</em>.
+                Alt du har, i <em className="italic" style={{ color: "var(--rust)" }}>din stemme</em>.
               </h2>
               <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
                 Jo mer materiale du legger inn, jo skarpere blir stemmeprofilen. Fire innganger:
@@ -348,7 +348,7 @@ export default function ExamplesPage() {
                 <Lightbulb size={14} strokeWidth={1.5} /> Tips
               </div>
               <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
-                Praktiske råd, <em className="italic" style={{ color: "var(--moss)" }}>samlet</em>.
+                Praktiske råd, <em className="italic" style={{ color: "var(--rust)" }}>samlet</em>.
               </h2>
               <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
                 Ting det er nyttig å vite når du skriver. Kun for innloggede.
@@ -371,7 +371,7 @@ export default function ExamplesPage() {
             <div className="col-span-12 md:col-span-4">
               <div className="label-ui">Temperatur</div>
               <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
-                Hvor <em className="italic" style={{ color: "var(--moss)" }}>frekk</em> skal Bragarmål være?
+                Hvor <em className="italic" style={{ color: "var(--rust)" }}>frekk</em> skal Bragarmål være?
               </h2>
               <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
                 Temperatur styrer hvor «trygg» eller «kreativ» retningsforslagene blir i «Finn veien videre». Du velger — det finnes ingen fasit.
@@ -390,7 +390,7 @@ export default function ExamplesPage() {
       <section className="hairline-t">
         <div className="max-w-[1200px] mx-auto px-6 md:px-10 py-14 flex items-center justify-between flex-wrap gap-6">
           <div>
-            <p className="font-serif-display text-2xl md:text-3xl" style={{ color: "var(--moss)" }}>
+            <p className="font-serif-display text-2xl md:text-3xl" style={{ color: "var(--rust)" }}>
               En sparringspartner. Ikke tekstautomat.
             </p>
             <p className="mt-3 font-editor text-base md:text-lg" style={{ color: "var(--ink)" }}>
@@ -413,7 +413,7 @@ export default function ExamplesPage() {
 function ModeExample({ idx, icon: Icon, label, tool, intro, input, outputTitle, output }) {
   return (
     <div className="paper p-6 md:p-7" style={{ background: "var(--linen)", border: "1px solid var(--line)" }} data-testid={`mode-example-${idx}`}>
-      <div className="flex items-center gap-2" style={{ color: "var(--moss)" }}>
+      <div className="flex items-center gap-2" style={{ color: "var(--rust)" }}>
         <Icon size={16} strokeWidth={1.4} />
         <div className="label-ui">{tool}</div>
       </div>
@@ -433,7 +433,7 @@ function ModeExample({ idx, icon: Icon, label, tool, intro, input, outputTitle, 
           <ol className="mt-3 space-y-2 font-editor text-base leading-relaxed" style={{ color: "var(--ink)" }}>
             {output.map((line, i) => (
               <li key={i} className="pl-6 relative">
-                <span className="absolute left-0 font-mono-ui text-xs" style={{ color: "var(--moss)" }}>{i + 1}.</span>
+                <span className="absolute left-0 font-mono-ui text-xs" style={{ color: "var(--rust)" }}>{i + 1}.</span>
                 {line}
               </li>
             ))}
@@ -469,7 +469,7 @@ function EntryTile({ n, icon, title, body, bordered }) {
     <div className={`p-6 ${bordered ? "sm:border-l" : ""}`} style={{ borderColor: "var(--line)" }}>
       <div className="flex items-start justify-between">
         <div className="label-ui">{n}</div>
-        {icon && <div style={{ color: "var(--moss)" }}>{icon}</div>}
+        {icon && <div style={{ color: "var(--rust)" }}>{icon}</div>}
       </div>
       <h3 className="font-serif-display text-xl mt-4" style={{ color: "var(--ink)" }}>{title}</h3>
       <p className="font-editor text-sm mt-2 leading-relaxed" style={{ color: "var(--ink-soft)" }}>{body}</p>
@@ -489,12 +489,12 @@ function TipCard({ title, body }) {
 
 function TempTier({ range, title, desc, recommended }) {
   return (
-    <div className="p-5 md:p-6 flex items-start gap-5 md:gap-6" style={{ background: "var(--paper)", border: `1px solid ${recommended ? "var(--moss)" : "var(--line)"}` }}>
+    <div className="p-5 md:p-6 flex items-start gap-5 md:gap-6" style={{ background: "var(--paper)", border: `1px solid ${recommended ? "var(--rust)" : "var(--line)"}` }}>
       <div className="shrink-0 w-20">
         <div className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--ink-mute)" }}>{range}</div>
         <div className="font-serif-display text-xl mt-1" style={{ color: "var(--ink)" }}>{title}</div>
         {recommended && (
-          <span className="mt-2 inline-block font-mono-ui text-[9px] tracking-widest px-1.5 py-0.5" style={{ background: "var(--moss)", color: "white" }}>ANBEFALT</span>
+          <span className="mt-2 inline-block font-mono-ui text-[9px] tracking-widest px-1.5 py-0.5" style={{ background: "var(--rust)", color: "white" }}>ANBEFALT</span>
         )}
       </div>
       <p className="font-editor text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>{desc}</p>

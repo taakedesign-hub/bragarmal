@@ -227,7 +227,7 @@ export default function Landing() {
             <div className="min-w-0">
               <div className="label-ui" style={{ color: "var(--rust)" }}>{t("landing.tipsKicker")}</div>
               <div className="mt-2 font-serif-display text-2xl md:text-3xl leading-tight" style={{ color: "var(--ink)" }}>
-                {t("landing.tipsTitleA")} <em className="italic" style={{ color: "var(--moss)" }}>{t("landing.tipsTitleB")}</em>.
+                {t("landing.tipsTitleA")} <em className="italic" style={{ color: "var(--rust)" }}>{t("landing.tipsTitleB")}</em>.
               </div>
               <p className="mt-2 font-editor text-sm md:text-base" style={{ color: "var(--ink-soft)" }}>
                 {t("landing.tipsBody")}
@@ -249,20 +249,20 @@ export default function Landing() {
         <div className="mt-14 md:mt-16 max-w-[62ch]">
           <div className="label-ui mb-4">{t("heroBelow.kicker")}</div>
           <h1 className="font-serif-display font-light text-4xl sm:text-5xl md:text-6xl leading-[1.05] tracking-tight" style={{ color: "var(--ink)" }}>
-            {t("heroBelow.titleA")} <em className="italic" style={{ color: "var(--moss)" }}>{t("heroBelow.titleB")}</em>
+            {t("heroBelow.titleA")} <em className="italic" style={{ color: "var(--rust)" }}>{t("heroBelow.titleB")}</em>
           </h1>
           <p className="mt-6 font-editor text-lg md:text-xl" style={{ color: "var(--ink)" }}>
-            {t("heroBelow.p1a")} <em className="italic" style={{ color: "var(--moss)" }}>{t("heroBelow.p1b")}</em>
+            {t("heroBelow.p1a")} <em className="italic" style={{ color: "var(--rust)" }}>{t("heroBelow.p1b")}</em>
           </p>
           <p className="mt-4 font-editor text-base md:text-lg" style={{ color: "var(--ink-soft)" }}>
             {t("heroBelow.p2")}
           </p>
           <div
             className="mt-8 pl-5 py-2"
-            style={{ borderLeft: "3px solid var(--moss)" }}
+            style={{ borderLeft: "3px solid var(--rust)" }}
           >
             <p className="font-serif-display text-xl md:text-2xl leading-snug" style={{ color: "var(--ink)" }}>
-              <span className="font-serif-display" style={{ color: "var(--moss)" }}>Bragarmål</span>
+              <span className="font-serif-display" style={{ color: "var(--rust)" }}>Bragarmål</span>
               {" "}{t("heroBelow.ninorseA")}
               {" "}<em className="italic">{t("heroBelow.ninorseB")}</em>
               {" "}{t("heroBelow.ninorseC")}
@@ -286,7 +286,7 @@ export default function Landing() {
             <article className="col-span-12 md:col-span-9 md:pl-4 fade-in stagger-2">
               <div className="label-ui" style={{ color: "var(--rust)" }}>Manifest</div>
               <h2 className="font-serif-display text-4xl md:text-5xl font-light mt-2 leading-[1.1]" style={{ color: "var(--ink)" }}>
-                Norsk skrivehjelp for mennesker som vil <em className="italic" style={{ color: "var(--moss)" }}>skrive selv</em>.
+                Norsk skrivehjelp for mennesker som vil <em className="italic" style={{ color: "var(--rust)" }}>skrive selv</em>.
               </h2>
 
               <div className="mt-10 font-editor text-lg md:text-xl leading-[1.85]" style={{ color: "var(--ink)" }}>
@@ -298,7 +298,7 @@ export default function Landing() {
                 <p className="mt-6">Men er det en ting jeg ikke vil gi fra meg, så er det stemmen min.</p>
                 <p className="mt-6">Ei heller konseptet mitt til et program som ikke kunne vite hvorfor jeg hadde skrevet akkurat den setningen slik, hvorfor en karakter reagerte som hun gjorde, eller hvorfor noe litt skjevt i språket kanskje skulle få lov til å være skjevt.</p>
                 <p className="mt-6">Jeg ville kort sagt ha hjelp uten å gi fra meg forfatterskapet.</p>
-                <p className="mt-8 font-serif-display text-2xl md:text-3xl italic" style={{ color: "var(--moss)" }}>Derfor laget jeg Bragarmål.</p>
+                <p className="mt-8 font-serif-display text-2xl md:text-3xl italic" style={{ color: "var(--rust)" }}>Derfor laget jeg Bragarmål.</p>
 
                 <h3 className="font-serif-display text-2xl md:text-3xl font-light mt-14" style={{ color: "var(--ink)" }}>Et manus er ikke bare data</h3>
                 <p className="mt-4">Det er år med notater, halvferdige kapitler, tankespinn og ideer. Det er å våkne klokka tre om natta med noe som bare må skrives ned. Det er scener og kapitler som kastes og omskrives, det er parkering på en bussholdeplass for å notere noe du absolutt ikke må glemme, selv om du allerede er sent ute til et bryllup.</p>
@@ -313,7 +313,7 @@ export default function Landing() {
                 <p className="mt-6">Når teksten plutselig avviker, skal ikke Bragarmåls første reaksjon være:</p>
                 <p className="mt-3 italic" style={{ color: "var(--ink-mute)" }}>Her er en bedre setning…</p>
                 <p className="mt-3">Den bør heller være:</p>
-                <p className="mt-3 italic" style={{ color: "var(--moss)" }}>Her skjer det noe…</p>
+                <p className="mt-3 italic" style={{ color: "var(--rust)" }}>Her skjer det noe…</p>
 
                 <h3 className="font-serif-display text-2xl md:text-3xl font-light mt-14" style={{ color: "var(--ink)" }}>Redaksjonell motstand skal ikke være forbeholdt dem som har råd</h3>
                 <p className="mt-4">Bragarmål skal ikke erstatte en redaktør eller menneskelig erfaring. Skjønn og litterær forståelse betyr mest, og det skal det også gjøre.</p>
@@ -325,7 +325,7 @@ export default function Landing() {
                 <p className="mt-6">Ikke fordi AI aldri var i rommet, men fordi AI aldri fikk forfatterens plass.</p>
 
                 <p className="mt-10 font-serif-display text-3xl md:text-4xl italic leading-snug" style={{ color: "var(--ink)" }}>
-                  Mennesket skriver. <span style={{ color: "var(--moss)" }}>Bragarmål sparrer.</span>
+                  Mennesket skriver. <span style={{ color: "var(--rust)" }}>Bragarmål sparrer.</span>
                 </p>
               </div>
 
@@ -336,7 +336,7 @@ export default function Landing() {
                   <Link to="/manifest" data-testid="landing-manifest-read-all" className="btn-ghost inline-flex items-center gap-2">
                     Les hele manifestet <ArrowRight size={14} strokeWidth={1.6} />
                   </Link>
-                  <Link to="/etikk" className="label-ui" style={{ color: "var(--moss)" }}>
+                  <Link to="/etikk" className="label-ui" style={{ color: "var(--rust)" }}>
                     Etisk AI-skriving →
                   </Link>
                 </div>

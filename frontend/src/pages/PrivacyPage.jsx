@@ -110,7 +110,7 @@ export default function PrivacyPage() {
           <p className="font-editor mt-8 max-w-[68ch]" style={{ color: "var(--ink-soft)" }}>
             Vi bruker ikke teksten din til å trene den delte modellen alle
             andre brukere får svar fra. Stemmeprofilen din er noe annet:
-            en <em className="italic" style={{ color: "var(--moss)" }}>privat, personlig referanse</em> —
+            en <em className="italic" style={{ color: "var(--rust)" }}>privat, personlig referanse</em> —
             bygget for deg, låst til din konto, og slettet når du sletter den.
           </p>
         </div>
@@ -152,7 +152,7 @@ export default function PrivacyPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-0 mt-10 hairline-t hairline-b">
             {RIGHTS.map((r, i) => (
               <div key={r.n} className={`p-8 ${i > 0 ? "md:border-l" : ""}`} style={{ borderColor: "var(--line)" }}>
-                <div className="label-ui" style={{ color: "var(--moss)" }}>{r.n}</div>
+                <div className="label-ui" style={{ color: "var(--rust)" }}>{r.n}</div>
                 <h3 className="font-serif-display text-2xl mt-3" style={{ color: "var(--ink)" }}>{r.title}</h3>
                 <p className="font-editor text-sm mt-3 leading-relaxed" style={{ color: "var(--ink-soft)" }}>{r.body}</p>
               </div>

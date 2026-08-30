@@ -94,7 +94,7 @@ export default function EthicsPage() {
         </h1>
         <p className="mt-6 font-editor text-lg md:text-xl max-w-[68ch]" style={{ color: "var(--ink-soft)" }}>
           Etisk AI-skriving handler ikke om teknologien. Den handler om
-          <em className="italic" style={{ color: "var(--moss)" }}> makt, eierskap og ansvar</em>.
+          <em className="italic" style={{ color: "var(--rust)" }}> makt, eierskap og ansvar</em>.
           Når en maskin hjelper til med tekst, blir spørsmålene større enn
           «er dette lovlig?» eller «blir det detektert?».
         </p>
@@ -116,7 +116,7 @@ export default function EthicsPage() {
             <div className="lg:col-span-8">
               {CORE_QUESTIONS.map((q) => (
                 <div key={q.n} className="hairline-b py-8">
-                  <div className="label-ui" style={{ color: "var(--moss)" }}>{q.n}</div>
+                  <div className="label-ui" style={{ color: "var(--rust)" }}>{q.n}</div>
                   <h3 className="font-serif-display text-2xl mt-2" style={{ color: "var(--ink)" }}>{q.title}</h3>
                   <p className="font-editor mt-3 leading-relaxed" style={{ color: "var(--ink-soft)" }}>{q.body}</p>
                 </div>
@@ -193,7 +193,7 @@ export default function EthicsPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-0 mt-10 hairline-t hairline-b">
             {WORKFLOW.map((w, i) => (
               <div key={w.n} className={`p-8 ${i > 0 ? "md:border-l" : ""}`} style={{ borderColor: "var(--line)" }}>
-                <div className="label-ui" style={{ color: "var(--moss)" }}>{w.n}</div>
+                <div className="label-ui" style={{ color: "var(--rust)" }}>{w.n}</div>
                 <h3 className="font-serif-display text-2xl mt-3" style={{ color: "var(--ink)" }}>{w.title}</h3>
                 <p className="font-editor text-sm mt-3 leading-relaxed" style={{ color: "var(--ink-soft)" }}>{w.body}</p>
               </div>
@@ -258,7 +258,7 @@ export default function EthicsPage() {
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-20 text-center">
           <div className="label-ui">Konklusjon</div>
           <h2 className="font-serif-display text-4xl md:text-5xl font-light mt-4 max-w-[28ch] mx-auto" style={{ color: "var(--ink)" }}>
-            Aksepter at det går <em className="italic" style={{ color: "var(--moss)" }}>saktere</em>.
+            Aksepter at det går <em className="italic" style={{ color: "var(--rust)" }}>saktere</em>.
           </h2>
           <p className="font-editor mt-6 max-w-[62ch] mx-auto text-lg" style={{ color: "var(--ink-soft)" }}>
             Etisk AI-skriving er ikke den raskeste metoden. Den er laget for dem som er villige
@@ -282,7 +282,7 @@ export default function EthicsPage() {
 }
 
 function RiskDot({ level }) {
-  const color = level === "høy" ? "#a13a3a" : level === "medium" ? "var(--rust)" : "var(--moss)";
+  const color = level === "høy" ? "#a13a3a" : level === "medium" ? "var(--rust)" : "var(--ink-mute)";
   const label = level === "høy" ? "Høy" : level === "medium" ? "Medium" : "Lav";
   return (
     <span className="inline-flex items-center gap-2 label-ui" style={{ color }}>

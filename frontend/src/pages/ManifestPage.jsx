@@ -4,6 +4,7 @@ import { ArrowLeft, ExternalLink, Info } from "lucide-react";
 import InfoMenu from "@/components/InfoMenu";
 import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
+import StatementBreak from "@/components/StatementBreak";
 
 const SOURCES = [
   {
@@ -66,7 +67,7 @@ export default function ManifestPage() {
       <section className="max-w-[900px] mx-auto px-6 md:px-10 pt-14 md:pt-20 pb-8">
         <div className="label-ui">Manifest</div>
         <h1 className="font-serif-display text-4xl md:text-5xl lg:text-6xl font-light mt-3 leading-[1.1]" style={{ color: "var(--ink)" }}>
-          Norsk skrivehjelp for mennesker som vil <em className="italic" style={{ color: "var(--moss)" }}>skrive selv</em>.
+          Norsk skrivehjelp for mennesker som vil <em className="italic" style={{ color: "var(--rust)" }}>skrive selv</em>.
         </h1>
 
         {/* AI contribution notice */}
@@ -85,7 +86,7 @@ export default function ManifestPage() {
       </section>
 
       {/* Body */}
-      <article className="max-w-[720px] mx-auto px-6 md:px-10 pb-24 font-editor text-lg leading-[1.85]" style={{ color: "var(--ink)" }}>
+      <article className="max-w-[720px] mx-auto px-6 md:px-10 font-editor text-lg leading-[1.85]" style={{ color: "var(--ink)" }}>
         <P>I tre år har jeg jobbet med den samme boka, skrevet, slettet, flyttet scener, begynt på nytt, mistet oversikten og funnet den igjen.</P>
         <P>Og jeg har hatt skrivesperre.</P>
         <P>Etter hvert innså jeg at jeg trengte hjelp, ikke noen som skulle skrive boka for meg, men noen som kunne lese den utenfra, se det jeg selv hadde stirret meg blind på og si fra når noe ikke fungerte.</P>
@@ -94,7 +95,7 @@ export default function ManifestPage() {
         <P>Men det var ikke det jeg trengte.</P>
         <P>Jeg ville ikke gi fra meg stemmen min og konseptet mitt til et program som ikke kunne vite hvorfor jeg hadde skrevet akkurat den setningen slik, hvorfor en karakter reagerte som hun gjorde, eller hvorfor noe litt skjevt i språket kanskje skulle få lov til å være skjevt.</P>
         <P>Jeg ville ha hjelp uten å gi fra meg forfatterskapet.</P>
-        <P className="font-serif-display text-2xl md:text-3xl italic mt-10" style={{ color: "var(--moss)" }}>Derfor laget jeg Bragarmål.</P>
+        <P className="font-serif-display text-2xl md:text-3xl italic mt-10" style={{ color: "var(--rust)" }}>Derfor laget jeg Bragarmål.</P>
 
         <H2>Et manus er ikke bare data</H2>
         <P>Det er år med notater, halvferdige kapitler, tankespinn og ideer, tanker som ble skrevet klokka tre om natta, scener som ble kastet, og parkering på en bussholdeplass for å notere noe du absolutt ikke måtte glemme, selv om du allerede var sent ute til et bryllup.</P>
@@ -117,10 +118,16 @@ export default function ManifestPage() {
         <P>Når teksten plutselig avviker, skal ikke Bragarmåls første reaksjon være:</P>
         <P className="italic" style={{ color: "var(--ink-mute)" }}>Her er en bedre setning.</P>
         <P>Den bør heller være:</P>
-        <P className="italic" style={{ color: "var(--moss)" }}>Her skjer det noe.</P>
+        <P className="italic" style={{ color: "var(--rust)" }}>Her skjer det noe.</P>
         <P>For kanskje setningen din er bedre, kanskje den er akkurat slik fordi du ville ha den slik, og kanskje Bragarmål tar feil.</P>
         <P className="font-serif-display text-xl italic" style={{ color: "var(--ink)" }}>Det avgjør du.</P>
+      </article>
 
+      <StatementBreak kicker="Nina">
+        Ikke alle har råd til en redaktør. Alle burde ha noen å teste mot.
+      </StatementBreak>
+
+      <article className="max-w-[720px] mx-auto px-6 md:px-10 font-editor text-lg leading-[1.85]" style={{ color: "var(--ink)" }}>
         <H2>Redaksjonell motstand skal ikke være forbeholdt dem som har råd</H2>
         <P>Bragarmål skal ikke erstatte en redaktør, menneskelig erfaring, skjønn og litterær forståelse betyr noe, og det kommer det fortsatt til å gjøre.</P>
         <P>Men alternativet for den som ikke har råd til profesjonell hjelp, bør heller ikke være å sitte helt alene.</P>
@@ -132,8 +139,14 @@ export default function ManifestPage() {
         <P>Det gjør heller ikke bokbransjen.</P>
         <P>Dette er spørsmål norske forfattere, forlag og organisasjoner arbeider med nå, og grensene kommer sannsynligvis til å utvikle seg sammen med teknologien.</P>
         <P>Men Bragarmål må ha en grense.</P>
-        <P className="font-serif-display text-xl italic" style={{ color: "var(--moss)" }}>Og den skal være synlig.</P>
+        <P className="font-serif-display text-xl italic" style={{ color: "var(--rust)" }}>Og den skal være synlig.</P>
+      </article>
 
+      <StatementBreak kicker="Nina" dark>
+        Det som avgjør er ikke om AI var involvert. Det er hva den fikk gjøre.
+      </StatementBreak>
+
+      <article className="max-w-[720px] mx-auto px-6 md:px-10 pb-24 font-editor text-lg leading-[1.85]" style={{ color: "var(--ink)" }}>
         <H2>Mennesket skal fortsatt være forfatteren</H2>
         <P>Den norske Forfatterforening har i 2026 tatt et tydelig standpunkt til generativ KI. Verk som i hovedsak er fremstilt med generativ KI kan ikke danne grunnlag for medlemskap, mens delvis bruk skal oppgis og vurderes skjønnsmessig.</P>
         <P>Det betyr ikke at all bruk av KI i skriveprosessen behandles likt.</P>
@@ -148,7 +161,7 @@ export default function ManifestPage() {
         <P>For oversettelser er grensene enda tydeligere, blant annet når det gjelder KI-bearbeiding og bruk av verk til trening av språkmodeller.</P>
         <P>Dette forteller meg noe viktig:</P>
         <P>Det holder ikke at et KI-verktøy sier at det er ansvarlig.</P>
-        <P className="font-serif-display text-xl italic" style={{ color: "var(--moss)" }}>Vi må kunne forklare hva det faktisk gjør.</P>
+        <P className="font-serif-display text-xl italic" style={{ color: "var(--rust)" }}>Vi må kunne forklare hva det faktisk gjør.</P>
         <P>Det prinsippet ønsker jeg å bygge inn i Bragarmål.</P>
 
         <H2>Hva betyr det i Bragarmål?</H2>
@@ -165,7 +178,7 @@ export default function ManifestPage() {
         <P>Den kan ganske enkelt ta feil.</P>
         <P>Bragarmål skal derfor ikke presentere litterære vurderinger som fasit.</P>
         <P>Den skal vise deg hva den ser, hvorfor den reagerer, og gi vurderingen tilbake til deg.</P>
-        <P className="font-serif-display text-xl italic" style={{ color: "var(--moss)" }}>Forfatteren skal fortsatt ha siste ord.</P>
+        <P className="font-serif-display text-xl italic" style={{ color: "var(--rust)" }}>Forfatteren skal fortsatt ha siste ord.</P>
 
         <H2>Målet</H2>
         <P>Jeg ønsker at Bragarmål etter hvert skal bli en norsk skrivehjelp man kan bruke med rak rygg, et verktøy norske forfattere kan bruke uten å måtte lure på om de samtidig har gitt fra seg forfatterskapet.</P>
@@ -178,7 +191,7 @@ export default function ManifestPage() {
 
         <div className="mt-14 hairline-t pt-10">
           <p className="font-serif-display text-3xl md:text-4xl italic leading-snug" style={{ color: "var(--ink)" }}>
-            Mennesket skriver. <span style={{ color: "var(--moss)" }}>Bragarmål sparrer.</span>
+            Mennesket skriver. <span style={{ color: "var(--rust)" }}>Bragarmål sparrer.</span>
           </p>
           <p className="mt-6 label-ui" style={{ color: "var(--ink-mute)" }}>— Nina</p>
         </div>
@@ -211,7 +224,7 @@ export default function ManifestPage() {
                     style={{ color: "var(--ink)" }}
                   >
                     {s.title}
-                    <ExternalLink size={14} strokeWidth={1.5} style={{ color: "var(--moss)" }} />
+                    <ExternalLink size={14} strokeWidth={1.5} style={{ color: "var(--rust)" }} />
                   </a>
                   <p className="mt-2 font-editor text-base" style={{ color: "var(--ink-soft)" }}>
                     {s.detail}
@@ -264,7 +277,7 @@ function Pull({ children }) {
   return (
     <p
       className="mt-8 pl-5 py-2 font-serif-display text-xl md:text-2xl italic leading-snug"
-      style={{ color: "var(--ink)", borderLeft: "2px solid var(--moss)" }}
+      style={{ color: "var(--ink)", borderLeft: "2px solid var(--rust)" }}
     >
       {children}
     </p>

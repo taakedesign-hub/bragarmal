@@ -7,7 +7,7 @@ import Seo from "@/components/Seo";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { TID } from "@/lib/testIds";
-import { Palette, ArrowRight, ExternalLink, Send, CheckCircle2 } from "lucide-react";
+import { Palette, ArrowRight, ExternalLink, Send, CheckCircle2, Star } from "lucide-react";
 
 export default function IllustratorsPage() {
   const nav = useNavigate();
@@ -15,6 +15,8 @@ export default function IllustratorsPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [newId, setNewId] = useState(null);
+  const [upgrading, setUpgrading] = useState(false);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -44,12 +46,13 @@ export default function IllustratorsPage() {
     if (submitting) return;
     setSubmitting(true);
     try {
-      await api.post("/illustrators", form);
+      const { data } = await api.post("/illustrators", form);
       setDone(true);
+      setNewId(data?.id || null);
       // Optimistically add to list (server hides email)
       setList((prev) => [
         {
-          id: `local-${Date.now()}`,
+          id: data?.id || `local-${Date.now()}`,
           name: form.name,
           portfolio_url: form.portfolio_url,
           style: form.style,
@@ -63,6 +66,21 @@ export default function IllustratorsPage() {
       toast(err?.response?.data?.detail || "Kunne ikke sende inn — prøv igjen");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const startFeatured = async () => {
+    if (!newId || upgrading) return;
+    setUpgrading(true);
+    try {
+      const { data } = await api.post("/illustrators/checkout", {
+        illustrator_id: newId,
+        origin_url: window.location.origin,
+      });
+      window.location.href = data.checkout_url;
+    } catch (err) {
+      toast(err?.response?.data?.detail || "Kunne ikke starte betaling");
+      setUpgrading(false);
     }
   };
 
@@ -108,7 +126,7 @@ export default function IllustratorsPage() {
             Illustratører
           </div>
           <h1 className="font-serif-display text-5xl md:text-6xl font-light mt-3 leading-[1.05]" style={{ color: "var(--ink)" }}>
-            Bok trenger <em className="italic" style={{ color: "var(--moss)" }}>bilder</em>.
+            Bok trenger <em className="italic" style={{ color: "var(--rust)" }}>bilder</em>.
           </h1>
           <p className="mt-6 font-editor text-lg md:text-xl leading-relaxed" style={{ color: "var(--ink)" }}>
             Denne siden er en åpen katalog over illustratører — særlig for forfattere som skriver
@@ -127,7 +145,7 @@ export default function IllustratorsPage() {
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16 md:py-20 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
           {/* Venstre: skjema */}
           <div className="lg:col-span-5" data-testid="illustrator-form-section">
-            <div className="label-ui" style={{ color: "var(--moss)" }}>Er du illustratør?</div>
+            <div className="label-ui" style={{ color: "var(--rust)" }}>Er du illustratør?</div>
             <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-2 leading-tight" style={{ color: "var(--ink)" }}>
               Send inn portefølje
             </h2>
@@ -139,19 +157,41 @@ export default function IllustratorsPage() {
             {done ? (
               <div
                 className="mt-8 p-6 flex items-start gap-4"
-                style={{ background: "#fdfcf9", borderLeft: "2px solid var(--moss)" }}
+                style={{ background: "#fdfcf9", borderLeft: "2px solid var(--rust)" }}
                 data-testid="illustrator-form-success"
               >
-                <CheckCircle2 size={22} strokeWidth={1.5} style={{ color: "var(--moss)" }} className="shrink-0 mt-0.5" />
-                <div>
+                <CheckCircle2 size={22} strokeWidth={1.5} style={{ color: "var(--rust)" }} className="shrink-0 mt-0.5" />
+                <div className="flex-1">
                   <div className="font-serif-display text-xl" style={{ color: "var(--ink)" }}>Takk!</div>
                   <p className="mt-1 font-editor text-sm" style={{ color: "var(--ink-soft)" }}>
-                    Du er nå oppført i katalogen. Rull ned for å se listen.
+                    Du er nå oppført i katalogen — gratis, ingen tidsbegrensning. Rull ned for å se listen.
                   </p>
+
+                  {newId && (
+                    <div className="mt-5 p-4" style={{ border: "1px solid var(--rust)", background: "white" }}>
+                      <div className="flex items-center gap-2">
+                        <Star size={14} strokeWidth={1.5} style={{ color: "var(--rust)" }} />
+                        <span className="label-ui" style={{ color: "var(--rust)" }}>Valgfritt</span>
+                      </div>
+                      <p className="mt-2 font-editor text-sm" style={{ color: "var(--ink)" }}>
+                        Vil du stå øverst i katalogen og skille deg ut med et fremhevet merke?
+                      </p>
+                      <button
+                        onClick={startFeatured}
+                        disabled={upgrading}
+                        data-testid="illustrator-feature-btn"
+                        className="mt-3 btn-ghost inline-flex items-center gap-2 disabled:opacity-60"
+                        style={{ borderColor: "var(--rust)", color: "var(--rust)" }}
+                      >
+                        {upgrading ? "Sender…" : "Bli fremhevet — 89 kr/mnd"}
+                      </button>
+                    </div>
+                  )}
+
                   <button
-                    onClick={() => setDone(false)}
-                    className="mt-3 label-ui underline underline-offset-4"
-                    style={{ color: "var(--moss)" }}
+                    onClick={() => { setDone(false); setNewId(null); }}
+                    className="mt-4 label-ui underline underline-offset-4"
+                    style={{ color: "var(--rust)" }}
                     data-testid="illustrator-form-again"
                   >
                     Send inn en til
@@ -279,15 +319,24 @@ export default function IllustratorsPage() {
                 {list.map((it) => (
                   <li key={it.id} className="hairline-t py-6" data-testid={`ill-item-${it.id}`}>
                     <div className="flex items-baseline justify-between gap-4 flex-wrap">
-                      <h3 className="font-serif-display text-xl md:text-2xl leading-snug" style={{ color: "var(--ink)" }}>
+                      <h3 className="font-serif-display text-xl md:text-2xl leading-snug inline-flex items-center gap-2" style={{ color: "var(--ink)" }}>
                         {it.name}
+                        {it.is_featured && (
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 font-mono-ui text-[9px] tracking-widest align-middle"
+                            style={{ background: "var(--rust)", color: "white" }}
+                            data-testid={`ill-featured-${it.id}`}
+                          >
+                            <Star size={9} strokeWidth={2} /> FREMHEVET
+                          </span>
+                        )}
                       </h3>
                       <a
                         href={it.portfolio_url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="label-ui inline-flex items-center gap-1.5 hover:underline underline-offset-4"
-                        style={{ color: "var(--moss)" }}
+                        style={{ color: "var(--rust)" }}
                         data-testid={`ill-link-${it.id}`}
                       >
                         Se portefølje <ExternalLink size={12} strokeWidth={1.5} />
@@ -348,7 +397,7 @@ export default function IllustratorsPage() {
           outline: none;
         }
         .ill-input:focus {
-          border-color: var(--moss);
+          border-color: var(--rust);
           background: #ffffff;
         }
         .ill-input::placeholder { color: var(--ink-mute); font-style: italic; }

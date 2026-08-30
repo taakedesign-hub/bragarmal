@@ -74,7 +74,7 @@ export default function PricingPage() {
       <section className="max-w-[1400px] mx-auto px-6 md:px-10 pt-14 pb-6">
         <div className="label-ui">Medlemskap</div>
         <h1 className="font-serif-display text-5xl md:text-6xl font-light mt-3" style={{ color: "var(--ink)" }}>
-          Fair pris. <em className="italic" style={{ color: "var(--moss)" }}>Ingen skjulte grenser</em>.
+          Fair pris. <em className="italic" style={{ color: "var(--rust)" }}>Ingen skjulte grenser</em>.
         </h1>
         <p className="mt-6 font-editor text-lg max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>
           Bragarmål er en AI-basert tjeneste, som ivaretar fortellerstemmen din og hjelper
@@ -86,8 +86,8 @@ export default function PricingPage() {
         </p>
 
         {isLifetime && (
-          <div className="mt-6 inline-flex items-center gap-3 px-3 py-1.5" style={{ background: "var(--moss)", color: "white" }}>
-            <span className="w-1.5 h-1.5 rounded-full" style={{ background: "white" }} />
+          <div className="mt-6 inline-flex items-center gap-3 px-3 py-1.5" style={{ background: "var(--ink)", color: "white" }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--rust)" }} />
             <span className="font-mono-ui text-xs tracking-wider">LIVSTIDS­MEDLEM · GRATIS FOR ALLTID</span>
           </div>
         )}
@@ -104,7 +104,7 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[960px]">
 
           {/* BETA */}
-          <div className="paper p-8 md:p-10 flex flex-col" style={{ borderColor: isBeta ? "var(--moss)" : "var(--line)", borderWidth: isBeta ? "2px" : "1px" }}>
+          <div className="paper p-8 md:p-10 flex flex-col" style={{ borderColor: isBeta ? "var(--ink)" : "var(--line)", borderWidth: isBeta ? "2px" : "1px" }}>
             <div className="flex items-center justify-between">
               <span className="inline-flex items-center gap-2 px-2.5 py-1" style={{ background: "var(--linen)", color: "var(--ink)" }}>
                 <span className="font-mono-ui text-[10px] tracking-widest">BETA</span>
@@ -114,7 +114,7 @@ export default function PricingPage() {
               </span>
             </div>
             <h2 className="font-serif-display text-3xl md:text-4xl mt-6" style={{ color: "var(--ink)" }}>
-              Gratis <em className="italic" style={{ color: "var(--moss)" }}>· 3 mnd</em>
+              Gratis <em className="italic" style={{ color: "var(--rust)" }}>· 3 mnd</em>
             </h2>
             <div className="mt-3 flex items-baseline gap-1" style={{ color: "var(--ink)" }}>
               <span className="font-serif-display text-5xl md:text-6xl">0</span>
@@ -131,7 +131,7 @@ export default function PricingPage() {
           {/* ORDINÆR — both cycles as two-in-one card */}
           <div className="paper p-8 md:p-10 flex flex-col" style={{ borderColor: "var(--line)", borderWidth: "1px" }}>
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-2 px-2.5 py-1" style={{ background: "var(--moss)", color: "white" }}>
+              <span className="inline-flex items-center gap-2 px-2.5 py-1" style={{ background: "var(--ink)", color: "white" }}>
                 <span className="font-mono-ui text-[10px] tracking-widest">ORDINÆR</span>
               </span>
               <span className="label-ui" style={{ color: "var(--ink-mute)" }}>Alle funksjoner</span>
@@ -146,9 +146,9 @@ export default function PricingPage() {
             {/* Trial frame */}
             <div
               className="mt-6 p-3 flex items-center gap-3"
-              style={{ border: "1px solid var(--moss)", background: "var(--linen)" }}
+              style={{ border: "1px solid var(--rust)", background: "var(--bg-alt, #faf7f1)" }}
             >
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--moss)" }} />
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--rust)" }} />
               <span className="font-mono-ui text-[11px] tracking-widest" style={{ color: "var(--ink)" }}>
                 AUTOMATISK 2 UKERS PRØVETID VED FØRSTE GANGS REGISTRERING
               </span>
@@ -168,12 +168,12 @@ export default function PricingPage() {
                     onClick={() => checkout(opt.key)}
                     disabled={busy || isActive}
                     className="group flex items-center justify-between p-4 text-left hover:bg-neutral-50 transition-all relative w-full disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-                    style={{ border: isYearly ? "2px solid var(--moss)" : "1px solid var(--line)" }}
+                    style={{ border: isYearly ? "2px solid var(--rust)" : "1px solid var(--line)" }}
                   >
                     {opt.save > 0 && (
                       <span
                         className="absolute -top-2.5 left-4 px-2 py-0.5 font-mono-ui text-[10px] tracking-widest"
-                        style={{ background: "var(--moss)", color: "white" }}
+                        style={{ background: "var(--rust)", color: "white" }}
                       >
                         SPAR {opt.save}%
                       </span>
@@ -181,7 +181,7 @@ export default function PricingPage() {
                     <span className="font-serif-display text-xl" style={{ color: "var(--ink)" }}>
                       {opt.label}
                       {opt.save > 0 && (
-                        <span className="block font-editor text-xs mt-1" style={{ color: "var(--moss)" }}>
+                        <span className="block font-editor text-xs mt-1" style={{ color: "var(--rust)" }}>
                           tilsvarer {equivMonthly} kr/mnd · du sparer {saved} kr
                         </span>
                       )}
@@ -195,7 +195,7 @@ export default function PricingPage() {
                         size={18}
                         strokeWidth={1.5}
                         className="transition-transform group-hover:translate-x-1"
-                        style={{ color: "var(--moss)" }}
+                        style={{ color: "var(--ink)" }}
                       />
                     </span>
                   </button>
@@ -207,7 +207,7 @@ export default function PricingPage() {
               <p className="mt-4 label-ui text-center" style={{ color: "var(--ink-mute)" }}>Sender til Stripe…</p>
             )}
             {isActive && (
-              <p className="mt-4 label-ui text-center" style={{ color: "var(--moss)" }}>Aktivt medlemskap</p>
+              <p className="mt-4 label-ui text-center" style={{ color: "var(--ink)" }}>Aktivt medlemskap</p>
             )}
           </div>
         </div>
@@ -240,22 +240,21 @@ export default function PricingPage() {
           <div className="paper mt-6 p-8 md:p-10 grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 items-center" style={{ borderColor: "var(--line)" }}>
             <div className="md:col-span-7">
               <p className="font-editor text-base md:text-lg leading-relaxed" style={{ color: "var(--ink)" }}>
-                Er du illustratør eller kunstner? Bli en del av den lukkede katalogen der Bragarmål-forfattere
-                søker etter samarbeid. Du styrer selv porteføljelenken, stilen og hva du tilbyr.
+                Er du illustratør eller kunstner? Bli oppført i den åpne katalogen der Bragarmål-forfattere
+                søker etter samarbeid — helt gratis. Du styrer selv porteføljelenken, stilen og hva du tilbyr.
               </p>
               <ul className="mt-4 font-editor text-sm space-y-1.5" style={{ color: "var(--ink-soft)" }}>
-                <li className="pl-4 relative"><span className="absolute left-0" style={{ color: "var(--rust)" }}>—</span>Katalogen er kun tilgjengelig for innloggede forfattere</li>
+                <li className="pl-4 relative"><span className="absolute left-0" style={{ color: "var(--rust)" }}>—</span>Gratis oppføring, ingen tidsbegrensning</li>
                 <li className="pl-4 relative"><span className="absolute left-0" style={{ color: "var(--rust)" }}>—</span>Du kontaktes direkte via porteføljelenken din</li>
-                <li className="pl-4 relative"><span className="absolute left-0" style={{ color: "var(--rust)" }}>—</span>Avslutt når du vil — månedlig medlemskap uten binding</li>
+                <li className="pl-4 relative"><span className="absolute left-0" style={{ color: "var(--rust)" }}>—</span>Valgfritt: bli fremhevet øverst i katalogen for 89 kr/mnd, avslutt når du vil</li>
               </ul>
             </div>
             <div className="md:col-span-5 md:border-l md:pl-10" style={{ borderColor: "var(--line)" }}>
               <div className="flex items-baseline gap-1" style={{ color: "var(--ink)" }}>
-                <span className="font-serif-display text-5xl md:text-6xl">199</span>
-                <span className="font-editor text-sm" style={{ color: "var(--ink-mute)" }}>kr / mnd</span>
+                <span className="font-serif-display text-5xl md:text-6xl">Gratis</span>
               </div>
               <p className="font-editor text-xs mt-2" style={{ color: "var(--ink-mute)" }}>
-                Faktureres månedlig. Ingen skjulte kostnader.
+                Fremhevet plassering er valgfritt, fra 89 kr/mnd. Ingen skjulte kostnader.
               </p>
               <Link
                 to="/illustratorer"
@@ -268,19 +267,32 @@ export default function PricingPage() {
           </div>
         </div>
 
-        <div className="mt-14 max-w-[62ch] font-editor text-sm space-y-3" style={{ color: "var(--ink-mute)" }}>
-          <p>Alle priser i norske kroner.</p>
-          <p>
-            Du kan si opp abonnementet når som helst — det forblir aktivt ut den betalte perioden,
-            og fornyes ikke etter det. Ingen refusjon for allerede påbegynte perioder.
-          </p>
-          <p>
-            Du kan slette dine data — prøver, stemmeprofil, filer — når du ønsker det selv, direkte
-            fra kontoen din.
-          </p>
+        <div className="mt-16 max-w-[960px] hairline-t pt-10">
+          <div className="label-ui" style={{ color: "var(--rust)" }}>Greit å vite</div>
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <InfoBox label="Valuta">Alle priser i norske kroner.</InfoBox>
+            <InfoBox label="Oppsigelse">
+              Si opp når som helst. Medlemskapet forblir aktivt ut den betalte perioden og fornyes
+              ikke etter det. Ingen refusjon for allerede påbegynte perioder.
+            </InfoBox>
+            <InfoBox label="Dine data">
+              Slett prøver, stemmeprofil og filer selv, når du vil, direkte fra kontoen din.
+            </InfoBox>
+          </div>
         </div>
       </section>
       <Footer />
+    </div>
+  );
+}
+
+function InfoBox({ label, children }) {
+  return (
+    <div className="p-5" style={{ border: "1px solid var(--line)" }}>
+      <div className="label-ui" style={{ color: "var(--ink-mute)" }}>{label}</div>
+      <p className="mt-2 font-editor text-sm leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+        {children}
+      </p>
     </div>
   );
 }
