@@ -42,6 +42,7 @@ const LENGTHS = [
 export default function WritePage() {
   const [mode, setMode] = useState("next_steps");
   const [length, setLength] = useState("medium");
+  const [temperature, setTemperature] = useState(0.7);
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -62,10 +63,12 @@ export default function WritePage() {
     if (draft && typeof draft === "string") {
       const requestedMode = location.state?.mode || "reflect";
       const autoRun = !!location.state?.autoRun;
+      const passedTemp = location.state?.temperature;
       setInput(draft);
       // Guard: only allow modes that still exist
       const validModes = MODES.map((m) => m.id);
       setMode(validModes.includes(requestedMode) ? requestedMode : "reflect");
+      if (typeof passedTemp === "number") setTemperature(passedTemp);
       toast(`Utkast hentet${location.state?.source ? ` fra "${location.state.source}"` : ""}`);
       // Clear state so a refresh doesn't refill
       navigate(location.pathname, { replace: true, state: {} });
@@ -137,7 +140,7 @@ export default function WritePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ mode, text: input, length }),
+        body: JSON.stringify({ mode, text: input, length, temperature }),
         signal: ctrl.signal,
       });
       if (!res.ok || !res.body) {
@@ -424,6 +427,33 @@ export default function WritePage() {
       </div>
 
       {/* Controls row */}
+      {mode === "next_steps" && (
+        <div className="mt-8 hairline-t hairline-b py-5 grid grid-cols-2 gap-4">
+          <ControlSelect
+            label="Temperatur"
+            tid="write-temperature-select"
+            value={String(temperature)}
+            onChange={(v) => setTemperature(Number(v))}
+            options={[
+              { value: "0.3", label: "Lav · trygg og kontrollert" },
+              { value: "0.7", label: "Middels · naturlig balanse" },
+              { value: "1", label: "Høy · frekk og kreativ" },
+            ]}
+          />
+        </div>
+      )}
+      {mode === "next_steps" && (
+        <div className="mt-3 flex items-center justify-end">
+          <Link
+            to="/eksempler#temperatur"
+            className="font-mono-ui text-[10px] tracking-widest hover:underline"
+            style={{ color: "var(--ink-mute)" }}
+            data-testid="write-temperature-help-link"
+          >
+            HVA ER TEMPERATUR? →
+          </Link>
+        </div>
+      )}
       {mode === "reflect" && (
         <div className="mt-8 hairline-t hairline-b py-5 grid grid-cols-2 gap-4">
           <ControlSelect
