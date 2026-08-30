@@ -32,7 +32,7 @@ const APPROACH_TABLE = [
   { approach: "AI genererer ferdig tekst", risk: "høy", verdict: "Eierskap og stemme tapt.", example: "«Skriv kapittel 3 for meg»" },
   { approach: "AI foreslår retninger", risk: "medium", verdict: "Forsvarlig hvis du velger og omskriver.", example: "«Foreslå tre veier videre i min stil»" },
   { approach: "AI til struktur, research, korrektur", risk: "lav", verdict: "Uproblematisk.", example: "Outline, faktasjekk, rettskriving" },
-  { approach: "AI trent på ditt eget materiale", risk: "lav", verdict: "Sterkeste vernet av personlig stemme.", example: "Stilgjenkjenning fra egne tekster" },
+  { approach: "AI trent på ditt eget materiale", risk: "lav", verdict: "En privat referanse — ikke delt trening. Låst til din konto.", example: "Stemmeprofil, kun for deg" },
 ];
 
 const RULES = [
@@ -61,7 +61,7 @@ const BRAGARMÅL_DESIGN = [
   { label: "Tydelig merking", detail: "Din tekst og AI-forslag holdes visuelt adskilt. Ingen skjult blanding." },
   { label: "Ingen skjult generering", detail: "«Skriv ferdig dette kapittelet» finnes ikke. Du jobber alltid videre med det Bragarmål leverer." },
   { label: "Stemme og fragmenter", detail: "Les inn, fotografer gamle notater, jobb videre derfra. Ingen overtar skrivingen." },
-  { label: "Personvern og eierskap", detail: "Stemmeopptak og personlige tekster er dine. Alt låst til din innlogging. Ingen deler dine data." },
+  { label: "Personvern og eierskap", detail: "Stemmeprofilen din er en privat, personlig referanse — bygget for deg, låst til din konto, slettet når du sletter den. Ikke trening av en delt modell alle andre bruker." },
 ];
 
 export default function EthicsPage() {
