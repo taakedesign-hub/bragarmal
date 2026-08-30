@@ -70,7 +70,7 @@ const NO = {
     box2Title: "Når hjelper Bragarmål deg?",
     box2Sub: "Måter Bragarmål hjelper deg videre — uten å ta over.",
     box2Cta: "Vis eksempler",
-    box3Cta: "Les hele",
+    box3Cta: "Se katalogen",
     box4Cta: "Etikk",
     box5Title1: "Personlig side med alle",
     box5Title2: "hjelpemidler og verktøy",

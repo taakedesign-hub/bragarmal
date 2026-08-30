@@ -44,7 +44,7 @@ export default function Landing() {
       />
       {/* Top rule */}
       <div className="hairline-b">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-10 py-3 md:py-4 flex items-center justify-between gap-3">
+        <div className="max-w-[1800px] mx-auto px-4 md:px-10 py-3 md:py-4 flex items-center justify-between gap-3">
           <Link
             to="/"
             aria-label="Bragarmål — gå til forsiden"
@@ -69,7 +69,7 @@ export default function Landing() {
       </div>
 
       {/* Hero — 6-box grid */}
-      <section className="max-w-[1400px] mx-auto px-6 md:px-10 pt-10 md:pt-14 pb-12">
+      <section className="max-w-[1800px] mx-auto px-6 md:px-10 pt-10 md:pt-14 pb-12">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
 
           {/* Box 1 — BLACK: pricing bullets — text higher, slightly larger */}
@@ -133,16 +133,16 @@ export default function Landing() {
             </div>
           </Link>
 
-          {/* Box 3 — RED: MANIFEST — bottom-left */}
+          {/* Box 3 — RED: illustratører & kunstnere — bottom-left */}
           <Link
-            to="/manifest"
-            data-testid="hero-box-manifest"
+            to="/illustratorer"
+            data-testid="hero-box-illustrators"
             className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:opacity-90"
             style={{ background: "#c8432c", color: "#ffffff" }}
           >
             <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-90">03</div>
             <div>
-              <div className="font-serif-display text-3xl md:text-5xl leading-none tracking-tight">MANIFEST</div>
+              <div className="font-serif-display text-3xl md:text-5xl leading-none tracking-tight">ILLUSTRATØRER</div>
               <div className="mt-3 font-editor text-xs md:text-sm opacity-90 flex items-center gap-2">
                 {t("landing.box3Cta")} <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
               </div>
@@ -273,7 +273,7 @@ export default function Landing() {
 
       {/* MANIFEST — utdrag som leder til full manifestside */}
       <section className="hairline-t hairline-b">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16 md:py-24">
+        <div className="max-w-[1800px] mx-auto px-6 md:px-10 py-16 md:py-24">
           <div className="grid grid-cols-12 gap-6 md:gap-10">
             <aside className="col-span-12 md:col-span-3 fade-in stagger-1">
               <div className="label-ui">Fra Nina</div>
@@ -289,7 +289,7 @@ export default function Landing() {
                 Norsk skrivehjelp for mennesker som vil <em className="italic" style={{ color: "var(--rust)" }}>skrive selv</em>.
               </h2>
 
-              <div className="mt-10 font-editor text-lg md:text-xl leading-[1.85]" style={{ color: "var(--ink)" }}>
+              <div className="mt-10 max-w-[75ch] font-editor text-lg md:text-xl leading-[1.85]" style={{ color: "var(--ink)" }}>
                 <p>I tre år har jeg jobbet med den samme boka, skrevet, slettet, flyttet scener, begynt på nytt, mistet oversikten og funnet den igjen. Og jeg har hatt skrivesperre.</p>
                 <p className="mt-6">Etter hvert innså jeg at jeg trengte hjelp.</p>
                 <p className="mt-6">Ikke noen som skulle skrive boka for meg, men noen som kunne lese den utenfra, se det jeg selv hadde stirret meg blind på og si fra når noe ikke fungerte.</p>
