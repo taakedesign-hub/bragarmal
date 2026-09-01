@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import InfoMenu from "@/components/InfoMenu";
 import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
+import { contactMailto, CONTACT_EMAIL_DISPLAY } from "@/lib/site";
 
 const DATA_TYPES = [
   { label: "Tekst du limer inn eller laster opp", detail: "Utkast, notater, tidligere tekster — lagret på din konto til du sletter det selv." },
@@ -173,10 +174,10 @@ export default function PrivacyPage() {
           </p>
           <div className="mt-10 flex items-center justify-center gap-4 flex-wrap">
             <a
-              href="mailto:hei@Bragarmål.no?subject=Personvern%20-%20BRAGARMÅL"
+              href={contactMailto("Personvern - BRAGARMÅL")}
               className="btn-ghost inline-flex items-center gap-2"
             >
-              hei@Bragarmål.no
+              {CONTACT_EMAIL_DISPLAY}
             </a>
             <Link to="/etikk" className="btn-primary inline-flex items-center gap-3">
               Etikk <ArrowRight size={14} strokeWidth={1.6} />

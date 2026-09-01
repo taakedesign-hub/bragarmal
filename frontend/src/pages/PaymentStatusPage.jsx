@@ -2,12 +2,16 @@ import { useEffect, useState } from "react";
 import Logo from "@/components/Logo";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "@/lib/api";
-import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { contactMailto } from "@/lib/site";
+import { CheckCircle2, XCircle, Loader2, AlertTriangle } from "lucide-react";
+
+const MAX_ATTEMPTS = 15;
 
 export default function PaymentStatusPage({ variant }) {
   const [params] = useSearchParams();
   const [status, setStatus] = useState(null);
   const [attempts, setAttempts] = useState(0);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     if (variant === "cancel") return;
@@ -19,12 +23,24 @@ export default function PaymentStatusPage({ variant }) {
         const r = await api.get(`/billing/session/${sid}`);
         if (!mounted) return;
         setStatus(r.data);
-        if (r.data.payment_status !== "paid" && attempts < 15) {
-          setTimeout(() => setAttempts((a) => a + 1), 2000);
+        if (r.data.payment_status !== "paid") {
+          if (attempts < MAX_ATTEMPTS) {
+            setTimeout(() => { if (mounted) setAttempts((a) => a + 1); }, 2000);
+          } else {
+            setFailed(true);
+          }
         }
-      } catch {}
+      } catch {
+        if (!mounted) return;
+        if (attempts < MAX_ATTEMPTS) {
+          setTimeout(() => { if (mounted) setAttempts((a) => a + 1); }, 2000);
+        } else {
+          setFailed(true);
+        }
+      }
     };
     poll();
+    return () => { mounted = false; };
   }, [attempts, params, variant]);
 
   const paid = status?.payment_status === "paid";
@@ -58,6 +74,18 @@ export default function PaymentStatusPage({ variant }) {
               Medlemskapet ditt er aktivt. All data og alle modeller er nå tilgjengelige.
             </p>
             <Link to="/dashboard" className="btn-primary mt-8 inline-block">Til arbeidsbenken</Link>
+          </>
+        ) : failed ? (
+          <>
+            <AlertTriangle size={48} strokeWidth={1.2} className="mx-auto" style={{ color: "var(--rust)" }} />
+            <h1 className="font-serif-display text-4xl mt-6" style={{ color: "var(--ink)" }}>Kunne ikke bekrefte betalingen</h1>
+            <p className="font-editor mt-4" style={{ color: "var(--ink-soft)" }}>
+              Det tok for lang tid å bekrefte betalingen din. Pengene er ikke nødvendigvis trukket — sjekk kontoen din, eller ta kontakt så hjelper vi deg.
+            </p>
+            <div className="mt-8 flex items-center justify-center gap-4 flex-wrap">
+              <Link to="/priser" className="btn-primary inline-block">Prøv igjen</Link>
+              <a href={contactMailto("Problem med betaling")} className="btn-ghost inline-block">Kontakt oss</a>
+            </div>
           </>
         ) : (
           <>

@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { TID } from "@/lib/testIds";
 import { Palette, ArrowRight, ExternalLink, Send, CheckCircle2, Star } from "lucide-react";
+import { contactMailto } from "@/lib/site";
 
 export default function IllustratorsPage() {
   const nav = useNavigate();
@@ -88,7 +89,7 @@ export default function IllustratorsPage() {
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Seo
         title="Illustratører — Bragarmål"
-        description="Register deg som illustratør, eller finn norske illustratører til bokprosjektet ditt."
+        description="Registrer deg som illustratør, eller finn norske illustratører til bokprosjektet ditt."
         path="/illustratorer"
       />
 
@@ -371,7 +372,7 @@ export default function IllustratorsPage() {
             </p>
           </div>
           <a
-            href="mailto:hei@Bragarmål.no?subject=Illustrat%C3%B8r-tips"
+            href={contactMailto("Illustratør-tips")}
             className="btn-ghost inline-flex items-center gap-2"
             data-testid="ill-refer"
           >

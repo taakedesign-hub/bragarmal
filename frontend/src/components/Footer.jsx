@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import Logo from "@/components/Logo";
 import { TID } from "@/lib/testIds";
 import { useI18n } from "@/lib/i18n";
+import { contactMailto } from "@/lib/site";
 
 export default function Footer() {
   const { t } = useI18n();
@@ -21,7 +22,7 @@ export default function Footer() {
           <Link to="/priser" className="label-ui" style={{ color: "var(--ink-mute)" }}>{t("info.pricing")}</Link>
           <a
             data-testid={TID.footerContactLink}
-            href="mailto:hei@Bragarmål.no?subject=Hilsen%20fra%20BRAGARMÅL"
+            href={contactMailto("Hilsen fra BRAGARMÅL")}
             className="label-ui"
             style={{ color: "var(--ink-mute)" }}
           >
