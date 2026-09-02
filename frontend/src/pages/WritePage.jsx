@@ -376,6 +376,14 @@ export default function WritePage() {
               KOMPOSISJONSMODUS
             </button>
             <Link
+              to="/undersokelser"
+              data-testid="write-research-link"
+              className="font-mono-ui text-[11px] tracking-widest hover:underline inline-flex items-center gap-1.5"
+              style={{ color: "var(--ink-mute)" }}
+            >
+              UNDERSØKELSER →
+            </Link>
+            <Link
               to="/eksempler#testprompter"
               data-testid="write-testprompter-link"
               className="font-mono-ui text-[11px] tracking-widest hover:underline inline-flex items-center gap-1.5"
