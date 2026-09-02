@@ -18,9 +18,14 @@ const TID = {
   toggleMode: "auth-toggle-mode",
 };
 
-function startGoogleLogin() {
-  const redirectUrl = window.location.origin + "/dashboard";
-  window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+async function startGoogleLogin() {
+  try {
+    const { data } = await api.get("/auth/google/start");
+    if (!data?.auth_url) throw new Error("no auth_url");
+    window.location.href = data.auth_url;
+  } catch (err) {
+    toast(err?.response?.data?.detail || "Kunne ikke starte innlogging med Google — prøv igjen");
+  }
 }
 
 function formatDetail(detail) {
