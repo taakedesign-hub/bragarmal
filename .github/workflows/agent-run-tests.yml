@@ -24,6 +24,10 @@ jobs:
           pip install -r backend/requirements.txt
 
       - name: Run agent test script
+        env:
+          MONGO_URL: ${{ secrets.MONGO_URL }}
+          DB_NAME: ${{ secrets.CI_TEST_DB_NAME }}
+          REACT_APP_BACKEND_URL: https://bragarmal-production.up.railway.app
         run: |
           source .venv/bin/activate
           python scripts/agent_run_tests.py
