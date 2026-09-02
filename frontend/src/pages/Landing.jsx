@@ -70,7 +70,7 @@ export default function Landing() {
 
       {/* Hero — 6-box grid */}
       <section className="max-w-[1800px] mx-auto px-6 md:px-10 pt-10 md:pt-14 pb-12">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
 
           {/* Box 1 — BLACK: pricing bullets — text higher, slightly larger */}
           <div
@@ -212,6 +212,50 @@ export default function Landing() {
               </div>
             </div>
           </button>
+
+          {/* Box 7 — WHITE: håndtegnet notatbok, lenke til Skriv */}
+          <Link
+            to="/skriv"
+            data-testid="hero-box-write"
+            className="aspect-square overflow-hidden relative group block"
+            style={{ background: "#ffffff" }}
+          >
+            <img
+              src="/tile-notatbok.svg"
+              alt=""
+              className="w-full h-full object-contain p-2"
+              draggable={false}
+            />
+            <div className="absolute top-6 md:top-8 left-6 md:left-8 font-mono-ui text-[10px] md:text-xs tracking-widest" style={{ color: "#0f0e0d" }}>07</div>
+            <div className="absolute inset-x-0 bottom-0 p-4 md:p-5">
+              <div className="font-serif-display italic text-2xl md:text-3xl leading-none" style={{ color: "#0f0e0d" }}>Skriv.</div>
+              <div className="mt-1 font-mono-ui text-[10px] tracking-widest uppercase inline-flex items-center gap-2 group-hover:underline underline-offset-4" style={{ color: "#c8432c" }}>
+                Til skrivepulten <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
+              </div>
+            </div>
+          </Link>
+
+          {/* Box 8 — RUST: blekkspor, lenke til Stemme */}
+          <Link
+            to="/stemme"
+            data-testid="hero-box-voice"
+            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:opacity-90 relative overflow-hidden"
+            style={{ background: "#c8432c", color: "#ffffff" }}
+          >
+            <img
+              src="/tile-blekkspor.svg"
+              alt=""
+              className="absolute inset-0 w-full h-full object-contain p-6 opacity-90 pointer-events-none"
+              draggable={false}
+            />
+            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-90 relative">08</div>
+            <div className="relative">
+              <div className="font-serif-display italic text-2xl md:text-3xl leading-none">Stemme.</div>
+              <div className="mt-1 font-mono-ui text-[10px] tracking-widest uppercase inline-flex items-center gap-2 group-hover:underline underline-offset-4">
+                Din rytme, ikke maskinens <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
+              </div>
+            </div>
+          </Link>
 
         </div>
 

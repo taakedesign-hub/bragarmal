@@ -1287,6 +1287,128 @@ async def delete_character(char_id: str, user: User = Depends(get_current_user))
     return {"ok": True}
 
 
+# ─── Faktastasjon (research notes) ──────────────────────────────────────────
+RESEARCH_CATEGORIES = ["person", "sted", "tidsperiode", "gjenstand", "annet"]
+RESEARCH_IMAGE_MAX_UPLOAD_BYTES = 8 * 1024 * 1024
+RESEARCH_IMAGE_MAX_DIM = 1400
+
+
+class ResearchNoteCreate(BaseModel):
+    title: str
+    category: str = "annet"
+    content: str = ""
+    source_url: str = ""
+
+
+class ResearchNoteUpdate(BaseModel):
+    title: Optional[str] = None
+    category: Optional[str] = None
+    content: Optional[str] = None
+    source_url: Optional[str] = None
+
+
+@api_router.get("/research")
+async def list_research_notes(user: User = Depends(get_current_user)):
+    return await db.research_notes.find(
+        {"user_id": user.user_id}, {"_id": 0, "image_data": 0}
+    ).sort("updated_at", -1).to_list(1000)
+
+
+@api_router.post("/research")
+async def create_research_note(body: ResearchNoteCreate, user: User = Depends(get_current_user)):
+    category = body.category if body.category in RESEARCH_CATEGORIES else "annet"
+    doc = {
+        "id": str(uuid.uuid4()),
+        "user_id": user.user_id,
+        "title": body.title.strip() or "Uten tittel",
+        "category": category,
+        "content": body.content.strip(),
+        "source_url": body.source_url.strip(),
+        "has_image": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.research_notes.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.patch("/research/{note_id}")
+async def update_research_note(note_id: str, body: ResearchNoteUpdate, user: User = Depends(get_current_user)):
+    updates = {k: (v.strip() if isinstance(v, str) else v) for k, v in body.model_dump(exclude_none=True).items()}
+    if "category" in updates and updates["category"] not in RESEARCH_CATEGORIES:
+        updates["category"] = "annet"
+    if not updates:
+        raise HTTPException(status_code=400, detail="Ingenting å oppdatere")
+    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+    r = await db.research_notes.update_one(
+        {"id": note_id, "user_id": user.user_id}, {"$set": updates}
+    )
+    if r.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Ikke funnet")
+    return await db.research_notes.find_one(
+        {"id": note_id, "user_id": user.user_id}, {"_id": 0, "image_data": 0}
+    )
+
+
+@api_router.delete("/research/{note_id}")
+async def delete_research_note(note_id: str, user: User = Depends(get_current_user)):
+    r = await db.research_notes.delete_one({"id": note_id, "user_id": user.user_id})
+    if r.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Ikke funnet")
+    return {"ok": True}
+
+
+@api_router.post("/research/{note_id}/image")
+async def upload_research_note_image(note_id: str, file: UploadFile = File(...), user: User = Depends(get_current_user)):
+    exists = await db.research_notes.find_one({"id": note_id, "user_id": user.user_id}, {"_id": 0, "id": 1})
+    if not exists:
+        raise HTTPException(status_code=404, detail="Notat ikke funnet")
+    ct = (file.content_type or "").lower()
+    if not ct.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Filen må være et bilde (PNG, JPG, WebP e.l.)")
+    data = await file.read()
+    if not data:
+        raise HTTPException(status_code=400, detail="Tom fil")
+    if len(data) > RESEARCH_IMAGE_MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=400, detail="Bildet er for stort (maks 8 MB)")
+    try:
+        img = Image.open(io.BytesIO(data))
+        img.load()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Kunne ikke lese bildet — prøv en annen fil")
+    if img.mode in ("RGBA", "LA", "P"):
+        rgba = img.convert("RGBA")
+        bg = Image.new("RGB", rgba.size, (255, 255, 255))
+        bg.paste(rgba, mask=rgba.split()[-1])
+        img = bg
+    else:
+        img = img.convert("RGB")
+    img.thumbnail((RESEARCH_IMAGE_MAX_DIM, RESEARCH_IMAGE_MAX_DIM))
+    out = io.BytesIO()
+    img.save(out, format="JPEG", quality=85, optimize=True)
+    await db.research_notes.update_one(
+        {"id": note_id, "user_id": user.user_id},
+        {"$set": {"image_data": out.getvalue(), "image_content_type": "image/jpeg", "has_image": True,
+                   "updated_at": datetime.now(timezone.utc).isoformat()}},
+    )
+    return {"ok": True}
+
+
+@api_router.get("/research/{note_id}/image")
+async def get_research_note_image(note_id: str, user: User = Depends(get_current_user)):
+    doc = await db.research_notes.find_one(
+        {"id": note_id, "user_id": user.user_id}, {"_id": 0, "image_data": 1, "image_content_type": 1}
+    )
+    if not doc or not doc.get("image_data"):
+        raise HTTPException(status_code=404, detail="Bilde ikke funnet")
+    return Response(
+        content=bytes(doc["image_data"]),
+        media_type=doc.get("image_content_type") or "image/jpeg",
+        headers={"Cache-Control": "private, max-age=86400"},
+    )
+
+
 # ─── Illustrators (public directory) ────────────────────────────────────────
 class IllustratorCreate(BaseModel):
     name: str
