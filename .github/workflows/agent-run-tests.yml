@@ -25,4 +25,5 @@ jobs:
 
       - name: Run agent test script
         run: |
+          source .venv/bin/activate
           python scripts/agent_run_tests.py
