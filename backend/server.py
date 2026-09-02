@@ -556,12 +556,13 @@ async def google_login_callback(response: Response, code: Optional[str] = None, 
             return RedirectResponse(f"{FRONTEND_URL}/logg-inn?feil=google_userinfo")
         profile = userinfo_r.json()
 
-    result = await _upsert_user_and_start_session(
-        response, profile["email"], profile.get("name", profile["email"]), profile.get("picture")
+    redirect = RedirectResponse(f"{FRONTEND_URL}/dashboard")
+    await _upsert_user_and_start_session(
+        redirect, profile["email"], profile.get("name", profile["email"]), profile.get("picture")
     )
-    # The cookie is already set on this redirect response — no need to round-trip
-    # a session_id through the frontend hash like the Emergent flow required.
-    return RedirectResponse(f"{FRONTEND_URL}/dashboard")
+    # The cookie must be set directly on the object we return — FastAPI discards
+    # the injected `response` param's headers once a Response is returned explicitly.
+    return redirect
 
 
 @api_router.get("/auth/me")
