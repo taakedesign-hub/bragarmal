@@ -502,7 +502,7 @@ async def create_session(request: Request, response: Response):
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get('GOOGLE_OAUTH_CLIENT_ID')
 GOOGLE_OAUTH_CLIENT_SECRET = os.environ.get('GOOGLE_OAUTH_CLIENT_SECRET')
 GOOGLE_OAUTH_REDIRECT_URI = os.environ.get('GOOGLE_OAUTH_REDIRECT_URI')  # e.g. https://api.bragarmål.no/api/auth/google/callback
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://bragarmål.no')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://xn--bragarml-g0a.no')
 
 _oauth_states: dict = {}  # state -> created_at (short-lived, in-memory CSRF guard)
 
