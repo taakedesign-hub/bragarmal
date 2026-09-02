@@ -27,14 +27,7 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, ConfigDict
 
-try:
-    # Only installable inside Emergent's own build environment — everywhere else
-    # (e.g. an independent host like Railway) this stays unavailable, and every
-    # call site already checks EMERGENT_LLM_KEY first and raises before touching it.
-    from emergentintegrations.llm.chat import LlmChat, UserMessage, TextDelta, StreamDone, ImageContent
-    from emergentintegrations.llm.openai import OpenAISpeechToText
-except ImportError:
-    LlmChat = UserMessage = TextDelta = StreamDone = ImageContent = OpenAISpeechToText = None
+import litellm
 from openai import AsyncOpenAI
 
 # Extraction libs
@@ -52,7 +45,10 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
+EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')  # still used by storage_put/storage_get below
+ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY')
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 XAI_API_KEY = os.environ.get('XAI_API_KEY')
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
@@ -227,6 +223,45 @@ ALLOWED_MODELS = {
 BRAGR_MODEL_WRITING = ("anthropic", "claude-sonnet-4-6")    # /generate + humaniser
 BRAGR_MODEL_ANALYSIS = ("anthropic", "claude-sonnet-4-6")   # stemmeprofil, karakterer, AI-detektor
 BRAGR_MODEL_VISION = ("anthropic", "claude-sonnet-4-6")     # OCR / håndskriftscan
+
+# Direkte leverandørnøkler for /generate sin modell-nedtrekksliste (og BYOK-hjelpere
+# lagrer sin egen nøkkel per provider, se helper["api_key"] i /generate).
+PROVIDER_API_KEYS = {
+    "anthropic": ANTHROPIC_API_KEY,
+    "openai": OPENAI_API_KEY,
+    "gemini": GEMINI_API_KEY,
+    "xai": XAI_API_KEY,
+}
+
+
+async def stream_llm_text(
+    provider: str, model: str, system: str, user_msg: str, api_key: str,
+    temperature: float = 0.7, max_tokens: int = 4096, image_b64: Optional[str] = None,
+):
+    """Streams text deltas from any litellm-supported provider (anthropic, openai,
+    gemini, xai, ...) using a caller-supplied API key. Callers are responsible for
+    checking `api_key` is set before calling — this raises naturally otherwise."""
+    content = user_msg
+    if image_b64:
+        content = [
+            {"type": "text", "text": user_msg},
+            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"}},
+        ]
+    resp = await litellm.acompletion(
+        model=f"{provider}/{model}",
+        api_key=api_key,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        stream=True,
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": content},
+        ],
+    )
+    async for chunk in resp:
+        delta = chunk.choices[0].delta.content if chunk.choices else None
+        if delta:
+            yield delta
 
 
 # ---------- Auth ----------
@@ -660,7 +695,7 @@ def analyze_voice(samples: List[dict]) -> dict:
 
 async def build_style_summary(samples: List[dict], stats: dict) -> dict:
     """Use Claude to describe user's tone and signature phrases in Norwegian."""
-    if not samples or not EMERGENT_LLM_KEY:
+    if not samples or not ANTHROPIC_API_KEY:
         return {"tone_description": "", "style_summary": "", "signature_phrases": [], "deviations": [], "watch_out_for": []}
 
     # Ensure ALL samples are represented — take proportional slices from each
@@ -701,19 +736,10 @@ TEKSTER:
 {joined}
 """
 
-    chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=f"analyze-{uuid.uuid4().hex[:8]}",
-        system_message=system,
-    ).with_model(*BRAGR_MODEL_ANALYSIS)
-
     try:
         parts = []
-        async for ev in chat.stream_message(UserMessage(text=prompt)):
-            if isinstance(ev, TextDelta):
-                parts.append(ev.content)
-            elif isinstance(ev, StreamDone):
-                break
+        async for chunk in stream_llm_text(*BRAGR_MODEL_ANALYSIS, system, prompt, ANTHROPIC_API_KEY):
+            parts.append(chunk)
         raw = "".join(parts).strip()
         # Extract JSON block
         m = re.search(r"\{.*\}", raw, re.DOTALL)
@@ -841,7 +867,7 @@ async def scan_handwritten(
     """
     import base64
 
-    if not EMERGENT_LLM_KEY:
+    if not ANTHROPIC_API_KEY:
         raise HTTPException(status_code=500, detail="LLM-nøkkel mangler")
 
     ct = (file.content_type or "").lower()
@@ -863,24 +889,14 @@ async def scan_handwritten(
         "Returner KUN den transkriberte teksten, ingen forklaring."
     )
 
-    chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=f"ocr-{user.user_id}-{uuid.uuid4().hex[:6]}",
-        system_message=system,
-    ).with_model(*BRAGR_MODEL_VISION)
-
-    msg = UserMessage(
-        text="Transkriber all håndskrevet norsk tekst i dette bildet ordrett.",
-        file_contents=[ImageContent(image_base64=b64)],
-    )
-
     try:
         parts = []
-        async for ev in chat.stream_message(msg):
-            if isinstance(ev, TextDelta):
-                parts.append(ev.content)
-            elif isinstance(ev, StreamDone):
-                break
+        async for chunk in stream_llm_text(
+            *BRAGR_MODEL_VISION, system,
+            "Transkriber all håndskrevet norsk tekst i dette bildet ordrett.",
+            ANTHROPIC_API_KEY, image_b64=b64,
+        ):
+            parts.append(chunk)
         text = "".join(parts).strip()
     except Exception as e:
         logger.exception("OCR failed")
@@ -927,7 +943,7 @@ async def transcribe_audio(
     """Transcribe a recorded Norwegian audio file (høytlesning) to text via Whisper.
     Returns the transcript — user reviews and can save as a sample.
     """
-    if not EMERGENT_LLM_KEY:
+    if not OPENAI_API_KEY:
         raise HTTPException(status_code=500, detail="LLM-nøkkel mangler")
 
     name = (file.filename or "").lower()
@@ -948,9 +964,9 @@ async def transcribe_audio(
         tmp_path = tmp.name
 
     try:
-        stt = OpenAISpeechToText(api_key=EMERGENT_LLM_KEY)
+        client = AsyncOpenAI(api_key=OPENAI_API_KEY)
         with open(tmp_path, "rb") as af:
-            resp = await stt.transcribe(
+            resp = await client.audio.transcriptions.create(
                 file=af,
                 model="whisper-1",
                 response_format="json",
@@ -1429,7 +1445,7 @@ async def illustrator_checkout(body: IllustratorCheckoutRequest):
 @api_router.post("/characters/extract")
 async def extract_characters(user: User = Depends(get_current_user)):
     """Read all scenes and ask Claude to extract character profiles."""
-    if not EMERGENT_LLM_KEY:
+    if not ANTHROPIC_API_KEY:
         raise HTTPException(status_code=503, detail="AI ikke tilgjengelig")
     scenes = await db.scenes.find({"user_id": user.user_id}, {"_id": 0}).sort("order", 1).to_list(500)
     if not scenes:
@@ -1453,18 +1469,10 @@ async def extract_characters(user: User = Depends(get_current_user)):
         "Skriv beskrivelsene på norsk. Vær konkret og tekstnær. Ikke oppfinn.\n\n"
         f"TEKST:\n{corpus}"
     )
-    chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=f"chars-{uuid.uuid4().hex[:8]}",
-        system_message=system,
-    ).with_model(*BRAGR_MODEL_ANALYSIS).with_params(temperature=0.4)
     try:
         parts = []
-        async for ev in chat.stream_message(UserMessage(text=prompt)):
-            if isinstance(ev, TextDelta):
-                parts.append(ev.content)
-            elif isinstance(ev, StreamDone):
-                break
+        async for chunk in stream_llm_text(*BRAGR_MODEL_ANALYSIS, system, prompt, ANTHROPIC_API_KEY, temperature=0.4):
+            parts.append(chunk)
         raw = "".join(parts).strip()
         m = re.search(r"\{.*\}", raw, re.DOTALL)
         data = json.loads(m.group(0) if m else raw)
@@ -1976,7 +1984,6 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
         )
 
     # Resolve model: either built-in or user's own AI helper (helper:<id>)
-    api_key_to_use = EMERGENT_LLM_KEY
     helper_persona = ""
     helper_name = ""
     if body.model.startswith("helper:"):
@@ -1993,7 +2000,8 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
         if body.model not in ALLOWED_MODELS:
             raise HTTPException(status_code=400, detail="Ukjent modell")
         provider, model = ALLOWED_MODELS[body.model]
-        if not EMERGENT_LLM_KEY:
+        api_key_to_use = PROVIDER_API_KEYS.get(provider)
+        if not api_key_to_use:
             raise HTTPException(status_code=503, detail="KI-generering er ikke tilgjengelig på denne serveren ennå")
 
     profile = await db.voice_profiles.find_one({"user_id": user.user_id}, {"_id": 0})
@@ -2050,22 +2058,13 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
             f"---\n{body.text}\n---"
         )
 
-    chat = LlmChat(
-        api_key=api_key_to_use,
-        session_id=f"gen-{user.user_id}-{uuid.uuid4().hex[:6]}",
-        system_message=system,
-    ).with_model(provider, model).with_params(
-        temperature=max(0.2, min(1.2, float(body.temperature or 0.7))) if body.mode == "next_steps" else 0.7
-    ) if provider != "xai" else None
+    gen_temperature = max(0.2, min(1.2, float(body.temperature or 0.7))) if body.mode == "next_steps" else 0.7
 
-    async def stream_llmchat():
+    async def stream_llm():
         try:
-            async for ev in chat.stream_message(UserMessage(text=user_msg)):
-                if isinstance(ev, TextDelta):
-                    yield f"data: {json.dumps({'delta': ev.content})}\n\n"
-                elif isinstance(ev, StreamDone):
-                    yield f"data: {json.dumps({'done': True})}\n\n"
-                    break
+            async for chunk in stream_llm_text(provider, model, system, user_msg, api_key_to_use, temperature=gen_temperature):
+                yield f"data: {json.dumps({'delta': chunk})}\n\n"
+            yield f"data: {json.dumps({'done': True})}\n\n"
         except Exception as e:
             logger.exception("Generation error")
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
@@ -2093,7 +2092,7 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
             logger.exception("xAI generation error")
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
-    stream_fn = stream_xai if provider == "xai" else stream_llmchat
+    stream_fn = stream_xai if provider == "xai" else stream_llm
     return StreamingResponse(
         stream_fn(),
         media_type="text/event-stream",
@@ -2125,7 +2124,7 @@ AI_MARKERS = [
 async def _ai_verdict(text: str) -> dict:
     """Ask Claude for a nuanced verdict on whether text feels AI-generated.
     Returns {label, confidence, reasoning} or {} if unavailable."""
-    if not EMERGENT_LLM_KEY:
+    if not ANTHROPIC_API_KEY:
         return {}
     snippet = text[:6000]
     system = (
@@ -2143,18 +2142,10 @@ async def _ai_verdict(text: str) -> dict:
         "  - notes: liste med 0-3 korte observasjoner om stemmen (fri form)\n\n"
         f"TEKST:\n{snippet}"
     )
-    chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=f"detect-{uuid.uuid4().hex[:8]}",
-        system_message=system,
-    ).with_model(*BRAGR_MODEL_ANALYSIS).with_params(temperature=0.3)
     try:
         parts = []
-        async for ev in chat.stream_message(UserMessage(text=prompt)):
-            if isinstance(ev, TextDelta):
-                parts.append(ev.content)
-            elif isinstance(ev, StreamDone):
-                break
+        async for chunk in stream_llm_text(*BRAGR_MODEL_ANALYSIS, system, prompt, ANTHROPIC_API_KEY, temperature=0.3):
+            parts.append(chunk)
         raw = "".join(parts).strip()
         m = re.search(r"\{.*\}", raw, re.DOTALL)
         if m:
