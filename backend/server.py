@@ -19,6 +19,7 @@ import bcrypt
 import secrets
 import requests
 import stripe
+from PIL import Image
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, UploadFile, File, Form, Query, Header
 from fastapi.responses import StreamingResponse, JSONResponse, RedirectResponse
 from dotenv import load_dotenv
@@ -1306,6 +1307,7 @@ async def create_illustrator(body: IllustratorCreate):
         "services": (body.services or "").strip()[:600],
         "is_public": True,
         "is_featured": False,
+        "has_image": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.illustrators.insert_one(doc)
@@ -1317,9 +1319,75 @@ async def list_illustrators():
     """Public listing — no email is returned to the client. Featured listings sort first."""
     items = await db.illustrators.find(
         {"is_public": True},
-        {"_id": 0, "email": 0},  # hide email from public listing
+        {"_id": 0, "email": 0, "image_data": 0},  # hide email + heavy image bytes from listing
     ).sort([("is_featured", -1), ("created_at", -1)]).to_list(200)
     return items
+
+
+ILLUSTRATOR_IMAGE_MAX_UPLOAD_BYTES = 8 * 1024 * 1024  # 8 MB raw upload cap
+ILLUSTRATOR_IMAGE_MAX_DIM = 1400
+
+
+@api_router.post("/illustrators/{illustrator_id}/image")
+async def upload_illustrator_image(illustrator_id: str, file: UploadFile = File(...)):
+    """Illustrators have no accounts — knowing the listing id (returned once at
+    creation, same as the featured-upgrade flow) is what authorizes this, same
+    trust model the checkout endpoint already uses for this id."""
+    exists = await db.illustrators.find_one({"id": illustrator_id}, {"_id": 0, "id": 1})
+    if not exists:
+        raise HTTPException(status_code=404, detail="Oppføring ikke funnet")
+
+    ct = (file.content_type or "").lower()
+    if not ct.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Filen må være et bilde (PNG, JPG, WebP e.l.)")
+
+    data = await file.read()
+    if not data:
+        raise HTTPException(status_code=400, detail="Tom fil")
+    if len(data) > ILLUSTRATOR_IMAGE_MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=400, detail="Bildet er for stort (maks 8 MB)")
+
+    try:
+        img = Image.open(io.BytesIO(data))
+        img.load()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Kunne ikke lese bildet — prøv en annen fil")
+
+    if img.mode in ("RGBA", "LA", "P"):
+        rgba = img.convert("RGBA")
+        bg = Image.new("RGB", rgba.size, (255, 255, 255))
+        bg.paste(rgba, mask=rgba.split()[-1])
+        img = bg
+    else:
+        img = img.convert("RGB")
+
+    img.thumbnail((ILLUSTRATOR_IMAGE_MAX_DIM, ILLUSTRATOR_IMAGE_MAX_DIM))
+    out = io.BytesIO()
+    img.save(out, format="JPEG", quality=85, optimize=True)
+
+    await db.illustrators.update_one(
+        {"id": illustrator_id},
+        {"$set": {
+            "image_data": out.getvalue(),
+            "image_content_type": "image/jpeg",
+            "has_image": True,
+        }},
+    )
+    return {"ok": True}
+
+
+@api_router.get("/illustrators/{illustrator_id}/image")
+async def get_illustrator_image(illustrator_id: str):
+    doc = await db.illustrators.find_one(
+        {"id": illustrator_id}, {"_id": 0, "image_data": 1, "image_content_type": 1}
+    )
+    if not doc or not doc.get("image_data"):
+        raise HTTPException(status_code=404, detail="Bilde ikke funnet")
+    return Response(
+        content=bytes(doc["image_data"]),
+        media_type=doc.get("image_content_type") or "image/jpeg",
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
 
 
 class IllustratorCheckoutRequest(BaseModel):

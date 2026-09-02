@@ -4,10 +4,10 @@ import Logo from "@/components/Logo";
 import InfoMenu from "@/components/InfoMenu";
 import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
-import { api } from "@/lib/api";
+import { api, API } from "@/lib/api";
 import { toast } from "sonner";
 import { TID } from "@/lib/testIds";
-import { Palette, ArrowRight, ExternalLink, Send, CheckCircle2, Star } from "lucide-react";
+import { Palette, ArrowRight, ExternalLink, Send, CheckCircle2, Star, ImagePlus, Upload } from "lucide-react";
 import { contactMailto } from "@/lib/site";
 
 export default function IllustratorsPage() {
@@ -18,6 +18,9 @@ export default function IllustratorsPage() {
   const [done, setDone] = useState(false);
   const [newId, setNewId] = useState(null);
   const [upgrading, setUpgrading] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageDone, setImageDone] = useState(false);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -50,6 +53,8 @@ export default function IllustratorsPage() {
       const { data } = await api.post("/illustrators", form);
       setDone(true);
       setNewId(data?.id || null);
+      setImageFile(null);
+      setImageDone(false);
       // Optimistically add to list (server hides email)
       setList((prev) => [
         {
@@ -67,6 +72,22 @@ export default function IllustratorsPage() {
       toast(err?.response?.data?.detail || "Kunne ikke sende inn — prøv igjen");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const uploadImage = async () => {
+    if (!newId || !imageFile || imageUploading) return;
+    setImageUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", imageFile);
+      await api.post(`/illustrators/${newId}/image`, fd);
+      setImageDone(true);
+      setList((prev) => prev.map((it) => (it.id === newId ? { ...it, has_image: true } : it)));
+    } catch (err) {
+      toast(err?.response?.data?.detail || "Kunne ikke laste opp bildet — prøv igjen");
+    } finally {
+      setImageUploading(false);
     }
   };
 
@@ -169,6 +190,48 @@ export default function IllustratorsPage() {
                   </p>
 
                   {newId && (
+                    <div className="mt-5 p-4" style={{ border: "1px solid var(--line)", background: "white" }} data-testid="illustrator-image-upload">
+                      <div className="flex items-center gap-2">
+                        <ImagePlus size={14} strokeWidth={1.5} style={{ color: "var(--rust)" }} />
+                        <span className="label-ui" style={{ color: "var(--rust)" }}>Valgfritt</span>
+                      </div>
+                      <p className="mt-2 font-editor text-sm" style={{ color: "var(--ink)" }}>
+                        Legg til et bilde av arbeidet ditt — vises direkte i katalogen, ikke bare som lenke.
+                      </p>
+                      {imageDone ? (
+                        <div className="mt-3 flex items-center gap-2 font-editor text-sm" style={{ color: "var(--rust)" }}>
+                          <CheckCircle2 size={16} strokeWidth={1.5} /> Bilde lastet opp
+                        </div>
+                      ) : (
+                        <div className="mt-3 flex items-center gap-3 flex-wrap">
+                          <label
+                            className="btn-ghost inline-flex items-center gap-2 cursor-pointer"
+                            style={{ borderColor: "var(--line)" }}
+                          >
+                            {imageFile ? imageFile.name : "Velg bilde"}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              data-testid="illustrator-image-input"
+                              onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                            />
+                          </label>
+                          <button
+                            onClick={uploadImage}
+                            disabled={!imageFile || imageUploading}
+                            data-testid="illustrator-image-submit"
+                            className="btn-primary inline-flex items-center gap-2 disabled:opacity-60"
+                          >
+                            <Upload size={14} strokeWidth={1.6} />
+                            {imageUploading ? "Laster opp…" : "Last opp"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {newId && (
                     <div className="mt-5 p-4" style={{ border: "1px solid var(--rust)", background: "white" }}>
                       <div className="flex items-center gap-2">
                         <Star size={14} strokeWidth={1.5} style={{ color: "var(--rust)" }} />
@@ -190,7 +253,7 @@ export default function IllustratorsPage() {
                   )}
 
                   <button
-                    onClick={() => { setDone(false); setNewId(null); }}
+                    onClick={() => { setDone(false); setNewId(null); setImageFile(null); setImageDone(false); }}
                     className="mt-4 label-ui underline underline-offset-4"
                     style={{ color: "var(--rust)" }}
                     data-testid="illustrator-form-again"
@@ -319,41 +382,54 @@ export default function IllustratorsPage() {
               <ul className="mt-8">
                 {list.map((it) => (
                   <li key={it.id} className="hairline-t py-6" data-testid={`ill-item-${it.id}`}>
-                    <div className="flex items-baseline justify-between gap-4 flex-wrap">
-                      <h3 className="font-serif-display text-xl md:text-2xl leading-snug inline-flex items-center gap-2" style={{ color: "var(--ink)" }}>
-                        {it.name}
-                        {it.is_featured && (
-                          <span
-                            className="inline-flex items-center gap-1 px-2 py-0.5 font-mono-ui text-[9px] tracking-widest align-middle"
-                            style={{ background: "var(--rust)", color: "white" }}
-                            data-testid={`ill-featured-${it.id}`}
+                    <div className="flex gap-5">
+                      {it.has_image && (
+                        <img
+                          src={`${API}/illustrators/${it.id}/image`}
+                          alt={`Arbeid av ${it.name}`}
+                          className="w-24 h-24 md:w-28 md:h-28 object-cover shrink-0"
+                          style={{ border: "1px solid var(--line)" }}
+                          data-testid={`ill-image-${it.id}`}
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline justify-between gap-4 flex-wrap">
+                          <h3 className="font-serif-display text-xl md:text-2xl leading-snug inline-flex items-center gap-2" style={{ color: "var(--ink)" }}>
+                            {it.name}
+                            {it.is_featured && (
+                              <span
+                                className="inline-flex items-center gap-1 px-2 py-0.5 font-mono-ui text-[9px] tracking-widest align-middle"
+                                style={{ background: "var(--rust)", color: "white" }}
+                                data-testid={`ill-featured-${it.id}`}
+                              >
+                                <Star size={9} strokeWidth={2} /> FREMHEVET
+                              </span>
+                            )}
+                          </h3>
+                          <a
+                            href={it.portfolio_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="label-ui inline-flex items-center gap-1.5 hover:underline underline-offset-4"
+                            style={{ color: "var(--rust)" }}
+                            data-testid={`ill-link-${it.id}`}
                           >
-                            <Star size={9} strokeWidth={2} /> FREMHEVET
-                          </span>
+                            Se portefølje <ExternalLink size={12} strokeWidth={1.5} />
+                          </a>
+                        </div>
+                        {it.services && (
+                          <div className="mt-3 font-editor text-sm" style={{ color: "var(--ink)" }}>
+                            <span className="label-ui" style={{ color: "var(--ink-mute)" }}>Tilbyr: </span>
+                            {it.services}
+                          </div>
                         )}
-                      </h3>
-                      <a
-                        href={it.portfolio_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="label-ui inline-flex items-center gap-1.5 hover:underline underline-offset-4"
-                        style={{ color: "var(--rust)" }}
-                        data-testid={`ill-link-${it.id}`}
-                      >
-                        Se portefølje <ExternalLink size={12} strokeWidth={1.5} />
-                      </a>
-                    </div>
-                    {it.services && (
-                      <div className="mt-3 font-editor text-sm" style={{ color: "var(--ink)" }}>
-                        <span className="label-ui" style={{ color: "var(--ink-mute)" }}>Tilbyr: </span>
-                        {it.services}
+                        {it.style && (
+                          <p className="mt-2 font-editor text-sm md:text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+                            {it.style}
+                          </p>
+                        )}
                       </div>
-                    )}
-                    {it.style && (
-                      <p className="mt-2 font-editor text-sm md:text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>
-                        {it.style}
-                      </p>
-                    )}
+                    </div>
                   </li>
                 ))}
               </ul>
