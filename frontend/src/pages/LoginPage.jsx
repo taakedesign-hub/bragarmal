@@ -60,6 +60,9 @@ export default function LoginPage() {
         : { email: email.trim(), password };
       const r = await api.post(url, body);
       setUser(r.data);
+      if (r.data?.session_token) {
+        try { localStorage.setItem("bragr_session_token", r.data.session_token); } catch {}
+      }
 
       // If user came from "Prøv gratis i 2 uker" — initiate trial checkout
       let trialIntent = false;

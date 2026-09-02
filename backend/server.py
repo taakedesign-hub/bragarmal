@@ -358,13 +358,14 @@ async def auth_register(payload: EmailRegister, request: Request, response: Resp
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
 
-    await _create_session_for_user(user_id, response)
+    session_token = await _create_session_for_user(user_id, response)
 
     return {
         "user_id": user_id,
         "email": email,
         "name": (payload.name or email.split("@")[0]).strip()[:80],
         "picture": None,
+        "session_token": session_token,
     }
 
 
@@ -401,13 +402,14 @@ async def auth_login(payload: EmailLogin, request: Request, response: Response):
 
     # Success — clear attempts and create session
     await db.login_attempts.delete_one({"identifier": identifier})
-    await _create_session_for_user(user_doc["user_id"], response)
+    session_token = await _create_session_for_user(user_doc["user_id"], response)
 
     return {
         "user_id": user_doc["user_id"],
         "email": user_doc["email"],
         "name": user_doc.get("name"),
         "picture": user_doc.get("picture"),
+        "session_token": session_token,
     }
 
 
@@ -556,10 +558,18 @@ async def google_login_callback(response: Response, code: Optional[str] = None, 
             return RedirectResponse(f"{FRONTEND_URL}/logg-inn?feil=google_userinfo")
         profile = userinfo_r.json()
 
-    redirect = RedirectResponse(f"{FRONTEND_URL}/dashboard")
-    await _upsert_user_and_start_session(
-        redirect, profile["email"], profile.get("name", profile["email"]), profile.get("picture")
+    result = await _upsert_user_and_start_session(
+        response, profile["email"], profile.get("name", profile["email"]), profile.get("picture")
     )
+    # Cookie is set above for browsers that accept it, but the frontend and
+    # backend are on different sites, so third-party-cookie blocking can
+    # silently drop it. Pass the token in the URL hash too (never sent to
+    # any server, incl. ours) so the frontend can store it and send it back
+    # as an Authorization header instead.
+    redirect = RedirectResponse(f"{FRONTEND_URL}/dashboard#session_token={result['session_token']}")
+    for k, v in response.headers.items():
+        if k.lower() == "set-cookie":
+            redirect.headers.append(k, v)
     # The cookie must be set directly on the object we return — FastAPI discards
     # the injected `response` param's headers once a Response is returned explicitly.
     return redirect
