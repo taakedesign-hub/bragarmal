@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
-import { ArrowRight, BookOpen, PenLine, WandSparkles, FileText, ScanLine, Camera, Mic } from "lucide-react";
+import { ArrowRight, BookOpen, PenLine, WandSparkles, FileText, ScanLine, Camera, Mic, ScrollText, UserRound, Search, Lightbulb } from "lucide-react";
 
 export default function Dashboard() {
   const { t } = useI18n();
@@ -55,7 +55,7 @@ export default function Dashboard() {
       </div>
 
       {/* Actions */}
-      <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
+      <div className="mt-16 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-10">
         <ActionTile
           n="01"
           icon={<BookOpen size={20} strokeWidth={1.4} />}
@@ -80,6 +80,38 @@ export default function Dashboard() {
           to="/skriv"
           delay="stagger-3"
         />
+        <ActionTile
+          n="04"
+          icon={<ScrollText size={20} strokeWidth={1.4} />}
+          title="Manuskript"
+          body="Sett scenene i rekkefølge, følg ordmålet"
+          to="/manuskript"
+          delay="stagger-4"
+        />
+        <ActionTile
+          n="05"
+          icon={<UserRound size={20} strokeWidth={1.4} />}
+          title="Karakterer"
+          body="Hold styr på personene i historien"
+          to="/karakterer"
+          delay="stagger-1"
+        />
+        <ActionTile
+          n="06"
+          icon={<Search size={20} strokeWidth={1.4} />}
+          title="Undersøkelser"
+          body="Research ved hånden — personer, steder, kilder"
+          to="/undersokelser"
+          delay="stagger-2"
+        />
+        <ActionTile
+          n="07"
+          icon={<Lightbulb size={20} strokeWidth={1.4} />}
+          title="Tips"
+          body="Gode råd for å komme videre"
+          to="/tips"
+          delay="stagger-3"
+        />
       </div>
 
       {/* Tools — fire måter å mate inn */}
@@ -93,25 +125,24 @@ export default function Dashboard() {
         </p>
 
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-          <ToolBox n="01" icon={<FileText size={22} strokeWidth={1.4} />} title="Lim inn" body="Kladder, meldinger, avsnitt du har liggende — bare kopier og lim." to="/prover" />
-          <ToolBox n="02" icon={<ScanLine size={22} strokeWidth={1.4} />} title="Last opp fil" body=".txt, .md, .pdf, .docx. Nedskrevet materiale du har fra før." to="/prover" />
-          <ToolBox n="03" icon={<Camera size={22} strokeWidth={1.4} />} title="Foto av håndskrift" body="Fotografer gamle notatbøker og brev. Håndskriften blir tekst." to="/prover" />
-          <ToolBox n="04" icon={<Mic size={22} strokeWidth={1.4} />} title="Høytlesning" body="Les direkte inn, eller last opp opptak. Muntlig fortellerstemme bevart." to="/prover" />
+          <ToolBox icon={<FileText size={22} strokeWidth={1.4} />} title="Lim inn" body="Kladder, meldinger, avsnitt du har liggende — bare kopier og lim." to="/prover" />
+          <ToolBox icon={<ScanLine size={22} strokeWidth={1.4} />} title="Last opp fil" body=".txt, .md, .pdf, .docx. Nedskrevet materiale du har fra før." to="/prover" />
+          <ToolBox icon={<Camera size={22} strokeWidth={1.4} />} title="Foto av håndskrift" body="Fotografer gamle notatbøker og brev. Håndskriften blir tekst." to="/prover" />
+          <ToolBox icon={<Mic size={22} strokeWidth={1.4} />} title="Høytlesning" body="Les direkte inn, eller last opp opptak. Muntlig fortellerstemme bevart." to="/prover" />
         </div>
       </div>
     </div>
   );
 }
 
-function ToolBox({ n, icon, title, body, to }) {
+function ToolBox({ icon, title, body, to }) {
   return (
     <Link
       to={to}
       className="p-6 md:p-7 group transition-all hover:bg-neutral-50 flex flex-col"
       style={{ border: "1px solid var(--line)" }}
     >
-      <div className="flex items-start justify-between">
-        <div className="font-mono-ui text-xs tracking-widest" style={{ color: "var(--ink-mute)" }}>{n}</div>
+      <div className="flex items-start justify-end">
         <div style={{ color: "var(--moss)" }}>{icon}</div>
       </div>
       <h3 className="font-serif-display text-xl md:text-2xl mt-6 leading-snug" style={{ color: "var(--ink)" }}>
