@@ -52,6 +52,10 @@ export default function ManuscriptPage() {
   const [view, setView] = useState("table"); // "table" | "grid"
   const [characters, setCharacters] = useState([]);
   const [researchNotes, setResearchNotes] = useState([]);
+  const [showScrapped, setShowScrapped] = useState(false);
+
+  const activeScenes = useMemo(() => scenes.filter((s) => !s.scrapped), [scenes]);
+  const scrappedScenes = useMemo(() => scenes.filter((s) => s.scrapped), [scenes]);
 
   const load = async () => {
     setLoading(true);
@@ -76,7 +80,7 @@ export default function ManuscriptPage() {
   useEffect(() => { load(); }, []);
 
   const sorted = useMemo(() => {
-    const arr = [...scenes];
+    const arr = [...activeScenes];
     arr.sort((a, b) => {
       const av = a[sortKey], bv = b[sortKey];
       if (av === bv) return 0;
@@ -88,9 +92,9 @@ export default function ManuscriptPage() {
         : String(bv).localeCompare(String(av), "nb");
     });
     return arr;
-  }, [scenes, sortKey, sortDir]);
+  }, [activeScenes, sortKey, sortDir]);
 
-  const totalWords = useMemo(() => scenes.reduce((s, x) => s + (x.word_count || 0), 0), [scenes]);
+  const totalWords = useMemo(() => activeScenes.reduce((s, x) => s + (x.word_count || 0), 0), [activeScenes]);
 
   const toggleSort = (key) => {
     if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -112,8 +116,29 @@ export default function ManuscriptPage() {
     catch (e) { toast(e?.response?.data?.detail || "Kunne ikke lagre"); load(); }
   };
 
+  const applyReorder = async (reordered) => {
+    // Merge new order values back into full scenes state, leaving scrapped scenes untouched
+    setScenes((arr) => arr.map((s) => {
+      const found = reordered.find((r) => r.id === s.id);
+      return found ? { ...s, order: found.order } : s;
+    }));
+    try { await api.post("/manuscript/reorder", { ordered_ids: reordered.map((s) => s.id) }); }
+    catch (e) { toast("Kunne ikke omorganisere"); load(); }
+  };
+
   const removeScene = async (id) => {
-    if (!window.confirm("Slett denne scenen?")) return;
+    setScenes((arr) => arr.map((s) => s.id === id ? { ...s, scrapped: true } : s));
+    toast("Flyttet til Kuttet", {
+      action: { label: "ANGRE", onClick: () => patchScene(id, { scrapped: false }) },
+    });
+    try { await api.patch(`/manuscript/${id}`, { scrapped: true }); }
+    catch (e) { toast("Kunne ikke flytte til Kuttet"); load(); }
+  };
+
+  const restoreScene = (id) => patchScene(id, { scrapped: false });
+
+  const deleteForever = async (id) => {
+    if (!window.confirm("Slette denne scenen for godt? Dette kan ikke angres.")) return;
     setScenes((arr) => arr.filter((s) => s.id !== id));
     try { await api.delete(`/manuscript/${id}`); }
     catch (e) { toast("Kunne ikke slette"); load(); }
@@ -121,32 +146,26 @@ export default function ManuscriptPage() {
 
   const moveScene = async (id, dir) => {
     // Only meaningful when sortKey === "order" — reorder by shifting indices
-    const ordered = [...scenes].sort((a, b) => a.order - b.order);
+    const ordered = [...activeScenes].sort((a, b) => a.order - b.order);
     const idx = ordered.findIndex((s) => s.id === id);
     if (idx < 0) return;
     const target = dir === "up" ? idx - 1 : idx + 1;
     if (target < 0 || target >= ordered.length) return;
     [ordered[idx], ordered[target]] = [ordered[target], ordered[idx]];
-    const reordered = ordered.map((s, i) => ({ ...s, order: i }));
-    setScenes(reordered);
-    try { await api.post("/manuscript/reorder", { ordered_ids: reordered.map((s) => s.id) }); }
-    catch (e) { toast("Kunne ikke omorganisere"); load(); }
+    await applyReorder(ordered.map((s, i) => ({ ...s, order: i })));
   };
 
   const [draggedId, setDraggedId] = useState(null);
 
   const dropSceneOn = async (draggedSceneId, targetId) => {
     if (!draggedSceneId || draggedSceneId === targetId) return;
-    const ordered = [...scenes].sort((a, b) => a.order - b.order);
+    const ordered = [...activeScenes].sort((a, b) => a.order - b.order);
     const fromIdx = ordered.findIndex((s) => s.id === draggedSceneId);
     const toIdx = ordered.findIndex((s) => s.id === targetId);
     if (fromIdx < 0 || toIdx < 0) return;
     const [moved] = ordered.splice(fromIdx, 1);
     ordered.splice(toIdx, 0, moved);
-    const reordered = ordered.map((s, i) => ({ ...s, order: i }));
-    setScenes(reordered);
-    try { await api.post("/manuscript/reorder", { ordered_ids: reordered.map((s) => s.id) }); }
-    catch (e) { toast("Kunne ikke omorganisere"); load(); }
+    await applyReorder(ordered.map((s, i) => ({ ...s, order: i })));
   };
 
   return (
@@ -199,6 +218,16 @@ export default function ManuscriptPage() {
               {view === "table" ? "RUTENETT" : "TABELL"}
             </button>
             <button
+              onClick={() => setShowScrapped((v) => !v)}
+              className="inline-flex items-center gap-2 font-mono-ui text-[11px] tracking-widest hover:underline"
+              style={{ color: showScrapped ? "var(--rust)" : "var(--ink-mute)" }}
+              data-testid="ms-toggle-scrapped"
+              title="Scener flyttet vekk fra manuset, men ikke slettet for godt"
+            >
+              <Trash2 size={13} strokeWidth={1.5} />
+              KUTTET ({scrappedScenes.length})
+            </button>
+            <button
               onClick={addScene}
               className="inline-flex items-center gap-2 px-4 py-2 font-mono-ui text-[11px] tracking-widest"
               style={{ background: "var(--ink)", color: "var(--paper)" }}
@@ -223,10 +252,12 @@ export default function ManuscriptPage() {
         onEdit={() => setGoalOpen(true)}
       />
 
-      {/* Table or grid */}
-      {view === "grid" ? (
+      {/* Table, grid, or scrapped list */}
+      {showScrapped ? (
+        <ScrappedList scenes={scrappedScenes} onRestore={restoreScene} onDeleteForever={deleteForever} />
+      ) : view === "grid" ? (
         <PlotGrid
-          scenes={[...scenes].sort((a, b) => a.order - b.order)}
+          scenes={[...activeScenes].sort((a, b) => a.order - b.order)}
           loading={loading}
           onOpen={setEditorScene}
           onSnapshots={setSnapshotsFor}
@@ -780,6 +811,51 @@ function CharacterQuickView({ character, onClose }) {
 }
 
 // -------- Sub-components --------
+
+function ScrappedList({ scenes, onRestore, onDeleteForever }) {
+  if (scenes.length === 0) {
+    return (
+      <div className="mt-10 py-16 text-center font-editor italic" style={{ color: "var(--ink-mute)" }}>
+        Ingenting i Kuttet. Scener du sletter havner her først, i tilfelle du ombestemmer deg.
+      </div>
+    );
+  }
+  return (
+    <div className="mt-10" data-testid="ms-scrapped-list">
+      <p className="font-editor text-sm mb-4" style={{ color: "var(--ink-soft)" }}>
+        Disse scenene er tatt ut av manuset, men ikke slettet for godt. Gjenopprett dem, eller slett dem permanent.
+      </p>
+      {scenes.map((s) => (
+        <div key={s.id} className="py-3 hairline-b flex items-center justify-between gap-4" data-testid={`ms-scrapped-${s.id}`}>
+          <div>
+            <div className="font-serif-display text-lg" style={{ color: "var(--ink)" }}>{s.title || "Uten tittel"}</div>
+            <div className="font-mono-ui text-[10px] tracking-widest mt-0.5" style={{ color: "var(--ink-mute)" }}>
+              {s.word_count || 0} ORD
+            </div>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={() => onRestore(s.id)}
+              className="inline-flex items-center gap-1.5 font-mono-ui text-[11px] tracking-widest hover:underline"
+              style={{ color: "var(--moss)" }}
+              data-testid={`ms-restore-${s.id}`}
+            >
+              <RotateCcw size={13} strokeWidth={1.5} /> GJENOPPRETT
+            </button>
+            <button
+              onClick={() => onDeleteForever(s.id)}
+              className="inline-flex items-center gap-1.5 font-mono-ui text-[11px] tracking-widest hover:underline"
+              style={{ color: "var(--ink-mute)" }}
+              data-testid={`ms-delete-forever-${s.id}`}
+            >
+              <Trash2 size={13} strokeWidth={1.5} /> SLETT FOR GODT
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function PlotGrid({ scenes, loading, onOpen, onSnapshots, onDelete, onMove, draggedId, onDragStart, onDrop }) {
   if (loading) {
