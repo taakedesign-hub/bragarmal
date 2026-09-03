@@ -3,7 +3,7 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import { api, BACKEND } from "@/lib/api";
 import { TID } from "@/lib/testIds";
 import { toast } from "sonner";
-import { Copy, RefreshCcw, BookmarkPlus, X, Download, Mail, FileText, Share2, Loader2, Compass, BookOpen, GitCompare } from "lucide-react";
+import { Copy, RefreshCcw, BookmarkPlus, X, Download, Mail, FileText, Share2, Loader2, Compass, BookOpen, GitCompare, SpellCheck } from "lucide-react";
 import jsPDF from "jspdf";
 import { useWrittenForm } from "@/lib/writtenForm";
 import WrittenFormToggle from "@/components/WrittenFormToggle";
@@ -33,6 +33,14 @@ const MODES = [
     icon: GitCompare,
     outputTitle: "Sammenligning",
   },
+  {
+    id: "track_edit",
+    label: "Rediger med spor",
+    hint: "Lim inn teksten din — jeg foreslår presise rettelser du kan godta eller avvise.",
+    cta: "Foreslå rettelser",
+    icon: SpellCheck,
+    outputTitle: "Sporede endringer",
+  },
 ];
 
 const LENGTHS = [
@@ -41,14 +49,26 @@ const LENGTHS = [
   { id: "lang", label: "Lang" },
 ];
 
+const EDIT_FOCUSES = [
+  { value: "begge", label: "Begge · korrektur og flyt" },
+  { value: "korrektur", label: "Korrektur · kun rettskriving" },
+  { value: "flyt", label: "Flyt · kun rytme og klarhet" },
+];
+
+function buildOutputFromSegments(segments) {
+  return segments.map((s) => (s.type === "equal" ? s.text : (s.accepted ? s.replacement : s.original))).join("");
+}
+
 export default function WritePage() {
   const [mode, setMode] = useState("next_steps");
   const [length, setLength] = useState("medium");
   const [temperature, setTemperature] = useState(0.7);
+  const [editFocus, setEditFocus] = useState("begge");
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [detection, setDetection] = useState(null);
+  const [diffSegments, setDiffSegments] = useState(null);
   const [samplesReady, setSamplesReady] = useState(false);
   const [profileReady, setProfileReady] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
@@ -127,12 +147,50 @@ export default function WritePage() {
     }
   };
 
+  const runTrackEdit = async () => {
+    if (!input.trim()) { toast("Lim inn tekst først"); return; }
+    setOutput("");
+    setDetection(null);
+    setDiffSegments(null);
+    setStreaming(true);
+    try {
+      const r = await api.post("/edit/track", { text: input, focus: editFocus });
+      const segs = (r.data?.segments || []).map((s, i) => ({ ...s, id: i, accepted: true }));
+      setDiffSegments(segs);
+      setOutput(buildOutputFromSegments(segs));
+    } catch (e) {
+      toast(e?.response?.data?.detail || "Kunne ikke foreslå endringer — prøv igjen");
+    } finally {
+      setStreaming(false);
+    }
+  };
+
+  const toggleChange = (id) => {
+    setDiffSegments((prev) => {
+      if (!prev) return prev;
+      const next = prev.map((s) => (s.id === id ? { ...s, accepted: !s.accepted } : s));
+      setOutput(buildOutputFromSegments(next));
+      return next;
+    });
+  };
+
+  const setAllChanges = (accepted) => {
+    setDiffSegments((prev) => {
+      if (!prev) return prev;
+      const next = prev.map((s) => (s.type === "change" ? { ...s, accepted } : s));
+      setOutput(buildOutputFromSegments(next));
+      return next;
+    });
+  };
+
   const generate = async () => {
     if (!input.trim()) { toast("Lim inn tekst først"); return; }
     if (streaming) return;
     if (mode === "voice_match") { return runVoiceMatch(); }
+    if (mode === "track_edit") { return runTrackEdit(); }
     setOutput("");
     setDetection(null);
+    setDiffSegments(null);
     setStreaming(true);
     const ctrl = new AbortController();
     abortRef.current = ctrl;
@@ -405,8 +463,8 @@ export default function WritePage() {
         </p>
       </div>
 
-      {/* Mode-fanene (nye) — de tre kjernemodusene */}
-      <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-0 hairline-t hairline-b">
+      {/* Mode-fanene */}
+      <div className="mt-10 grid grid-cols-1 sm:grid-cols-4 gap-0 hairline-t hairline-b">
         {MODES.map((m, i) => {
           const Icon = m.icon;
           const active = mode === m.id;
@@ -414,7 +472,7 @@ export default function WritePage() {
             <button
               key={m.id}
               data-testid={`write-mode-${m.id}`}
-              onClick={() => { setMode(m.id); setOutput(""); setDetection(null); }}
+              onClick={() => { setMode(m.id); setOutput(""); setDetection(null); setDiffSegments(null); }}
               className={`text-left p-5 md:p-6 ${i > 0 ? "sm:border-l" : ""} transition-colors`}
               style={{
                 borderColor: "var(--line)",
@@ -515,6 +573,17 @@ export default function WritePage() {
               </div>
             </div>
           )}
+          {mode === "track_edit" && (
+            <div className="mt-4 hairline-t hairline-b py-4">
+              <ControlSelect
+                label="Fokus"
+                tid="write-trackfocus-select"
+                value={editFocus}
+                onChange={setEditFocus}
+                options={EDIT_FOCUSES}
+              />
+            </div>
+          )}
           {mode !== "voice_match" && (
             <>
               <div
@@ -522,12 +591,41 @@ export default function WritePage() {
                 className="paper p-6 min-h-[380px] mt-3 font-editor text-[1.05rem] leading-relaxed whitespace-pre-wrap"
                 style={{ color: "var(--ink)" }}
               >
-                {output || <span style={{ color: "var(--ink-mute)" }} className="italic">
-                  {mode === "next_steps"
-                    ? "Retningsforslag dukker opp her — konkrete måter å ta teksten videre."
-                    : "Lesningen dukker opp her — det jeg legger merke til i teksten din."}
-                </span>}
+                {mode === "track_edit" && diffSegments ? (
+                  <TrackChangesView segments={diffSegments} onToggle={toggleChange} />
+                ) : (
+                  output || <span style={{ color: "var(--ink-mute)" }} className="italic">
+                    {mode === "next_steps"
+                      ? "Retningsforslag dukker opp her — konkrete måter å ta teksten videre."
+                      : mode === "track_edit"
+                      ? "Endringsforslag dukker opp her — klikk på et forslag for å godta eller avvise det."
+                      : "Lesningen dukker opp her — det jeg legger merke til i teksten din."}
+                  </span>
+                )}
               </div>
+              {mode === "track_edit" && diffSegments && (
+                <div className="mt-3 flex items-center gap-4 flex-wrap">
+                  <button
+                    data-testid="write-track-accept-all"
+                    onClick={() => setAllChanges(true)}
+                    className="font-mono-ui text-[11px] tracking-widest hover:underline"
+                    style={{ color: "var(--moss)" }}
+                  >
+                    GODTA ALLE
+                  </button>
+                  <button
+                    data-testid="write-track-reject-all"
+                    onClick={() => setAllChanges(false)}
+                    className="font-mono-ui text-[11px] tracking-widest hover:underline"
+                    style={{ color: "var(--rust)" }}
+                  >
+                    AVVIS ALLE
+                  </button>
+                  <span className="label-ui" style={{ color: "var(--ink-mute)" }}>
+                    {diffSegments.filter((s) => s.type === "change").length} endringer foreslått
+                  </span>
+                </div>
+              )}
               <div className="mt-4 flex items-center gap-3 flex-wrap">
                 <button
                   data-testid={TID.writeCopyBtn}
@@ -988,6 +1086,44 @@ function CompositionMode({ input, onInputChange, onClose, writtenForm }) {
         />
       </div>
     </div>
+  );
+}
+
+function TrackChangesView({ segments, onToggle }) {
+  return (
+    <>
+      {segments.map((s) => {
+        if (s.type === "equal") return <span key={s.id}>{s.text}</span>;
+        const kept = s.accepted ? s.replacement : s.original;
+        const dropped = s.accepted ? s.original : s.replacement;
+        return (
+          <span
+            key={s.id}
+            onClick={() => onToggle(s.id)}
+            title={s.accepted ? "Klikk for å avvise — behold originalen" : "Klikk for å godta forslaget"}
+            style={{ cursor: "pointer" }}
+          >
+            {dropped && (
+              <span style={{ textDecoration: "line-through", opacity: 0.45, color: "var(--ink-mute)" }}>
+                {dropped}
+              </span>
+            )}
+            {kept && (
+              <span
+                style={{
+                  textDecoration: "underline",
+                  textDecorationStyle: "dotted",
+                  textDecorationColor: s.accepted ? "var(--moss)" : "var(--rust)",
+                  background: s.accepted ? "#eef4ea" : "#fbeeee",
+                }}
+              >
+                {kept}
+              </span>
+            )}
+          </span>
+        );
+      })}
+    </>
   );
 }
 
