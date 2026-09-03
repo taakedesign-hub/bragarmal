@@ -68,7 +68,7 @@ export default function FaktastasjonPage() {
           <div>
             <div className="label-ui">Undersøkelser</div>
             <h1 className="font-serif-display text-5xl font-light mt-3" style={{ color: "var(--ink)" }}>
-              Bakgrunnen for historien
+              Undersøkelser og data samlet til arbeidet ditt
             </h1>
           </div>
           <button
