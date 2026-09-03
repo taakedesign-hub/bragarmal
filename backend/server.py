@@ -1462,6 +1462,7 @@ async def create_illustrator(body: IllustratorCreate):
 
     doc = {
         "id": str(uuid.uuid4()),
+        "edit_token": str(uuid.uuid4()),
         "name": name[:120],
         "email": email[:200],
         "portfolio_url": portfolio[:500],
@@ -1473,7 +1474,7 @@ async def create_illustrator(body: IllustratorCreate):
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.illustrators.insert_one(doc)
-    return {"ok": True, "id": doc["id"]}
+    return {"ok": True, "id": doc["id"], "edit_token": doc["edit_token"]}
 
 
 @api_router.get("/illustrators")
@@ -1490,14 +1491,69 @@ ILLUSTRATOR_IMAGE_MAX_UPLOAD_BYTES = 8 * 1024 * 1024  # 8 MB raw upload cap
 ILLUSTRATOR_IMAGE_MAX_DIM = 1400
 
 
-@api_router.post("/illustrators/{illustrator_id}/image")
-async def upload_illustrator_image(illustrator_id: str, file: UploadFile = File(...)):
-    """Illustrators have no accounts — knowing the listing id (returned once at
-    creation, same as the featured-upgrade flow) is what authorizes this, same
-    trust model the checkout endpoint already uses for this id."""
-    exists = await db.illustrators.find_one({"id": illustrator_id}, {"_id": 0, "id": 1})
+class IllustratorSelfUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    portfolio_url: Optional[str] = None
+    style: Optional[str] = None
+    services: Optional[str] = None
+
+
+@api_router.get("/illustrators/edit/{edit_token}")
+async def get_illustrator_for_edit(edit_token: str):
+    """Illustrators have no accounts — this private edit_token (shown once at
+    creation, never included in the public /illustrators listing) is what lets
+    them come back later to update their listing or add/replace their image."""
+    doc = await db.illustrators.find_one(
+        {"edit_token": edit_token}, {"_id": 0, "image_data": 0, "edit_token": 0}
+    )
+    if not doc:
+        raise HTTPException(status_code=404, detail="Fant ikke oppføringen — sjekk lenken")
+    return doc
+
+
+@api_router.patch("/illustrators/edit/{edit_token}")
+async def update_illustrator_self(edit_token: str, body: IllustratorSelfUpdate):
+    exists = await db.illustrators.find_one({"edit_token": edit_token}, {"_id": 0, "id": 1})
     if not exists:
-        raise HTTPException(status_code=404, detail="Oppføring ikke funnet")
+        raise HTTPException(status_code=404, detail="Fant ikke oppføringen — sjekk lenken")
+
+    updates: dict = {}
+    if body.name is not None:
+        name = body.name.strip()
+        if len(name) < 2:
+            raise HTTPException(status_code=400, detail="Navn må fylles ut")
+        updates["name"] = name[:120]
+    if body.email is not None:
+        email = body.email.strip().lower()
+        if "@" not in email or "." not in email or len(email) < 5:
+            raise HTTPException(status_code=400, detail="Ugyldig e-postadresse")
+        updates["email"] = email[:200]
+    if body.portfolio_url is not None:
+        portfolio = body.portfolio_url.strip()
+        if not (portfolio.startswith("http://") or portfolio.startswith("https://")):
+            raise HTTPException(status_code=400, detail="Portfolio-lenke må begynne med http(s)://")
+        updates["portfolio_url"] = portfolio[:500]
+    if body.style is not None:
+        updates["style"] = body.style.strip()[:600]
+    if body.services is not None:
+        updates["services"] = body.services.strip()[:600]
+    if not updates:
+        raise HTTPException(status_code=400, detail="Ingenting å oppdatere")
+
+    await db.illustrators.update_one({"edit_token": edit_token}, {"$set": updates})
+    doc = await db.illustrators.find_one(
+        {"edit_token": edit_token}, {"_id": 0, "image_data": 0, "edit_token": 0}
+    )
+    return doc
+
+
+@api_router.post("/illustrators/edit/{edit_token}/image")
+async def upload_illustrator_image(edit_token: str, file: UploadFile = File(...)):
+    exists = await db.illustrators.find_one({"edit_token": edit_token}, {"_id": 0, "id": 1})
+    if not exists:
+        raise HTTPException(status_code=404, detail="Fant ikke oppføringen — sjekk lenken")
+    illustrator_id = exists["id"]
 
     ct = (file.content_type or "").lower()
     if not ct.startswith("image/"):

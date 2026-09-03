@@ -7,7 +7,7 @@ import Seo from "@/components/Seo";
 import { api, API } from "@/lib/api";
 import { toast } from "sonner";
 import { TID } from "@/lib/testIds";
-import { Palette, ArrowRight, ExternalLink, Send, CheckCircle2, Star, ImagePlus, Upload } from "lucide-react";
+import { Palette, ArrowRight, ExternalLink, Send, CheckCircle2, Star, ImagePlus, Upload, Link2, Copy } from "lucide-react";
 import { contactMailto } from "@/lib/site";
 
 export default function IllustratorsPage() {
@@ -17,6 +17,7 @@ export default function IllustratorsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [newId, setNewId] = useState(null);
+  const [editToken, setEditToken] = useState(null);
   const [upgrading, setUpgrading] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imageUploading, setImageUploading] = useState(false);
@@ -53,6 +54,7 @@ export default function IllustratorsPage() {
       const { data } = await api.post("/illustrators", form);
       setDone(true);
       setNewId(data?.id || null);
+      setEditToken(data?.edit_token || null);
       setImageFile(null);
       setImageDone(false);
       // Optimistically add to list (server hides email)
@@ -76,12 +78,12 @@ export default function IllustratorsPage() {
   };
 
   const uploadImage = async () => {
-    if (!newId || !imageFile || imageUploading) return;
+    if (!editToken || !imageFile || imageUploading) return;
     setImageUploading(true);
     try {
       const fd = new FormData();
       fd.append("file", imageFile);
-      await api.post(`/illustrators/${newId}/image`, fd);
+      await api.post(`/illustrators/edit/${editToken}/image`, fd);
       setImageDone(true);
       setList((prev) => prev.map((it) => (it.id === newId ? { ...it, has_image: true } : it)));
     } catch (err) {
@@ -189,6 +191,40 @@ export default function IllustratorsPage() {
                     Du er nå oppført i katalogen — gratis, ingen tidsbegrensning. Rull ned for å se listen.
                   </p>
 
+                  {editToken && (
+                    <div className="mt-5 p-4" style={{ border: "1px solid var(--ink)", background: "white" }} data-testid="illustrator-edit-link-box">
+                      <div className="flex items-center gap-2">
+                        <Link2 size={14} strokeWidth={1.5} style={{ color: "var(--ink)" }} />
+                        <span className="label-ui" style={{ color: "var(--ink)" }}>Viktig — lagre denne lenken</span>
+                      </div>
+                      <p className="mt-2 font-editor text-sm" style={{ color: "var(--ink)" }}>
+                        Vi har ingen innlogging for illustratører. Denne lenken er din eneste måte å
+                        redigere teksten eller bildet ditt senere — vi viser den kun denne ene gangen.
+                      </p>
+                      <div className="mt-3 flex items-center gap-2 flex-wrap">
+                        <code
+                          className="flex-1 min-w-0 px-3 py-2 font-mono-ui text-xs truncate"
+                          style={{ background: "#fdfcf9", border: "1px solid var(--line)" }}
+                          data-testid="illustrator-edit-link-text"
+                        >
+                          {`${window.location.origin}/illustratorer/rediger/${editToken}`}
+                        </code>
+                        <button
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(`${window.location.origin}/illustratorer/rediger/${editToken}`);
+                              toast("Lenke kopiert");
+                            } catch { toast("Kunne ikke kopiere — merk og kopier manuelt"); }
+                          }}
+                          className="btn-ghost inline-flex items-center gap-2 shrink-0"
+                          data-testid="illustrator-edit-link-copy"
+                        >
+                          <Copy size={14} strokeWidth={1.5} /> Kopier
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {newId && (
                     <div className="mt-5 p-4" style={{ border: "1px solid var(--line)", background: "white" }} data-testid="illustrator-image-upload">
                       <div className="flex items-center gap-2">
@@ -253,7 +289,7 @@ export default function IllustratorsPage() {
                   )}
 
                   <button
-                    onClick={() => { setDone(false); setNewId(null); setImageFile(null); setImageDone(false); }}
+                    onClick={() => { setDone(false); setNewId(null); setEditToken(null); setImageFile(null); setImageDone(false); }}
                     className="mt-4 label-ui underline underline-offset-4"
                     style={{ color: "var(--rust)" }}
                     data-testid="illustrator-form-again"
