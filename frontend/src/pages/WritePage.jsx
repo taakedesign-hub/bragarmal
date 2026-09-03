@@ -401,7 +401,7 @@ export default function WritePage() {
             ? "Stemmen din er lastet."
             : samplesReady
             ? "Tips: kjør stemmeanalyse under «Stemme» for skarpere resultater."
-            : "Tips: legg inn noen prøver under «Prøver» først — kvaliteten hopper."}
+            : "Tips: legg inn noen prøver under «Prøver» først — det skjerper forslagene."}
         </p>
       </div>
 
@@ -441,7 +441,7 @@ export default function WritePage() {
       {mode === "next_steps" && (
         <div className="mt-8 hairline-t hairline-b py-5 grid grid-cols-2 gap-4">
           <ControlSelect
-            label="Temperatur"
+            label="Temperatur forslag"
             tid="write-temperature-select"
             value={String(temperature)}
             onChange={(v) => setTemperature(Number(v))}
