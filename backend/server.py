@@ -1132,6 +1132,7 @@ class SceneUpdate(BaseModel):
     location: Optional[str] = None
     scene_date: Optional[str] = None
     tags: Optional[List[str]] = None
+    scrapped: Optional[bool] = None
 
 
 class SceneReorder(BaseModel):
@@ -1166,6 +1167,7 @@ async def create_scene(body: SceneCreate, user: User = Depends(get_current_user)
         "location": body.location.strip(),
         "scene_date": body.scene_date.strip(),
         "tags": [t.strip() for t in body.tags if t.strip()][:12],
+        "scrapped": False,
         "word_count": _word_count(body.content),
         "order": next_order,
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -1198,6 +1200,8 @@ async def update_scene(scene_id: str, body: SceneUpdate, user: User = Depends(ge
         updates["scene_date"] = body.scene_date.strip()
     if body.tags is not None:
         updates["tags"] = [t.strip() for t in body.tags if t.strip()][:12]
+    if body.scrapped is not None:
+        updates["scrapped"] = body.scrapped
     if not updates:
         raise HTTPException(status_code=400, detail="Ingenting å oppdatere")
     updates["updated_at"] = datetime.now(timezone.utc).isoformat()
