@@ -10,6 +10,13 @@ const RESEARCH_CATEGORY_LABEL = {
   gjenstand: "Gjenstand",
   annet: "Annet",
 };
+
+const TAG_PALETTE = ["#8A4B2A", "#5c7a4a", "#c8432c", "#4a6b7a", "#8a6a4a", "#6a5a7a"];
+function tagColor(tag) {
+  let h = 0;
+  for (let i = 0; i < tag.length; i++) h = (h * 31 + tag.charCodeAt(i)) >>> 0;
+  return TAG_PALETTE[h % TAG_PALETTE.length];
+}
 import { useWrittenForm } from "@/lib/writtenForm";
 import WrittenFormToggle from "@/components/WrittenFormToggle";
 
@@ -289,6 +296,19 @@ export default function ManuscriptPage() {
                     onBlur={(e) => e.target.value !== s.title && patchScene(s.id, { title: e.target.value })}
                     data-testid={`ms-title-${s.id}`}
                   />
+                  {s.tags?.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {s.tags.map((t) => (
+                        <span
+                          key={t}
+                          className="px-1.5 py-0.5 font-mono-ui text-[9px] tracking-wide"
+                          style={{ border: `1px solid ${tagColor(t)}`, color: tagColor(t) }}
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </td>
                 {showSynopsis && (
                   <td className="py-3 pr-4">
@@ -447,10 +467,20 @@ export default function ManuscriptPage() {
 function SceneContentEditor({ scene, characters = [], researchNotes = [], onClose, onSaved, onSnapshot }) {
   const [content, setContent] = useState(scene.content || "");
   const [title, setTitle] = useState(scene.title || "");
+  const [tags, setTags] = useState(scene.tags || []);
+  const [tagInput, setTagInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [viewingChar, setViewingChar] = useState(null);
   const [viewingNote, setViewingNote] = useState(null);
   const [writtenForm, setWrittenForm] = useWrittenForm();
+
+  const addTag = (raw) => {
+    const t = raw.trim();
+    if (!t || tags.includes(t) || tags.length >= 12) { setTagInput(""); return; }
+    setTags((a) => [...a, t]);
+    setTagInput("");
+  };
+  const removeTag = (t) => setTags((a) => a.filter((x) => x !== t));
 
   useEffect(() => {
     const h = (e) => { if (e.key === "Escape") onClose(); };
@@ -459,7 +489,8 @@ function SceneContentEditor({ scene, characters = [], researchNotes = [], onClos
     return () => { document.removeEventListener("keydown", h); document.body.style.overflow = ""; };
   }, [onClose]);
 
-  const dirty = title !== (scene.title || "") || content !== (scene.content || "");
+  const sameTags = tags.length === (scene.tags || []).length && tags.every((t) => (scene.tags || []).includes(t));
+  const dirty = title !== (scene.title || "") || content !== (scene.content || "") || !sameTags;
   const wc = content.trim() ? content.trim().split(/\s+/).length : 0;
 
   const mentioned = useMemo(() => {
@@ -472,10 +503,12 @@ function SceneContentEditor({ scene, characters = [], researchNotes = [], onClos
     return researchNotes.filter((n) => n.title && text.includes(n.title.toLowerCase()));
   }, [content, researchNotes]);
 
+  const suggestedTags = mentioned.map((c) => c.name).filter((n) => !tags.includes(n));
+
   const save = async () => {
     setSaving(true);
     try {
-      const r = await api.patch(`/manuscript/${scene.id}`, { title, content });
+      const r = await api.patch(`/manuscript/${scene.id}`, { title, content, tags });
       toast("Lagret");
       onSaved(r.data);
     } catch (e) {
@@ -523,6 +556,54 @@ function SceneContentEditor({ scene, characters = [], researchNotes = [], onClos
             lang={writtenForm}
             spellCheck="true"
           />
+          <div className="mt-4 pt-4 hairline-t">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--ink-mute)" }}>
+                MERKELAPPER:
+              </span>
+              {tags.map((t) => (
+                <span
+                  key={t}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 font-mono-ui text-[11px]"
+                  style={{ border: `1px solid ${tagColor(t)}`, color: tagColor(t) }}
+                  data-testid={`ms-tag-${t}`}
+                >
+                  {t}
+                  <button onClick={() => removeTag(t)} style={{ color: tagColor(t) }}>
+                    <XIcon size={11} strokeWidth={1.5} />
+                  </button>
+                </span>
+              ))}
+              <input
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") { e.preventDefault(); addTag(tagInput); }
+                }}
+                placeholder="Legg til …"
+                className="bg-transparent font-mono-ui text-[11px] outline-none w-24"
+                style={{ color: "var(--ink)" }}
+                data-testid="ms-tag-input"
+              />
+            </div>
+            {suggestedTags.length > 0 && (
+              <div className="mt-2 flex items-center gap-2 flex-wrap">
+                <span className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--ink-mute)" }}>
+                  FORESLÅTT FRA KARAKTERER:
+                </span>
+                {suggestedTags.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => addTag(t)}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 font-mono-ui text-[11px] hover:opacity-70"
+                    style={{ border: "1px dashed var(--line)", color: "var(--ink-mute)" }}
+                  >
+                    <Plus size={10} strokeWidth={1.5} /> {t}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           {mentioned.length > 0 && (
             <div className="mt-4 pt-4 hairline-t flex items-center gap-2 flex-wrap">
               <span className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--ink-mute)" }}>
@@ -755,6 +836,19 @@ function PlotGrid({ scenes, loading, onOpen, onSnapshots, onDelete, onMove, drag
               {s.scene_date && <span>{s.scene_date}</span>}
               <span>{s.word_count || 0} ord</span>
             </div>
+            {s.tags?.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {s.tags.map((t) => (
+                  <span
+                    key={t}
+                    className="px-1.5 py-0.5 font-mono-ui text-[9px] tracking-wide"
+                    style={{ border: `1px solid ${tagColor(t)}`, color: tagColor(t) }}
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            )}
             <div className="mt-4 pt-3 hairline-t flex items-center justify-between">
               <div className="flex items-center gap-1">
                 <button onClick={() => onMove(s.id, "up")} title="Flytt opp" className="p-1.5 hover:bg-neutral-100" style={{ color: "var(--ink-mute)" }}>
