@@ -142,7 +142,7 @@ export default function Landing() {
           >
             <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-90">03</div>
             <div>
-              <div className="font-serif-display text-3xl md:text-5xl leading-none tracking-tight">ILLUSTRATØRER</div>
+              <div className="font-serif-display text-2xl md:text-3xl leading-tight tracking-tight">ILLUSTRATØRER</div>
               <div className="mt-1 font-serif-display italic text-sm md:text-base opacity-80">& kunstnere</div>
               <div className="mt-3 font-editor text-xs md:text-sm opacity-90 flex items-center gap-2">
                 {t("landing.box3Cta")} <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
@@ -235,12 +235,12 @@ export default function Landing() {
             </div>
           </Link>
 
-          {/* Box 8 — RUST: blekkspor, lenke til Stemme */}
+          {/* Box 8 — DEEP GREEN: blekkspor, lenke til Stemme (kun boks 3 skal være rød) */}
           <Link
             to="/stemme"
             data-testid="hero-box-voice"
             className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:opacity-90 relative overflow-hidden"
-            style={{ background: "#c8432c", color: "#ffffff" }}
+            style={{ background: "#3d5c3a", color: "#ffffff" }}
           >
             <img
               src="/tile-blekkspor.svg"
