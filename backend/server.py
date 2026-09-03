@@ -547,6 +547,8 @@ async def google_login_callback(response: Response, code: Optional[str] = None, 
             "grant_type": "authorization_code",
         })
         if token_r.status_code != 200:
+            logger.error("Google token exchange failed: status=%s body=%s redirect_uri=%s",
+                         token_r.status_code, token_r.text, GOOGLE_OAUTH_REDIRECT_URI)
             return RedirectResponse(f"{FRONTEND_URL}/logg-inn?feil=google_token")
         access_token = token_r.json()["access_token"]
 
@@ -555,6 +557,7 @@ async def google_login_callback(response: Response, code: Optional[str] = None, 
             headers={"Authorization": f"Bearer {access_token}"},
         )
         if userinfo_r.status_code != 200:
+            logger.error("Google userinfo fetch failed: status=%s body=%s", userinfo_r.status_code, userinfo_r.text)
             return RedirectResponse(f"{FRONTEND_URL}/logg-inn?feil=google_userinfo")
         profile = userinfo_r.json()
 
