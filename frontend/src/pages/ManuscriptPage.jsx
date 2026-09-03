@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, API, BACKEND } from "@/lib/api";
 import { toast } from "sonner";
-import { Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, X as XIcon, Loader2, BookOpen, Save, Download, ScrollText, Camera, RotateCcw, Target, Rows3, LayoutGrid, UserRound, Search, Link2 } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, X as XIcon, Loader2, BookOpen, Save, Download, ScrollText, Camera, RotateCcw, Target, Rows3, LayoutGrid, UserRound, Search, Link2, GripVertical } from "lucide-react";
 
 const RESEARCH_CATEGORY_LABEL = {
   person: "Person",
@@ -126,6 +126,22 @@ export default function ManuscriptPage() {
     catch (e) { toast("Kunne ikke omorganisere"); load(); }
   };
 
+  const [draggedId, setDraggedId] = useState(null);
+
+  const dropSceneOn = async (draggedSceneId, targetId) => {
+    if (!draggedSceneId || draggedSceneId === targetId) return;
+    const ordered = [...scenes].sort((a, b) => a.order - b.order);
+    const fromIdx = ordered.findIndex((s) => s.id === draggedSceneId);
+    const toIdx = ordered.findIndex((s) => s.id === targetId);
+    if (fromIdx < 0 || toIdx < 0) return;
+    const [moved] = ordered.splice(fromIdx, 1);
+    ordered.splice(toIdx, 0, moved);
+    const reordered = ordered.map((s, i) => ({ ...s, order: i }));
+    setScenes(reordered);
+    try { await api.post("/manuscript/reorder", { ordered_ids: reordered.map((s) => s.id) }); }
+    catch (e) { toast("Kunne ikke omorganisere"); load(); }
+  };
+
   return (
     <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16">
       {/* Header */}
@@ -209,6 +225,9 @@ export default function ManuscriptPage() {
           onSnapshots={setSnapshotsFor}
           onDelete={removeScene}
           onMove={moveScene}
+          draggedId={draggedId}
+          onDragStart={setDraggedId}
+          onDrop={dropSceneOn}
         />
       ) : (
       <div className="mt-10 overflow-x-auto">
@@ -246,9 +265,21 @@ export default function ManuscriptPage() {
               </td></tr>
             )}
             {!loading && sorted.map((s, i) => (
-              <tr key={s.id} className="hairline-b hover:bg-neutral-50 transition-colors" data-testid={`ms-row-${s.id}`}>
+              <tr
+                key={s.id}
+                className="hairline-b hover:bg-neutral-50 transition-colors"
+                data-testid={`ms-row-${s.id}`}
+                draggable={sortKey === "order"}
+                onDragStart={() => setDraggedId(s.id)}
+                onDragOver={(e) => sortKey === "order" && e.preventDefault()}
+                onDrop={(e) => { e.preventDefault(); dropSceneOn(draggedId, s.id); setDraggedId(null); }}
+                style={{ opacity: draggedId === s.id ? 0.4 : 1, cursor: sortKey === "order" ? "grab" : "default" }}
+              >
                 <td className="py-3 pr-4 font-mono-ui text-xs" style={{ color: "var(--ink-mute)" }}>
-                  {String(i + 1).padStart(2, "0")}
+                  <span className="inline-flex items-center gap-1.5">
+                    {sortKey === "order" && <GripVertical size={12} strokeWidth={1.5} style={{ color: "var(--ink-mute)" }} />}
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                 </td>
                 <td className="py-3 pr-4">
                   <input
@@ -669,7 +700,7 @@ function CharacterQuickView({ character, onClose }) {
 
 // -------- Sub-components --------
 
-function PlotGrid({ scenes, loading, onOpen, onSnapshots, onDelete, onMove }) {
+function PlotGrid({ scenes, loading, onOpen, onSnapshots, onDelete, onMove, draggedId, onDragStart, onDrop }) {
   if (loading) {
     return (
       <div className="mt-10 py-16 text-center">
@@ -692,11 +723,16 @@ function PlotGrid({ scenes, loading, onOpen, onSnapshots, onDelete, onMove }) {
           <div
             key={s.id}
             className="paper p-5 flex flex-col"
-            style={{ borderLeft: `3px solid ${meta.color}` }}
+            style={{ borderLeft: `3px solid ${meta.color}`, opacity: draggedId === s.id ? 0.4 : 1, cursor: "grab" }}
             data-testid={`ms-grid-card-${s.id}`}
+            draggable
+            onDragStart={() => onDragStart(s.id)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => { e.preventDefault(); onDrop(draggedId, s.id); onDragStart(null); }}
           >
             <div className="flex items-start justify-between gap-2">
-              <div className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--ink-mute)" }}>
+              <div className="inline-flex items-center gap-1.5 font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--ink-mute)" }}>
+                <GripVertical size={12} strokeWidth={1.5} />
                 {String(i + 1).padStart(2, "0")}
               </div>
               <div className="font-mono-ui text-[10px] tracking-widest" style={{ color: meta.color }}>
