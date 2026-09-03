@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { api, BACKEND } from "@/lib/api";
+import { api, API, BACKEND } from "@/lib/api";
 import { toast } from "sonner";
-import { Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, X as XIcon, Loader2, BookOpen, Save, Download, ScrollText, Camera, RotateCcw, Target, Rows3, LayoutGrid, UserRound } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, X as XIcon, Loader2, BookOpen, Save, Download, ScrollText, Camera, RotateCcw, Target, Rows3, LayoutGrid, UserRound, Search, Link2 } from "lucide-react";
+
+const RESEARCH_CATEGORY_LABEL = {
+  person: "Person",
+  sted: "Sted",
+  tidsperiode: "Tidsperiode",
+  gjenstand: "Gjenstand",
+  annet: "Annet",
+};
 import { useWrittenForm } from "@/lib/writtenForm";
 import WrittenFormToggle from "@/components/WrittenFormToggle";
 
@@ -36,18 +44,21 @@ export default function ManuscriptPage() {
   const [snapshotsFor, setSnapshotsFor] = useState(null);
   const [view, setView] = useState("table"); // "table" | "grid"
   const [characters, setCharacters] = useState([]);
+  const [researchNotes, setResearchNotes] = useState([]);
 
   const load = async () => {
     setLoading(true);
     try {
-      const [r, g, c] = await Promise.all([
+      const [r, g, c, rn] = await Promise.all([
         api.get("/manuscript"),
         api.get("/manuscript/goals"),
         api.get("/characters"),
+        api.get("/research"),
       ]);
       setScenes(r.data || []);
       setGoals(g.data || { total_goal: 0, session_goal: 0 });
       setCharacters(c.data || []);
+      setResearchNotes(rn.data || []);
     } catch (e) {
       console.debug("manuscript load failed", e);
       toast("Kunne ikke laste manuskript");
@@ -362,6 +373,7 @@ export default function ManuscriptPage() {
         <SceneContentEditor
           scene={editorScene}
           characters={characters}
+          researchNotes={researchNotes}
           onClose={() => setEditorScene(null)}
           onSaved={(u) => { setScenes((arr) => arr.map((s) => s.id === u.id ? u : s)); setEditorScene(u); }}
           onSnapshot={async () => {
@@ -401,11 +413,12 @@ export default function ManuscriptPage() {
   );
 }
 
-function SceneContentEditor({ scene, characters = [], onClose, onSaved, onSnapshot }) {
+function SceneContentEditor({ scene, characters = [], researchNotes = [], onClose, onSaved, onSnapshot }) {
   const [content, setContent] = useState(scene.content || "");
   const [title, setTitle] = useState(scene.title || "");
   const [saving, setSaving] = useState(false);
   const [viewingChar, setViewingChar] = useState(null);
+  const [viewingNote, setViewingNote] = useState(null);
   const [writtenForm, setWrittenForm] = useWrittenForm();
 
   useEffect(() => {
@@ -422,6 +435,11 @@ function SceneContentEditor({ scene, characters = [], onClose, onSaved, onSnapsh
     const text = content.toLowerCase();
     return characters.filter((c) => c.name && text.includes(c.name.toLowerCase()));
   }, [content, characters]);
+
+  const mentionedNotes = useMemo(() => {
+    const text = content.toLowerCase();
+    return researchNotes.filter((n) => n.title && text.includes(n.title.toLowerCase()));
+  }, [content, researchNotes]);
 
   const save = async () => {
     setSaving(true);
@@ -493,6 +511,25 @@ function SceneContentEditor({ scene, characters = [], onClose, onSaved, onSnapsh
               ))}
             </div>
           )}
+          {mentionedNotes.length > 0 && (
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
+              <span className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--ink-mute)" }}>
+                OMTALT I DENNE SCENEN:
+              </span>
+              {mentionedNotes.map((n) => (
+                <button
+                  key={n.id}
+                  onClick={() => setViewingNote(n)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 font-mono-ui text-[11px] hover:opacity-70"
+                  style={{ border: "1px solid var(--line)", color: "var(--ink)" }}
+                  data-testid={`ms-mentioned-note-${n.id}`}
+                >
+                  <Search size={11} strokeWidth={1.5} />
+                  {n.title}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex items-center justify-between gap-3 px-6 py-4 hairline-t">
           <button
@@ -524,6 +561,62 @@ function SceneContentEditor({ scene, characters = [], onClose, onSaved, onSnapsh
       {viewingChar && (
         <CharacterQuickView character={viewingChar} onClose={() => setViewingChar(null)} />
       )}
+      {viewingNote && (
+        <ResearchNoteQuickView note={viewingNote} onClose={() => setViewingNote(null)} />
+      )}
+    </div>
+  );
+}
+
+function ResearchNoteQuickView({ note, onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      style={{ background: "rgba(20,18,15,0.55)", backdropFilter: "blur(4px)" }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md max-h-[80vh] flex flex-col"
+        style={{ background: "var(--paper)", border: "1px solid var(--line)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-6 py-4 hairline-b flex items-center justify-between">
+          <span className="font-serif-display text-2xl" style={{ color: "var(--ink)" }}>{note.title}</span>
+          <button onClick={onClose} style={{ color: "var(--ink-mute)" }}><XIcon size={16} strokeWidth={1.3} /></button>
+        </div>
+        <div className="flex-1 overflow-auto">
+          {note.has_image && (
+            <img src={`${API}/research/${note.id}/image`} alt="" className="w-full h-48 object-cover" draggable={false} />
+          )}
+          <div className="px-6 py-5 space-y-4">
+            <div>
+              <div className="label-ui">Kategori</div>
+              <p className="mt-1 font-editor text-sm" style={{ color: "var(--ink-soft)" }}>
+                {RESEARCH_CATEGORY_LABEL[note.category] || "Annet"}
+              </p>
+            </div>
+            {note.content && (
+              <div>
+                <div className="label-ui">Notat</div>
+                <p className="mt-1 font-editor text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "var(--ink-soft)" }}>
+                  {note.content}
+                </p>
+              </div>
+            )}
+            {note.source_url && (
+              <a
+                href={note.source_url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 font-mono-ui text-[11px] tracking-widest hover:opacity-70"
+                style={{ color: "var(--moss)" }}
+              >
+                <Link2 size={12} strokeWidth={1.5} /> ÅPNE KILDE
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
