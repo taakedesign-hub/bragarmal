@@ -1120,6 +1120,7 @@ class SceneCreate(BaseModel):
     pov: str = ""
     location: str = ""
     scene_date: str = ""  # freeform user-entered date/timeline label
+    tags: List[str] = []
 
 
 class SceneUpdate(BaseModel):
@@ -1130,6 +1131,7 @@ class SceneUpdate(BaseModel):
     pov: Optional[str] = None
     location: Optional[str] = None
     scene_date: Optional[str] = None
+    tags: Optional[List[str]] = None
 
 
 class SceneReorder(BaseModel):
@@ -1163,6 +1165,7 @@ async def create_scene(body: SceneCreate, user: User = Depends(get_current_user)
         "pov": body.pov.strip(),
         "location": body.location.strip(),
         "scene_date": body.scene_date.strip(),
+        "tags": [t.strip() for t in body.tags if t.strip()][:12],
         "word_count": _word_count(body.content),
         "order": next_order,
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -1193,6 +1196,8 @@ async def update_scene(scene_id: str, body: SceneUpdate, user: User = Depends(ge
         updates["location"] = body.location.strip()
     if body.scene_date is not None:
         updates["scene_date"] = body.scene_date.strip()
+    if body.tags is not None:
+        updates["tags"] = [t.strip() for t in body.tags if t.strip()][:12]
     if not updates:
         raise HTTPException(status_code=400, detail="Ingenting å oppdatere")
     updates["updated_at"] = datetime.now(timezone.utc).isoformat()
