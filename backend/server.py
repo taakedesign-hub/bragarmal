@@ -9,6 +9,7 @@ import logging
 import re
 import json
 import asyncio
+import difflib
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Literal
@@ -2234,6 +2235,91 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+# ---------- Sporede endringer (diff-basert redigering) ----------
+class TrackEditBody(BaseModel):
+    text: str
+    focus: Literal["korrektur", "flyt", "begge"] = "begge"
+
+
+def _diff_segments(original: str, edited: str) -> list:
+    """Word-level diff between original and AI-edited text, as segments the
+    frontend can render inline with per-change accept/reject."""
+    a_tokens = re.findall(r"\s+|\S+", original)
+    b_tokens = re.findall(r"\s+|\S+", edited)
+    sm = difflib.SequenceMatcher(None, a_tokens, b_tokens, autojunk=False)
+    segments = []
+    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+        if tag == "equal":
+            segments.append({"type": "equal", "text": "".join(a_tokens[i1:i2])})
+        else:
+            segments.append({
+                "type": "change",
+                "original": "".join(a_tokens[i1:i2]),
+                "replacement": "".join(b_tokens[j1:j2]),
+            })
+    return segments
+
+
+@api_router.post("/edit/track")
+async def track_edit(body: TrackEditBody, user: User = Depends(get_current_user)):
+    await ensure_beta_flag(user.user_id)
+    sub = await get_user_subscription_status(user.user_id)
+    if not sub["active"]:
+        raise HTTPException(
+            status_code=402,
+            detail="Ditt medlemskap er ikke aktivt. Åpne betalingssiden for å fortsette.",
+        )
+
+    text = body.text.strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="Tom tekst")
+    if len(text) > 12000:
+        raise HTTPException(
+            status_code=400,
+            detail="Teksten er for lang for sporede endringer (maks ca. 2000 ord). Prøv et kortere utdrag.",
+        )
+    if not ANTHROPIC_API_KEY:
+        raise HTTPException(status_code=503, detail="KI-redigering er ikke tilgjengelig på denne serveren ennå")
+
+    profile = await db.voice_profiles.find_one({"user_id": user.user_id}, {"_id": 0})
+    all_samples = await db.samples.find({"user_id": user.user_id}, {"_id": 0}).sort("created_at", -1).to_list(30)
+    samples = [s for s in all_samples if s.get("category", "ren_menneske_ny") in HUMAN_CATEGORIES][:20]
+    system = build_voice_system_prompt(profile, samples, humanize_level=1)
+    system += (
+        "\n\n--- OPPGAVE: SPOREDE ENDRINGER ---\n"
+        "Du er nå en varsom korrekturleser, ikke en gjenskriver. Du får en tekst forfatteren "
+        "allerede har skrevet i sin egen stemme. Foreslå kun presise, lokale endringer — "
+        "grammatikk, tegnsetting, ordgjentakelser, klossete setninger, åpenbare skrivefeil, "
+        "og steder der flyten butter. IKKE omskriv setninger som allerede fungerer. IKKE "
+        "endre stemmen, ordvalget eller tonen. IKKE legg til eller fjern innhold eller mening. "
+        "Behold linjeskift og avsnittsinndeling identisk. Endre minst mulig — helst under "
+        "10-20% av teksten. Svar KUN med den redigerte teksten — ingen kommentarer, ingen "
+        "forklaring, ingen anførselstegn rundt."
+    )
+    focus_hint = {
+        "korrektur": "Fokuser kun på ren korrektur: skrivefeil, grammatikk, tegnsetting.",
+        "flyt": "Fokuser på flyt og rytme: klossete setninger, gjentakelser, tempo — ikke ren rettskriving.",
+        "begge": "Se etter både korrektur og flyt.",
+    }[body.focus]
+    user_msg = f"{focus_hint}\n\n---\n{text}\n---"
+
+    try:
+        parts = []
+        async for chunk in stream_llm_text(
+            *BRAGR_MODEL_ANALYSIS, system, user_msg, ANTHROPIC_API_KEY, temperature=0.3, max_tokens=6000,
+        ):
+            parts.append(chunk)
+        edited = "".join(parts).strip()
+    except Exception:
+        logger.exception("Track-edit generation error")
+        raise HTTPException(status_code=502, detail="Kunne ikke generere endringsforslag — prøv igjen")
+
+    if not edited:
+        raise HTTPException(status_code=502, detail="Fikk ikke noe svar — prøv igjen")
+
+    return {"segments": _diff_segments(text, edited)}
 
 
 # ---------- AI detection heuristic ----------
