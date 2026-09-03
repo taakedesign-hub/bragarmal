@@ -6,7 +6,9 @@ import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
 import { api, API } from "@/lib/api";
 import { toast } from "sonner";
-import { Palette, CheckCircle2, ImagePlus, Upload, Loader2, Save } from "lucide-react";
+import { Palette, CheckCircle2, ImagePlus, Upload, Loader2, Save, Trash2 } from "lucide-react";
+
+const MAX_IMAGES = 6;
 
 export default function IllustratorEditPage() {
   const { token } = useParams();
@@ -15,10 +17,10 @@ export default function IllustratorEditPage() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", portfolio_url: "", style: "", services: "" });
   const [publicId, setPublicId] = useState(null);
-  const [hasImage, setHasImage] = useState(false);
-  const [imgVersion, setImgVersion] = useState(0);
+  const [images, setImages] = useState([]);
   const [imageFile, setImageFile] = useState(null);
   const [imageUploading, setImageUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -31,8 +33,8 @@ export default function IllustratorEditPage() {
           style: data.style || "",
           services: data.services || "",
         });
-        setHasImage(!!data.has_image);
         setPublicId(data.id || null);
+        setImages(data.images || []);
       } catch {
         setNotFound(true);
       } finally {
@@ -58,20 +60,33 @@ export default function IllustratorEditPage() {
   };
 
   const uploadImage = async () => {
-    if (!imageFile || imageUploading) return;
+    if (!imageFile || imageUploading || images.length >= MAX_IMAGES) return;
     setImageUploading(true);
     try {
       const fd = new FormData();
       fd.append("file", imageFile);
-      await api.post(`/illustrators/edit/${token}/image`, fd);
-      setHasImage(true);
-      setImgVersion((v) => v + 1);
+      const { data } = await api.post(`/illustrators/edit/${token}/images`, fd);
+      setImages((arr) => [...arr, { id: data.id, order: arr.length }]);
       setImageFile(null);
       toast("Bilde lastet opp");
     } catch (err) {
       toast(err?.response?.data?.detail || "Kunne ikke laste opp bildet — prøv igjen");
     } finally {
       setImageUploading(false);
+    }
+  };
+
+  const deleteImage = async (imageId) => {
+    if (deletingId) return;
+    setDeletingId(imageId);
+    try {
+      await api.delete(`/illustrators/edit/${token}/images/${imageId}`);
+      setImages((arr) => arr.filter((im) => im.id !== imageId));
+      toast("Bilde slettet");
+    } catch (err) {
+      toast(err?.response?.data?.detail || "Kunne ikke slette bildet");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -110,38 +125,57 @@ export default function IllustratorEditPage() {
             <div className="mt-8 p-4" style={{ border: "1px solid var(--line)", background: "white" }}>
               <div className="flex items-center gap-2">
                 <ImagePlus size={14} strokeWidth={1.5} style={{ color: "var(--rust)" }} />
-                <span className="label-ui" style={{ color: "var(--rust)" }}>Bilde av arbeidet ditt</span>
+                <span className="label-ui" style={{ color: "var(--rust)" }}>Bilder av arbeidet ditt — {images.length} av {MAX_IMAGES}</span>
               </div>
-              {hasImage && publicId && (
-                <img
-                  src={`${API}/illustrators/${publicId}/image?v=${imgVersion}`}
-                  alt=""
-                  className="mt-3 w-28 h-28 object-cover"
-                  style={{ border: "1px solid var(--line)" }}
-                />
+
+              {images.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-3">
+                  {images.map((im) => (
+                    <div key={im.id} className="relative group">
+                      <img
+                        src={`${API}/illustrators/${publicId}/images/${im.id}`}
+                        alt=""
+                        className="w-24 h-24 object-cover"
+                        style={{ border: "1px solid var(--line)" }}
+                      />
+                      <button
+                        onClick={() => deleteImage(im.id)}
+                        disabled={deletingId === im.id}
+                        className="absolute -top-2 -right-2 p-1 disabled:opacity-50"
+                        style={{ background: "var(--ink)", color: "white" }}
+                        title="Slett bilde"
+                      >
+                        <Trash2 size={12} strokeWidth={1.6} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               )}
-              <p className="mt-2 font-editor text-sm" style={{ color: "var(--ink)" }}>
-                {hasImage ? "Last opp et nytt bilde for å bytte det ut." : "Ingen bilde lagt til ennå."}
+
+              <p className="mt-3 font-editor text-sm" style={{ color: "var(--ink)" }}>
+                {images.length === 0 ? "Ingen bilder lagt til ennå." : images.length >= MAX_IMAGES ? "Maks antall bilder nådd." : "Legg til flere, eller slett et for å bytte det ut."}
               </p>
-              <div className="mt-3 flex items-center gap-3 flex-wrap">
-                <label className="btn-ghost inline-flex items-center gap-2 cursor-pointer" style={{ borderColor: "var(--line)" }}>
-                  {imageFile ? imageFile.name : "Velg bilde"}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                  />
-                </label>
-                <button
-                  onClick={uploadImage}
-                  disabled={!imageFile || imageUploading}
-                  className="btn-primary inline-flex items-center gap-2 disabled:opacity-60"
-                >
-                  <Upload size={14} strokeWidth={1.6} />
-                  {imageUploading ? "Laster opp…" : "Last opp"}
-                </button>
-              </div>
+              {images.length < MAX_IMAGES && (
+                <div className="mt-3 flex items-center gap-3 flex-wrap">
+                  <label className="btn-ghost inline-flex items-center gap-2 cursor-pointer" style={{ borderColor: "var(--line)" }}>
+                    {imageFile ? imageFile.name : "Velg bilde"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                    />
+                  </label>
+                  <button
+                    onClick={uploadImage}
+                    disabled={!imageFile || imageUploading}
+                    className="btn-primary inline-flex items-center gap-2 disabled:opacity-60"
+                  >
+                    <Upload size={14} strokeWidth={1.6} />
+                    {imageUploading ? "Laster opp…" : "Last opp"}
+                  </button>
+                </div>
+              )}
             </div>
 
             <form onSubmit={save} className="mt-8 space-y-6">

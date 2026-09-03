@@ -21,7 +21,8 @@ export default function IllustratorsPage() {
   const [upgrading, setUpgrading] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imageUploading, setImageUploading] = useState(false);
-  const [imageDone, setImageDone] = useState(false);
+  const [imageCount, setImageCount] = useState(0);
+  const MAX_IMAGES = 6;
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -56,7 +57,7 @@ export default function IllustratorsPage() {
       setNewId(data?.id || null);
       setEditToken(data?.edit_token || null);
       setImageFile(null);
-      setImageDone(false);
+      setImageCount(0);
       // Optimistically add to list (server hides email)
       setList((prev) => [
         {
@@ -78,14 +79,15 @@ export default function IllustratorsPage() {
   };
 
   const uploadImage = async () => {
-    if (!editToken || !imageFile || imageUploading) return;
+    if (!editToken || !imageFile || imageUploading || imageCount >= MAX_IMAGES) return;
     setImageUploading(true);
     try {
       const fd = new FormData();
       fd.append("file", imageFile);
-      await api.post(`/illustrators/edit/${editToken}/image`, fd);
-      setImageDone(true);
-      setList((prev) => prev.map((it) => (it.id === newId ? { ...it, has_image: true } : it)));
+      const { data } = await api.post(`/illustrators/edit/${editToken}/images`, fd);
+      setImageFile(null);
+      setImageCount((n) => n + 1);
+      setList((prev) => prev.map((it) => (it.id === newId ? { ...it, cover_image_id: it.cover_image_id || data?.id } : it)));
     } catch (err) {
       toast(err?.response?.data?.detail || "Kunne ikke laste opp bildet — prøv igjen");
     } finally {
@@ -232,13 +234,14 @@ export default function IllustratorsPage() {
                         <span className="label-ui" style={{ color: "var(--rust)" }}>Valgfritt</span>
                       </div>
                       <p className="mt-2 font-editor text-sm" style={{ color: "var(--ink)" }}>
-                        Legg til et bilde av arbeidet ditt — vises direkte i katalogen, ikke bare som lenke.
+                        Legg til opptil {MAX_IMAGES} bilder av arbeidet ditt — vises direkte i katalogen, ikke bare som lenke.
                       </p>
-                      {imageDone ? (
+                      {imageCount > 0 && (
                         <div className="mt-3 flex items-center gap-2 font-editor text-sm" style={{ color: "var(--rust)" }}>
-                          <CheckCircle2 size={16} strokeWidth={1.5} /> Bilde lastet opp
+                          <CheckCircle2 size={16} strokeWidth={1.5} /> {imageCount} av {MAX_IMAGES} lastet opp
                         </div>
-                      ) : (
+                      )}
+                      {imageCount < MAX_IMAGES && (
                         <div className="mt-3 flex items-center gap-3 flex-wrap">
                           <label
                             className="btn-ghost inline-flex items-center gap-2 cursor-pointer"
@@ -264,6 +267,9 @@ export default function IllustratorsPage() {
                           </button>
                         </div>
                       )}
+                      <p className="mt-2 font-editor text-xs italic" style={{ color: "var(--ink-mute)" }}>
+                        Du kan legge til, bytte ut eller slette bilder senere via redigeringslenken over.
+                      </p>
                     </div>
                   )}
 
@@ -289,7 +295,7 @@ export default function IllustratorsPage() {
                   )}
 
                   <button
-                    onClick={() => { setDone(false); setNewId(null); setEditToken(null); setImageFile(null); setImageDone(false); }}
+                    onClick={() => { setDone(false); setNewId(null); setEditToken(null); setImageFile(null); setImageCount(0); }}
                     className="mt-4 label-ui underline underline-offset-4"
                     style={{ color: "var(--rust)" }}
                     data-testid="illustrator-form-again"
@@ -419,9 +425,9 @@ export default function IllustratorsPage() {
                 {list.map((it) => (
                   <li key={it.id} className="hairline-t py-6" data-testid={`ill-item-${it.id}`}>
                     <div className="flex gap-5">
-                      {it.has_image && (
+                      {it.cover_image_id && (
                         <img
-                          src={`${API}/illustrators/${it.id}/image`}
+                          src={`${API}/illustrators/${it.id}/images/${it.cover_image_id}`}
                           alt={`Arbeid av ${it.name}`}
                           className="w-24 h-24 md:w-28 md:h-28 object-cover shrink-0"
                           style={{ border: "1px solid var(--line)" }}

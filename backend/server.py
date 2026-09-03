@@ -1470,7 +1470,6 @@ async def create_illustrator(body: IllustratorCreate):
         "services": (body.services or "").strip()[:600],
         "is_public": True,
         "is_featured": False,
-        "has_image": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.illustrators.insert_one(doc)
@@ -1482,13 +1481,44 @@ async def list_illustrators():
     """Public listing — no email is returned to the client. Featured listings sort first."""
     items = await db.illustrators.find(
         {"is_public": True},
-        {"_id": 0, "email": 0, "image_data": 0},  # hide email + heavy image bytes from listing
+        {"_id": 0, "email": 0},
     ).sort([("is_featured", -1), ("created_at", -1)]).to_list(200)
+    for it in items:
+        cover = await db.illustrator_images.find_one(
+            {"illustrator_id": it["id"]}, {"_id": 0, "id": 1}, sort=[("order", 1)]
+        )
+        it["cover_image_id"] = cover["id"] if cover else None
     return items
 
 
 ILLUSTRATOR_IMAGE_MAX_UPLOAD_BYTES = 8 * 1024 * 1024  # 8 MB raw upload cap
 ILLUSTRATOR_IMAGE_MAX_DIM = 1400
+ILLUSTRATOR_MAX_IMAGES = 6
+
+
+def _encode_illustrator_image(data: bytes) -> bytes:
+    if not data:
+        raise HTTPException(status_code=400, detail="Tom fil")
+    if len(data) > ILLUSTRATOR_IMAGE_MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=400, detail="Bildet er for stort (maks 8 MB)")
+    try:
+        img = Image.open(io.BytesIO(data))
+        img.load()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Kunne ikke lese bildet — prøv en annen fil")
+
+    if img.mode in ("RGBA", "LA", "P"):
+        rgba = img.convert("RGBA")
+        bg = Image.new("RGB", rgba.size, (255, 255, 255))
+        bg.paste(rgba, mask=rgba.split()[-1])
+        img = bg
+    else:
+        img = img.convert("RGB")
+
+    img.thumbnail((ILLUSTRATOR_IMAGE_MAX_DIM, ILLUSTRATOR_IMAGE_MAX_DIM))
+    out = io.BytesIO()
+    img.save(out, format="JPEG", quality=85, optimize=True)
+    return out.getvalue()
 
 
 class IllustratorSelfUpdate(BaseModel):
@@ -1503,12 +1533,15 @@ class IllustratorSelfUpdate(BaseModel):
 async def get_illustrator_for_edit(edit_token: str):
     """Illustrators have no accounts — this private edit_token (shown once at
     creation, never included in the public /illustrators listing) is what lets
-    them come back later to update their listing or add/replace their image."""
+    them come back later to update their listing or manage their image gallery."""
     doc = await db.illustrators.find_one(
-        {"edit_token": edit_token}, {"_id": 0, "image_data": 0, "edit_token": 0}
+        {"edit_token": edit_token}, {"_id": 0, "edit_token": 0}
     )
     if not doc:
         raise HTTPException(status_code=404, detail="Fant ikke oppføringen — sjekk lenken")
+    doc["images"] = await db.illustrator_images.find(
+        {"illustrator_id": doc["id"]}, {"_id": 0, "data": 0}
+    ).sort("order", 1).to_list(ILLUSTRATOR_MAX_IMAGES)
     return doc
 
 
@@ -1543,67 +1576,69 @@ async def update_illustrator_self(edit_token: str, body: IllustratorSelfUpdate):
 
     await db.illustrators.update_one({"edit_token": edit_token}, {"$set": updates})
     doc = await db.illustrators.find_one(
-        {"edit_token": edit_token}, {"_id": 0, "image_data": 0, "edit_token": 0}
+        {"edit_token": edit_token}, {"_id": 0, "edit_token": 0}
     )
     return doc
 
 
-@api_router.post("/illustrators/edit/{edit_token}/image")
+@api_router.post("/illustrators/edit/{edit_token}/images")
 async def upload_illustrator_image(edit_token: str, file: UploadFile = File(...)):
     exists = await db.illustrators.find_one({"edit_token": edit_token}, {"_id": 0, "id": 1})
     if not exists:
         raise HTTPException(status_code=404, detail="Fant ikke oppføringen — sjekk lenken")
     illustrator_id = exists["id"]
 
+    count = await db.illustrator_images.count_documents({"illustrator_id": illustrator_id})
+    if count >= ILLUSTRATOR_MAX_IMAGES:
+        raise HTTPException(status_code=400, detail=f"Maks {ILLUSTRATOR_MAX_IMAGES} bilder per oppføring")
+
     ct = (file.content_type or "").lower()
     if not ct.startswith("image/"):
         raise HTTPException(status_code=400, detail="Filen må være et bilde (PNG, JPG, WebP e.l.)")
 
     data = await file.read()
-    if not data:
-        raise HTTPException(status_code=400, detail="Tom fil")
-    if len(data) > ILLUSTRATOR_IMAGE_MAX_UPLOAD_BYTES:
-        raise HTTPException(status_code=400, detail="Bildet er for stort (maks 8 MB)")
+    jpeg_bytes = _encode_illustrator_image(data)
 
-    try:
-        img = Image.open(io.BytesIO(data))
-        img.load()
-    except Exception:
-        raise HTTPException(status_code=400, detail="Kunne ikke lese bildet — prøv en annen fil")
+    doc = {
+        "id": str(uuid.uuid4()),
+        "illustrator_id": illustrator_id,
+        "content_type": "image/jpeg",
+        "data": jpeg_bytes,
+        "order": count,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.illustrator_images.insert_one(doc)
+    return {"ok": True, "id": doc["id"]}
 
-    if img.mode in ("RGBA", "LA", "P"):
-        rgba = img.convert("RGBA")
-        bg = Image.new("RGB", rgba.size, (255, 255, 255))
-        bg.paste(rgba, mask=rgba.split()[-1])
-        img = bg
-    else:
-        img = img.convert("RGB")
 
-    img.thumbnail((ILLUSTRATOR_IMAGE_MAX_DIM, ILLUSTRATOR_IMAGE_MAX_DIM))
-    out = io.BytesIO()
-    img.save(out, format="JPEG", quality=85, optimize=True)
-
-    await db.illustrators.update_one(
-        {"id": illustrator_id},
-        {"$set": {
-            "image_data": out.getvalue(),
-            "image_content_type": "image/jpeg",
-            "has_image": True,
-        }},
-    )
+@api_router.delete("/illustrators/edit/{edit_token}/images/{image_id}")
+async def delete_illustrator_image(edit_token: str, image_id: str):
+    exists = await db.illustrators.find_one({"edit_token": edit_token}, {"_id": 0, "id": 1})
+    if not exists:
+        raise HTTPException(status_code=404, detail="Fant ikke oppføringen — sjekk lenken")
+    r = await db.illustrator_images.delete_one({"id": image_id, "illustrator_id": exists["id"]})
+    if r.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Bilde ikke funnet")
     return {"ok": True}
 
 
-@api_router.get("/illustrators/{illustrator_id}/image")
-async def get_illustrator_image(illustrator_id: str):
-    doc = await db.illustrators.find_one(
-        {"id": illustrator_id}, {"_id": 0, "image_data": 1, "image_content_type": 1}
+@api_router.get("/illustrators/{illustrator_id}/images")
+async def list_illustrator_images(illustrator_id: str):
+    return await db.illustrator_images.find(
+        {"illustrator_id": illustrator_id}, {"_id": 0, "data": 0}
+    ).sort("order", 1).to_list(ILLUSTRATOR_MAX_IMAGES)
+
+
+@api_router.get("/illustrators/{illustrator_id}/images/{image_id}")
+async def get_illustrator_image(illustrator_id: str, image_id: str):
+    doc = await db.illustrator_images.find_one(
+        {"id": image_id, "illustrator_id": illustrator_id}, {"_id": 0, "data": 1, "content_type": 1}
     )
-    if not doc or not doc.get("image_data"):
+    if not doc:
         raise HTTPException(status_code=404, detail="Bilde ikke funnet")
     return Response(
-        content=bytes(doc["image_data"]),
-        media_type=doc.get("image_content_type") or "image/jpeg",
+        content=bytes(doc["data"]),
+        media_type=doc.get("content_type") or "image/jpeg",
         headers={"Cache-Control": "public, max-age=86400"},
     )
 
