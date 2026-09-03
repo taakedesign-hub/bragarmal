@@ -23,6 +23,7 @@ import CharactersPage from "@/pages/CharactersPage";
 import FaktastasjonPage from "@/pages/FaktastasjonPage";
 import TipsPage from "@/pages/TipsPage";
 import IllustratorsPage from "@/pages/IllustratorsPage";
+import IllustratorEditPage from "@/pages/IllustratorEditPage";
 import AppShell from "@/components/AppShell";
 
 function AppRouter() {
@@ -43,6 +44,7 @@ function AppRouter() {
       <Route path="/personvern" element={<PrivacyPage />} />
       <Route path="/eksempler" element={<ExamplesPage />} />
       <Route path="/illustratorer" element={<IllustratorsPage />} />
+      <Route path="/illustratorer/rediger/:token" element={<IllustratorEditPage />} />
       <Route path="/dashboard" element={<Protected><AppShell><Dashboard /></AppShell></Protected>} />
       <Route path="/prover" element={<Protected><AppShell><SamplesPage /></AppShell></Protected>} />
       <Route path="/stemme" element={<Protected><AppShell><VoicePage /></AppShell></Protected>} />
