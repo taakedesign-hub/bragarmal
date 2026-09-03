@@ -20,7 +20,7 @@ const MODES = [
   {
     id: "reflect",
     label: "Les det jeg har",
-    hint: "Lim inn teksten din — jeg speiler tilbake hva jeg leser, uten å gi råd.",
+    hint: "Lim inn teksten din — jeg speiler tilbake det jeg legger merke til, uten å fortelle deg hva du bør gjøre.",
     cta: "Les det jeg har",
     icon: BookOpen,
     outputTitle: "Editorisk lesning",
