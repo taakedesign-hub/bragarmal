@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import InfoMenu from "@/components/InfoMenu";
 import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
+import InstagramEmbed from "@/components/InstagramEmbed";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/api";
@@ -344,6 +345,28 @@ export default function Landing() {
               </div>
             </article>
           </div>
+        </div>
+      </section>
+
+      {/* Instagram — siste innlegg */}
+      <section className="hairline-t">
+        <div className="max-w-[1800px] mx-auto px-6 md:px-10 py-16 md:py-20 text-center">
+          <div className="label-ui" style={{ color: "var(--rust)" }}>Følg med</div>
+          <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
+            Siste fra <em className="italic" style={{ color: "var(--rust)" }}>Instagram</em>.
+          </h2>
+          <div className="mt-10">
+            <InstagramEmbed permalink="https://www.instagram.com/p/Dc25H4ADaTI/" />
+          </div>
+          <a
+            href="https://www.instagram.com/bragarmal.no"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-8 inline-flex items-center gap-2 font-mono-ui text-sm tracking-wide uppercase hover:underline underline-offset-4"
+            style={{ color: "var(--rust)" }}
+          >
+            @bragarmal.no <ArrowRight size={14} strokeWidth={1.6} />
+          </a>
         </div>
       </section>
 
