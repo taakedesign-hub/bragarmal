@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { SITE_URL } from "@/lib/site";
 
 /**
  * Per-page SEO overrides.
@@ -6,8 +7,8 @@ import { Helmet } from "react-helmet-async";
  * for pages that need distinct metadata.
  */
 export default function Seo({ title, description, path = "/", image }) {
-  const fullUrl = `https://Bragarmål.no${path}`;
-  const ogImage = image || "https://Bragarmål.no/og-image.png";
+  const fullUrl = `${SITE_URL}${path}`;
+  const ogImage = image || `${SITE_URL}/og-image.png`;
   const fullTitle = title ? `${title} — Bragarmål` : "Bragarmål — vi finner din stemme";
 
   return (

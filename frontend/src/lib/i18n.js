@@ -45,6 +45,8 @@ const NO = {
     manuscriptDesc: "Oversikt over scener, POV, status og ordantall",
     characters: "Karakterer",
     charactersDesc: "Psykologiske profiler — bygg selv eller hent fra manuskript",
+    research: "Undersøkelser",
+    researchDesc: "Bakgrunnsstoff for hånden — personer, steder, tidsperioder, kilder",
     tips: "Tips",
     tipsDesc: "Praktiske råd for forfattere",
     sendEmail: "Send e-post",

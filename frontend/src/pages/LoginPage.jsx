@@ -18,9 +18,14 @@ const TID = {
   toggleMode: "auth-toggle-mode",
 };
 
-function startGoogleLogin() {
-  const redirectUrl = window.location.origin + "/dashboard";
-  window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+async function startGoogleLogin() {
+  try {
+    const { data } = await api.get("/auth/google/start");
+    if (!data?.auth_url) throw new Error("no auth_url");
+    window.location.href = data.auth_url;
+  } catch (err) {
+    toast(err?.response?.data?.detail || "Kunne ikke starte innlogging med Google — prøv igjen");
+  }
 }
 
 function formatDetail(detail) {
@@ -55,6 +60,9 @@ export default function LoginPage() {
         : { email: email.trim(), password };
       const r = await api.post(url, body);
       setUser(r.data);
+      if (r.data?.session_token) {
+        try { localStorage.setItem("bragr_session_token", r.data.session_token); } catch {}
+      }
 
       // If user came from "Prøv gratis i 2 uker" — initiate trial checkout
       let trialIntent = false;

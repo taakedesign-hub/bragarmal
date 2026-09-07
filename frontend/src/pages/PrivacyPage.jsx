@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import InfoMenu from "@/components/InfoMenu";
 import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
+import { contactMailto, CONTACT_EMAIL_DISPLAY } from "@/lib/site";
 
 const DATA_TYPES = [
   { label: "Tekst du limer inn eller laster opp", detail: "Utkast, notater, tidligere tekster — lagret på din konto til du sletter det selv." },
@@ -95,9 +96,8 @@ export default function PrivacyPage() {
           </h2>
           <p className="font-editor mt-6 max-w-[68ch]" style={{ color: "var(--ink-soft)" }}>
             Bragarmål skriver ikke selv — vi sender forespørsler videre til
-            eksterne KI-leverandører, via en samlet teknisk løsning driftet
-            av vår plattformpartner Emergent. Avhengig av hvilken modell du
-            velger i verktøyet, går teksten til:
+            eksterne KI-leverandører, via en samlet teknisk løsning.
+            Avhengig av hvilken modell du velger i verktøyet, går teksten til:
           </p>
           <div className="mt-10 hairline-t hairline-b">
             {PROVIDERS.map((p) => (
@@ -128,8 +128,8 @@ export default function PrivacyPage() {
             </div>
             <div className="lg:col-span-8 font-editor text-lg leading-relaxed" style={{ color: "var(--ink-soft)" }}>
               <p>
-                Data lagres i vår database og filtjeneste (driftet via Emergent)
-                helt til du selv sletter det. Vi har ingen automatisk sletting
+                Data lagres i vår database og filtjeneste helt til du selv
+                sletter det. Vi har ingen automatisk sletting
                 etter en gitt tid — det er ditt materiale, og det ligger der du
                 la det, til du fjerner det.
               </p>
@@ -173,10 +173,10 @@ export default function PrivacyPage() {
           </p>
           <div className="mt-10 flex items-center justify-center gap-4 flex-wrap">
             <a
-              href="mailto:hei@Bragarmål.no?subject=Personvern%20-%20BRAGARMÅL"
+              href={contactMailto("Personvern - BRAGARMÅL")}
               className="btn-ghost inline-flex items-center gap-2"
             >
-              hei@Bragarmål.no
+              {CONTACT_EMAIL_DISPLAY}
             </a>
             <Link to="/etikk" className="btn-primary inline-flex items-center gap-3">
               Etikk <ArrowRight size={14} strokeWidth={1.6} />

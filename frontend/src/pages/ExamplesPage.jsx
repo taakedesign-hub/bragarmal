@@ -364,23 +364,23 @@ export default function ExamplesPage() {
         </div>
       </section>
 
-      {/* Temperatur — relevant only for "Finn veien videre" (next_steps) */}
+      {/* Frimodighet — relevant only for "Finn veien videre" (next_steps) */}
       <section id="temperatur" className="hairline-t scroll-mt-24">
         <div className="max-w-[1200px] mx-auto px-6 md:px-10 py-16 md:py-20">
           <div className="grid grid-cols-12 gap-6 md:gap-10 items-start">
             <div className="col-span-12 md:col-span-4">
-              <div className="label-ui">Temperatur</div>
+              <div className="label-ui">Frimodighet</div>
               <h2 className="font-serif-display text-3xl md:text-4xl font-light mt-2" style={{ color: "var(--ink)" }}>
-                Hvor <em className="italic" style={{ color: "var(--rust)" }}>frekk</em> skal Bragarmål være?
+                Hvor <em className="italic" style={{ color: "var(--rust)" }}>frimodig</em> skal Bragarmål være?
               </h2>
               <p className="font-editor mt-6" style={{ color: "var(--ink-soft)" }}>
-                Temperatur styrer hvor «trygg» eller «kreativ» retningsforslagene blir i «Finn veien videre». Du velger — det finnes ingen fasit.
+                Frimodighet styrer hvor «trygg» eller «kreativ» retningsforslagene blir i «Finn veien videre». Du velger — det finnes ingen fasit.
               </p>
             </div>
             <div className="col-span-12 md:col-span-8 space-y-6">
               <TempTier range="0.3" title="Lav" desc="Forsiktig, stabil, «korrekt». Trygg — men kan føles flat." />
               <TempTier range="0.7" title="Middels" recommended desc="Balanse mellom kontroll og variasjon. Beste utgangspunkt for de fleste." />
-              <TempTier range="1.0" title="Høy" desc="Frekkere, mer uforutsigbar. Mer personlighet — men kan spore av." />
+              <TempTier range="1.0" title="Høy" desc="Mer frimodig, mer uforutsigbar. Mer personlighet — men kan spore av." />
             </div>
           </div>
         </div>

@@ -298,7 +298,7 @@ function SampleEditorModal({ sample, onClose, onSaved, onSendToWrite }) {
           {/* Temperature — governs the tone of the "Hjelp meg videre" (next_steps) run */}
           <div className="flex items-center gap-2 flex-wrap" data-testid="sample-editor-temperature-row">
             <span className="font-mono-ui text-[10px] tracking-widest mr-1" style={{ color: "var(--ink-mute)" }}>
-              TEMPERATUR
+              FRIMODIGHET
             </span>
             {[
               { v: 0.3, label: "Lav" },

@@ -9,6 +9,7 @@ import logging
 import re
 import json
 import asyncio
+import difflib
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Literal
@@ -19,6 +20,7 @@ import bcrypt
 import secrets
 import requests
 import stripe
+from PIL import Image
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, UploadFile, File, Form, Query, Header
 from fastapi.responses import StreamingResponse, JSONResponse, RedirectResponse
 from dotenv import load_dotenv
@@ -26,14 +28,7 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, ConfigDict
 
-try:
-    # Only installable inside Emergent's own build environment — everywhere else
-    # (e.g. an independent host like Railway) this stays unavailable, and every
-    # call site already checks EMERGENT_LLM_KEY first and raises before touching it.
-    from emergentintegrations.llm.chat import LlmChat, UserMessage, TextDelta, StreamDone, ImageContent
-    from emergentintegrations.llm.openai import OpenAISpeechToText
-except ImportError:
-    LlmChat = UserMessage = TextDelta = StreamDone = ImageContent = OpenAISpeechToText = None
+import litellm
 from openai import AsyncOpenAI
 
 # Extraction libs
@@ -51,7 +46,10 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
+EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')  # still used by storage_put/storage_get below
+ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY')
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 XAI_API_KEY = os.environ.get('XAI_API_KEY')
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
@@ -227,6 +225,45 @@ BRAGR_MODEL_WRITING = ("anthropic", "claude-sonnet-4-6")    # /generate + humani
 BRAGR_MODEL_ANALYSIS = ("anthropic", "claude-sonnet-4-6")   # stemmeprofil, karakterer, AI-detektor
 BRAGR_MODEL_VISION = ("anthropic", "claude-sonnet-4-6")     # OCR / håndskriftscan
 
+# Direkte leverandørnøkler for /generate sin modell-nedtrekksliste (og BYOK-hjelpere
+# lagrer sin egen nøkkel per provider, se helper["api_key"] i /generate).
+PROVIDER_API_KEYS = {
+    "anthropic": ANTHROPIC_API_KEY,
+    "openai": OPENAI_API_KEY,
+    "gemini": GEMINI_API_KEY,
+    "xai": XAI_API_KEY,
+}
+
+
+async def stream_llm_text(
+    provider: str, model: str, system: str, user_msg: str, api_key: str,
+    temperature: float = 0.7, max_tokens: int = 4096, image_b64: Optional[str] = None,
+):
+    """Streams text deltas from any litellm-supported provider (anthropic, openai,
+    gemini, xai, ...) using a caller-supplied API key. Callers are responsible for
+    checking `api_key` is set before calling — this raises naturally otherwise."""
+    content = user_msg
+    if image_b64:
+        content = [
+            {"type": "text", "text": user_msg},
+            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"}},
+        ]
+    resp = await litellm.acompletion(
+        model=f"{provider}/{model}",
+        api_key=api_key,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        stream=True,
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": content},
+        ],
+    )
+    async for chunk in resp:
+        delta = chunk.choices[0].delta.content if chunk.choices else None
+        if delta:
+            yield delta
+
 
 # ---------- Auth ----------
 async def get_current_user(request: Request) -> User:
@@ -322,13 +359,14 @@ async def auth_register(payload: EmailRegister, request: Request, response: Resp
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
 
-    await _create_session_for_user(user_id, response)
+    session_token = await _create_session_for_user(user_id, response)
 
     return {
         "user_id": user_id,
         "email": email,
         "name": (payload.name or email.split("@")[0]).strip()[:80],
         "picture": None,
+        "session_token": session_token,
     }
 
 
@@ -365,13 +403,14 @@ async def auth_login(payload: EmailLogin, request: Request, response: Response):
 
     # Success — clear attempts and create session
     await db.login_attempts.delete_one({"identifier": identifier})
-    await _create_session_for_user(user_doc["user_id"], response)
+    session_token = await _create_session_for_user(user_doc["user_id"], response)
 
     return {
         "user_id": user_doc["user_id"],
         "email": user_doc["email"],
         "name": user_doc.get("name"),
         "picture": user_doc.get("picture"),
+        "session_token": session_token,
     }
 
 
@@ -466,7 +505,7 @@ async def create_session(request: Request, response: Response):
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get('GOOGLE_OAUTH_CLIENT_ID')
 GOOGLE_OAUTH_CLIENT_SECRET = os.environ.get('GOOGLE_OAUTH_CLIENT_SECRET')
 GOOGLE_OAUTH_REDIRECT_URI = os.environ.get('GOOGLE_OAUTH_REDIRECT_URI')  # e.g. https://api.bragarmål.no/api/auth/google/callback
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://bragarmål.no')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://xn--bragarml-g0a.no')
 
 _oauth_states: dict = {}  # state -> created_at (short-lived, in-memory CSRF guard)
 
@@ -509,6 +548,8 @@ async def google_login_callback(response: Response, code: Optional[str] = None, 
             "grant_type": "authorization_code",
         })
         if token_r.status_code != 200:
+            logger.error("Google token exchange failed: status=%s body=%s redirect_uri=%s",
+                         token_r.status_code, token_r.text, GOOGLE_OAUTH_REDIRECT_URI)
             return RedirectResponse(f"{FRONTEND_URL}/logg-inn?feil=google_token")
         access_token = token_r.json()["access_token"]
 
@@ -517,15 +558,25 @@ async def google_login_callback(response: Response, code: Optional[str] = None, 
             headers={"Authorization": f"Bearer {access_token}"},
         )
         if userinfo_r.status_code != 200:
+            logger.error("Google userinfo fetch failed: status=%s body=%s", userinfo_r.status_code, userinfo_r.text)
             return RedirectResponse(f"{FRONTEND_URL}/logg-inn?feil=google_userinfo")
         profile = userinfo_r.json()
 
     result = await _upsert_user_and_start_session(
         response, profile["email"], profile.get("name", profile["email"]), profile.get("picture")
     )
-    # The cookie is already set on this redirect response — no need to round-trip
-    # a session_id through the frontend hash like the Emergent flow required.
-    return RedirectResponse(f"{FRONTEND_URL}/dashboard")
+    # Cookie is set above for browsers that accept it, but the frontend and
+    # backend are on different sites, so third-party-cookie blocking can
+    # silently drop it. Pass the token in the URL hash too (never sent to
+    # any server, incl. ours) so the frontend can store it and send it back
+    # as an Authorization header instead.
+    redirect = RedirectResponse(f"{FRONTEND_URL}/dashboard#session_token={result['session_token']}")
+    for k, v in response.headers.items():
+        if k.lower() == "set-cookie":
+            redirect.headers.append(k, v)
+    # The cookie must be set directly on the object we return — FastAPI discards
+    # the injected `response` param's headers once a Response is returned explicitly.
+    return redirect
 
 
 @api_router.get("/auth/me")
@@ -659,7 +710,7 @@ def analyze_voice(samples: List[dict]) -> dict:
 
 async def build_style_summary(samples: List[dict], stats: dict) -> dict:
     """Use Claude to describe user's tone and signature phrases in Norwegian."""
-    if not samples or not EMERGENT_LLM_KEY:
+    if not samples or not ANTHROPIC_API_KEY:
         return {"tone_description": "", "style_summary": "", "signature_phrases": [], "deviations": [], "watch_out_for": []}
 
     # Ensure ALL samples are represented — take proportional slices from each
@@ -700,19 +751,10 @@ TEKSTER:
 {joined}
 """
 
-    chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=f"analyze-{uuid.uuid4().hex[:8]}",
-        system_message=system,
-    ).with_model(*BRAGR_MODEL_ANALYSIS)
-
     try:
         parts = []
-        async for ev in chat.stream_message(UserMessage(text=prompt)):
-            if isinstance(ev, TextDelta):
-                parts.append(ev.content)
-            elif isinstance(ev, StreamDone):
-                break
+        async for chunk in stream_llm_text(*BRAGR_MODEL_ANALYSIS, system, prompt, ANTHROPIC_API_KEY):
+            parts.append(chunk)
         raw = "".join(parts).strip()
         # Extract JSON block
         m = re.search(r"\{.*\}", raw, re.DOTALL)
@@ -840,7 +882,7 @@ async def scan_handwritten(
     """
     import base64
 
-    if not EMERGENT_LLM_KEY:
+    if not ANTHROPIC_API_KEY:
         raise HTTPException(status_code=500, detail="LLM-nøkkel mangler")
 
     ct = (file.content_type or "").lower()
@@ -862,24 +904,14 @@ async def scan_handwritten(
         "Returner KUN den transkriberte teksten, ingen forklaring."
     )
 
-    chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=f"ocr-{user.user_id}-{uuid.uuid4().hex[:6]}",
-        system_message=system,
-    ).with_model(*BRAGR_MODEL_VISION)
-
-    msg = UserMessage(
-        text="Transkriber all håndskrevet norsk tekst i dette bildet ordrett.",
-        file_contents=[ImageContent(image_base64=b64)],
-    )
-
     try:
         parts = []
-        async for ev in chat.stream_message(msg):
-            if isinstance(ev, TextDelta):
-                parts.append(ev.content)
-            elif isinstance(ev, StreamDone):
-                break
+        async for chunk in stream_llm_text(
+            *BRAGR_MODEL_VISION, system,
+            "Transkriber all håndskrevet norsk tekst i dette bildet ordrett.",
+            ANTHROPIC_API_KEY, image_b64=b64,
+        ):
+            parts.append(chunk)
         text = "".join(parts).strip()
     except Exception as e:
         logger.exception("OCR failed")
@@ -926,7 +958,7 @@ async def transcribe_audio(
     """Transcribe a recorded Norwegian audio file (høytlesning) to text via Whisper.
     Returns the transcript — user reviews and can save as a sample.
     """
-    if not EMERGENT_LLM_KEY:
+    if not OPENAI_API_KEY:
         raise HTTPException(status_code=500, detail="LLM-nøkkel mangler")
 
     name = (file.filename or "").lower()
@@ -947,9 +979,9 @@ async def transcribe_audio(
         tmp_path = tmp.name
 
     try:
-        stt = OpenAISpeechToText(api_key=EMERGENT_LLM_KEY)
+        client = AsyncOpenAI(api_key=OPENAI_API_KEY)
         with open(tmp_path, "rb") as af:
-            resp = await stt.transcribe(
+            resp = await client.audio.transcriptions.create(
                 file=af,
                 model="whisper-1",
                 response_format="json",
@@ -1088,6 +1120,7 @@ class SceneCreate(BaseModel):
     pov: str = ""
     location: str = ""
     scene_date: str = ""  # freeform user-entered date/timeline label
+    tags: List[str] = []
 
 
 class SceneUpdate(BaseModel):
@@ -1098,6 +1131,8 @@ class SceneUpdate(BaseModel):
     pov: Optional[str] = None
     location: Optional[str] = None
     scene_date: Optional[str] = None
+    tags: Optional[List[str]] = None
+    scrapped: Optional[bool] = None
 
 
 class SceneReorder(BaseModel):
@@ -1131,6 +1166,8 @@ async def create_scene(body: SceneCreate, user: User = Depends(get_current_user)
         "pov": body.pov.strip(),
         "location": body.location.strip(),
         "scene_date": body.scene_date.strip(),
+        "tags": [t.strip() for t in body.tags if t.strip()][:12],
+        "scrapped": False,
         "word_count": _word_count(body.content),
         "order": next_order,
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -1161,6 +1198,10 @@ async def update_scene(scene_id: str, body: SceneUpdate, user: User = Depends(ge
         updates["location"] = body.location.strip()
     if body.scene_date is not None:
         updates["scene_date"] = body.scene_date.strip()
+    if body.tags is not None:
+        updates["tags"] = [t.strip() for t in body.tags if t.strip()][:12]
+    if body.scrapped is not None:
+        updates["scrapped"] = body.scrapped
     if not updates:
         raise HTTPException(status_code=400, detail="Ingenting å oppdatere")
     updates["updated_at"] = datetime.now(timezone.utc).isoformat()
@@ -1269,6 +1310,128 @@ async def delete_character(char_id: str, user: User = Depends(get_current_user))
     return {"ok": True}
 
 
+# ─── Faktastasjon (research notes) ──────────────────────────────────────────
+RESEARCH_CATEGORIES = ["person", "sted", "tidsperiode", "gjenstand", "annet"]
+RESEARCH_IMAGE_MAX_UPLOAD_BYTES = 8 * 1024 * 1024
+RESEARCH_IMAGE_MAX_DIM = 1400
+
+
+class ResearchNoteCreate(BaseModel):
+    title: str
+    category: str = "annet"
+    content: str = ""
+    source_url: str = ""
+
+
+class ResearchNoteUpdate(BaseModel):
+    title: Optional[str] = None
+    category: Optional[str] = None
+    content: Optional[str] = None
+    source_url: Optional[str] = None
+
+
+@api_router.get("/research")
+async def list_research_notes(user: User = Depends(get_current_user)):
+    return await db.research_notes.find(
+        {"user_id": user.user_id}, {"_id": 0, "image_data": 0}
+    ).sort("updated_at", -1).to_list(1000)
+
+
+@api_router.post("/research")
+async def create_research_note(body: ResearchNoteCreate, user: User = Depends(get_current_user)):
+    category = body.category if body.category in RESEARCH_CATEGORIES else "annet"
+    doc = {
+        "id": str(uuid.uuid4()),
+        "user_id": user.user_id,
+        "title": body.title.strip() or "Uten tittel",
+        "category": category,
+        "content": body.content.strip(),
+        "source_url": body.source_url.strip(),
+        "has_image": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.research_notes.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.patch("/research/{note_id}")
+async def update_research_note(note_id: str, body: ResearchNoteUpdate, user: User = Depends(get_current_user)):
+    updates = {k: (v.strip() if isinstance(v, str) else v) for k, v in body.model_dump(exclude_none=True).items()}
+    if "category" in updates and updates["category"] not in RESEARCH_CATEGORIES:
+        updates["category"] = "annet"
+    if not updates:
+        raise HTTPException(status_code=400, detail="Ingenting å oppdatere")
+    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+    r = await db.research_notes.update_one(
+        {"id": note_id, "user_id": user.user_id}, {"$set": updates}
+    )
+    if r.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Ikke funnet")
+    return await db.research_notes.find_one(
+        {"id": note_id, "user_id": user.user_id}, {"_id": 0, "image_data": 0}
+    )
+
+
+@api_router.delete("/research/{note_id}")
+async def delete_research_note(note_id: str, user: User = Depends(get_current_user)):
+    r = await db.research_notes.delete_one({"id": note_id, "user_id": user.user_id})
+    if r.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Ikke funnet")
+    return {"ok": True}
+
+
+@api_router.post("/research/{note_id}/image")
+async def upload_research_note_image(note_id: str, file: UploadFile = File(...), user: User = Depends(get_current_user)):
+    exists = await db.research_notes.find_one({"id": note_id, "user_id": user.user_id}, {"_id": 0, "id": 1})
+    if not exists:
+        raise HTTPException(status_code=404, detail="Notat ikke funnet")
+    ct = (file.content_type or "").lower()
+    if not ct.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Filen må være et bilde (PNG, JPG, WebP e.l.)")
+    data = await file.read()
+    if not data:
+        raise HTTPException(status_code=400, detail="Tom fil")
+    if len(data) > RESEARCH_IMAGE_MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=400, detail="Bildet er for stort (maks 8 MB)")
+    try:
+        img = Image.open(io.BytesIO(data))
+        img.load()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Kunne ikke lese bildet — prøv en annen fil")
+    if img.mode in ("RGBA", "LA", "P"):
+        rgba = img.convert("RGBA")
+        bg = Image.new("RGB", rgba.size, (255, 255, 255))
+        bg.paste(rgba, mask=rgba.split()[-1])
+        img = bg
+    else:
+        img = img.convert("RGB")
+    img.thumbnail((RESEARCH_IMAGE_MAX_DIM, RESEARCH_IMAGE_MAX_DIM))
+    out = io.BytesIO()
+    img.save(out, format="JPEG", quality=85, optimize=True)
+    await db.research_notes.update_one(
+        {"id": note_id, "user_id": user.user_id},
+        {"$set": {"image_data": out.getvalue(), "image_content_type": "image/jpeg", "has_image": True,
+                   "updated_at": datetime.now(timezone.utc).isoformat()}},
+    )
+    return {"ok": True}
+
+
+@api_router.get("/research/{note_id}/image")
+async def get_research_note_image(note_id: str, user: User = Depends(get_current_user)):
+    doc = await db.research_notes.find_one(
+        {"id": note_id, "user_id": user.user_id}, {"_id": 0, "image_data": 1, "image_content_type": 1}
+    )
+    if not doc or not doc.get("image_data"):
+        raise HTTPException(status_code=404, detail="Bilde ikke funnet")
+    return Response(
+        content=bytes(doc["image_data"]),
+        media_type=doc.get("image_content_type") or "image/jpeg",
+        headers={"Cache-Control": "private, max-age=86400"},
+    )
+
+
 # ─── Illustrators (public directory) ────────────────────────────────────────
 class IllustratorCreate(BaseModel):
     name: str
@@ -1299,6 +1462,7 @@ async def create_illustrator(body: IllustratorCreate):
 
     doc = {
         "id": str(uuid.uuid4()),
+        "edit_token": str(uuid.uuid4()),
         "name": name[:120],
         "email": email[:200],
         "portfolio_url": portfolio[:500],
@@ -1309,7 +1473,7 @@ async def create_illustrator(body: IllustratorCreate):
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.illustrators.insert_one(doc)
-    return {"ok": True, "id": doc["id"]}
+    return {"ok": True, "id": doc["id"], "edit_token": doc["edit_token"]}
 
 
 @api_router.get("/illustrators")
@@ -1317,9 +1481,166 @@ async def list_illustrators():
     """Public listing — no email is returned to the client. Featured listings sort first."""
     items = await db.illustrators.find(
         {"is_public": True},
-        {"_id": 0, "email": 0},  # hide email from public listing
+        {"_id": 0, "email": 0},
     ).sort([("is_featured", -1), ("created_at", -1)]).to_list(200)
+    for it in items:
+        cover = await db.illustrator_images.find_one(
+            {"illustrator_id": it["id"]}, {"_id": 0, "id": 1}, sort=[("order", 1)]
+        )
+        it["cover_image_id"] = cover["id"] if cover else None
     return items
+
+
+ILLUSTRATOR_IMAGE_MAX_UPLOAD_BYTES = 8 * 1024 * 1024  # 8 MB raw upload cap
+ILLUSTRATOR_IMAGE_MAX_DIM = 1400
+ILLUSTRATOR_MAX_IMAGES = 6
+
+
+def _encode_illustrator_image(data: bytes) -> bytes:
+    if not data:
+        raise HTTPException(status_code=400, detail="Tom fil")
+    if len(data) > ILLUSTRATOR_IMAGE_MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=400, detail="Bildet er for stort (maks 8 MB)")
+    try:
+        img = Image.open(io.BytesIO(data))
+        img.load()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Kunne ikke lese bildet — prøv en annen fil")
+
+    if img.mode in ("RGBA", "LA", "P"):
+        rgba = img.convert("RGBA")
+        bg = Image.new("RGB", rgba.size, (255, 255, 255))
+        bg.paste(rgba, mask=rgba.split()[-1])
+        img = bg
+    else:
+        img = img.convert("RGB")
+
+    img.thumbnail((ILLUSTRATOR_IMAGE_MAX_DIM, ILLUSTRATOR_IMAGE_MAX_DIM))
+    out = io.BytesIO()
+    img.save(out, format="JPEG", quality=85, optimize=True)
+    return out.getvalue()
+
+
+class IllustratorSelfUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    portfolio_url: Optional[str] = None
+    style: Optional[str] = None
+    services: Optional[str] = None
+
+
+@api_router.get("/illustrators/edit/{edit_token}")
+async def get_illustrator_for_edit(edit_token: str):
+    """Illustrators have no accounts — this private edit_token (shown once at
+    creation, never included in the public /illustrators listing) is what lets
+    them come back later to update their listing or manage their image gallery."""
+    doc = await db.illustrators.find_one(
+        {"edit_token": edit_token}, {"_id": 0, "edit_token": 0}
+    )
+    if not doc:
+        raise HTTPException(status_code=404, detail="Fant ikke oppføringen — sjekk lenken")
+    doc["images"] = await db.illustrator_images.find(
+        {"illustrator_id": doc["id"]}, {"_id": 0, "data": 0}
+    ).sort("order", 1).to_list(ILLUSTRATOR_MAX_IMAGES)
+    return doc
+
+
+@api_router.patch("/illustrators/edit/{edit_token}")
+async def update_illustrator_self(edit_token: str, body: IllustratorSelfUpdate):
+    exists = await db.illustrators.find_one({"edit_token": edit_token}, {"_id": 0, "id": 1})
+    if not exists:
+        raise HTTPException(status_code=404, detail="Fant ikke oppføringen — sjekk lenken")
+
+    updates: dict = {}
+    if body.name is not None:
+        name = body.name.strip()
+        if len(name) < 2:
+            raise HTTPException(status_code=400, detail="Navn må fylles ut")
+        updates["name"] = name[:120]
+    if body.email is not None:
+        email = body.email.strip().lower()
+        if "@" not in email or "." not in email or len(email) < 5:
+            raise HTTPException(status_code=400, detail="Ugyldig e-postadresse")
+        updates["email"] = email[:200]
+    if body.portfolio_url is not None:
+        portfolio = body.portfolio_url.strip()
+        if not (portfolio.startswith("http://") or portfolio.startswith("https://")):
+            raise HTTPException(status_code=400, detail="Portfolio-lenke må begynne med http(s)://")
+        updates["portfolio_url"] = portfolio[:500]
+    if body.style is not None:
+        updates["style"] = body.style.strip()[:600]
+    if body.services is not None:
+        updates["services"] = body.services.strip()[:600]
+    if not updates:
+        raise HTTPException(status_code=400, detail="Ingenting å oppdatere")
+
+    await db.illustrators.update_one({"edit_token": edit_token}, {"$set": updates})
+    doc = await db.illustrators.find_one(
+        {"edit_token": edit_token}, {"_id": 0, "edit_token": 0}
+    )
+    return doc
+
+
+@api_router.post("/illustrators/edit/{edit_token}/images")
+async def upload_illustrator_image(edit_token: str, file: UploadFile = File(...)):
+    exists = await db.illustrators.find_one({"edit_token": edit_token}, {"_id": 0, "id": 1})
+    if not exists:
+        raise HTTPException(status_code=404, detail="Fant ikke oppføringen — sjekk lenken")
+    illustrator_id = exists["id"]
+
+    count = await db.illustrator_images.count_documents({"illustrator_id": illustrator_id})
+    if count >= ILLUSTRATOR_MAX_IMAGES:
+        raise HTTPException(status_code=400, detail=f"Maks {ILLUSTRATOR_MAX_IMAGES} bilder per oppføring")
+
+    ct = (file.content_type or "").lower()
+    if not ct.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Filen må være et bilde (PNG, JPG, WebP e.l.)")
+
+    data = await file.read()
+    jpeg_bytes = _encode_illustrator_image(data)
+
+    doc = {
+        "id": str(uuid.uuid4()),
+        "illustrator_id": illustrator_id,
+        "content_type": "image/jpeg",
+        "data": jpeg_bytes,
+        "order": count,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.illustrator_images.insert_one(doc)
+    return {"ok": True, "id": doc["id"]}
+
+
+@api_router.delete("/illustrators/edit/{edit_token}/images/{image_id}")
+async def delete_illustrator_image(edit_token: str, image_id: str):
+    exists = await db.illustrators.find_one({"edit_token": edit_token}, {"_id": 0, "id": 1})
+    if not exists:
+        raise HTTPException(status_code=404, detail="Fant ikke oppføringen — sjekk lenken")
+    r = await db.illustrator_images.delete_one({"id": image_id, "illustrator_id": exists["id"]})
+    if r.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Bilde ikke funnet")
+    return {"ok": True}
+
+
+@api_router.get("/illustrators/{illustrator_id}/images")
+async def list_illustrator_images(illustrator_id: str):
+    return await db.illustrator_images.find(
+        {"illustrator_id": illustrator_id}, {"_id": 0, "data": 0}
+    ).sort("order", 1).to_list(ILLUSTRATOR_MAX_IMAGES)
+
+
+@api_router.get("/illustrators/{illustrator_id}/images/{image_id}")
+async def get_illustrator_image(illustrator_id: str, image_id: str):
+    doc = await db.illustrator_images.find_one(
+        {"id": image_id, "illustrator_id": illustrator_id}, {"_id": 0, "data": 1, "content_type": 1}
+    )
+    if not doc:
+        raise HTTPException(status_code=404, detail="Bilde ikke funnet")
+    return Response(
+        content=bytes(doc["data"]),
+        media_type=doc.get("content_type") or "image/jpeg",
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
 
 
 class IllustratorCheckoutRequest(BaseModel):
@@ -1361,7 +1682,7 @@ async def illustrator_checkout(body: IllustratorCheckoutRequest):
 @api_router.post("/characters/extract")
 async def extract_characters(user: User = Depends(get_current_user)):
     """Read all scenes and ask Claude to extract character profiles."""
-    if not EMERGENT_LLM_KEY:
+    if not ANTHROPIC_API_KEY:
         raise HTTPException(status_code=503, detail="AI ikke tilgjengelig")
     scenes = await db.scenes.find({"user_id": user.user_id}, {"_id": 0}).sort("order", 1).to_list(500)
     if not scenes:
@@ -1385,18 +1706,10 @@ async def extract_characters(user: User = Depends(get_current_user)):
         "Skriv beskrivelsene på norsk. Vær konkret og tekstnær. Ikke oppfinn.\n\n"
         f"TEKST:\n{corpus}"
     )
-    chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=f"chars-{uuid.uuid4().hex[:8]}",
-        system_message=system,
-    ).with_model(*BRAGR_MODEL_ANALYSIS).with_params(temperature=0.4)
     try:
         parts = []
-        async for ev in chat.stream_message(UserMessage(text=prompt)):
-            if isinstance(ev, TextDelta):
-                parts.append(ev.content)
-            elif isinstance(ev, StreamDone):
-                break
+        async for chunk in stream_llm_text(*BRAGR_MODEL_ANALYSIS, system, prompt, ANTHROPIC_API_KEY, temperature=0.4):
+            parts.append(chunk)
         raw = "".join(parts).strip()
         m = re.search(r"\{.*\}", raw, re.DOTALL)
         data = json.loads(m.group(0) if m else raw)
@@ -1908,7 +2221,6 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
         )
 
     # Resolve model: either built-in or user's own AI helper (helper:<id>)
-    api_key_to_use = EMERGENT_LLM_KEY
     helper_persona = ""
     helper_name = ""
     if body.model.startswith("helper:"):
@@ -1925,7 +2237,8 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
         if body.model not in ALLOWED_MODELS:
             raise HTTPException(status_code=400, detail="Ukjent modell")
         provider, model = ALLOWED_MODELS[body.model]
-        if not EMERGENT_LLM_KEY:
+        api_key_to_use = PROVIDER_API_KEYS.get(provider)
+        if not api_key_to_use:
             raise HTTPException(status_code=503, detail="KI-generering er ikke tilgjengelig på denne serveren ennå")
 
     profile = await db.voice_profiles.find_one({"user_id": user.user_id}, {"_id": 0})
@@ -1982,22 +2295,13 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
             f"---\n{body.text}\n---"
         )
 
-    chat = LlmChat(
-        api_key=api_key_to_use,
-        session_id=f"gen-{user.user_id}-{uuid.uuid4().hex[:6]}",
-        system_message=system,
-    ).with_model(provider, model).with_params(
-        temperature=max(0.2, min(1.2, float(body.temperature or 0.7))) if body.mode == "next_steps" else 0.7
-    ) if provider != "xai" else None
+    gen_temperature = max(0.2, min(1.2, float(body.temperature or 0.7))) if body.mode == "next_steps" else 0.7
 
-    async def stream_llmchat():
+    async def stream_llm():
         try:
-            async for ev in chat.stream_message(UserMessage(text=user_msg)):
-                if isinstance(ev, TextDelta):
-                    yield f"data: {json.dumps({'delta': ev.content})}\n\n"
-                elif isinstance(ev, StreamDone):
-                    yield f"data: {json.dumps({'done': True})}\n\n"
-                    break
+            async for chunk in stream_llm_text(provider, model, system, user_msg, api_key_to_use, temperature=gen_temperature):
+                yield f"data: {json.dumps({'delta': chunk})}\n\n"
+            yield f"data: {json.dumps({'done': True})}\n\n"
         except Exception as e:
             logger.exception("Generation error")
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
@@ -2025,12 +2329,97 @@ async def generate(body: GenerateBody, user: User = Depends(get_current_user)):
             logger.exception("xAI generation error")
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
-    stream_fn = stream_xai if provider == "xai" else stream_llmchat
+    stream_fn = stream_xai if provider == "xai" else stream_llm
     return StreamingResponse(
         stream_fn(),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+# ---------- Sporede endringer (diff-basert redigering) ----------
+class TrackEditBody(BaseModel):
+    text: str
+    focus: Literal["korrektur", "flyt", "begge"] = "begge"
+
+
+def _diff_segments(original: str, edited: str) -> list:
+    """Word-level diff between original and AI-edited text, as segments the
+    frontend can render inline with per-change accept/reject."""
+    a_tokens = re.findall(r"\s+|\S+", original)
+    b_tokens = re.findall(r"\s+|\S+", edited)
+    sm = difflib.SequenceMatcher(None, a_tokens, b_tokens, autojunk=False)
+    segments = []
+    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+        if tag == "equal":
+            segments.append({"type": "equal", "text": "".join(a_tokens[i1:i2])})
+        else:
+            segments.append({
+                "type": "change",
+                "original": "".join(a_tokens[i1:i2]),
+                "replacement": "".join(b_tokens[j1:j2]),
+            })
+    return segments
+
+
+@api_router.post("/edit/track")
+async def track_edit(body: TrackEditBody, user: User = Depends(get_current_user)):
+    await ensure_beta_flag(user.user_id)
+    sub = await get_user_subscription_status(user.user_id)
+    if not sub["active"]:
+        raise HTTPException(
+            status_code=402,
+            detail="Ditt medlemskap er ikke aktivt. Åpne betalingssiden for å fortsette.",
+        )
+
+    text = body.text.strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="Tom tekst")
+    if len(text) > 12000:
+        raise HTTPException(
+            status_code=400,
+            detail="Teksten er for lang for sporede endringer (maks ca. 2000 ord). Prøv et kortere utdrag.",
+        )
+    if not ANTHROPIC_API_KEY:
+        raise HTTPException(status_code=503, detail="KI-redigering er ikke tilgjengelig på denne serveren ennå")
+
+    profile = await db.voice_profiles.find_one({"user_id": user.user_id}, {"_id": 0})
+    all_samples = await db.samples.find({"user_id": user.user_id}, {"_id": 0}).sort("created_at", -1).to_list(30)
+    samples = [s for s in all_samples if s.get("category", "ren_menneske_ny") in HUMAN_CATEGORIES][:20]
+    system = build_voice_system_prompt(profile, samples, humanize_level=1)
+    system += (
+        "\n\n--- OPPGAVE: SPOREDE ENDRINGER ---\n"
+        "Du er nå en varsom korrekturleser, ikke en gjenskriver. Du får en tekst forfatteren "
+        "allerede har skrevet i sin egen stemme. Foreslå kun presise, lokale endringer — "
+        "grammatikk, tegnsetting, ordgjentakelser, klossete setninger, åpenbare skrivefeil, "
+        "og steder der flyten butter. IKKE omskriv setninger som allerede fungerer. IKKE "
+        "endre stemmen, ordvalget eller tonen. IKKE legg til eller fjern innhold eller mening. "
+        "Behold linjeskift og avsnittsinndeling identisk. Endre minst mulig — helst under "
+        "10-20% av teksten. Svar KUN med den redigerte teksten — ingen kommentarer, ingen "
+        "forklaring, ingen anførselstegn rundt."
+    )
+    focus_hint = {
+        "korrektur": "Fokuser kun på ren korrektur: skrivefeil, grammatikk, tegnsetting.",
+        "flyt": "Fokuser på flyt og rytme: klossete setninger, gjentakelser, tempo — ikke ren rettskriving.",
+        "begge": "Se etter både korrektur og flyt.",
+    }[body.focus]
+    user_msg = f"{focus_hint}\n\n---\n{text}\n---"
+
+    try:
+        parts = []
+        async for chunk in stream_llm_text(
+            *BRAGR_MODEL_ANALYSIS, system, user_msg, ANTHROPIC_API_KEY, temperature=0.3, max_tokens=6000,
+        ):
+            parts.append(chunk)
+        edited = "".join(parts).strip()
+    except Exception:
+        logger.exception("Track-edit generation error")
+        raise HTTPException(status_code=502, detail="Kunne ikke generere endringsforslag — prøv igjen")
+
+    if not edited:
+        raise HTTPException(status_code=502, detail="Fikk ikke noe svar — prøv igjen")
+
+    return {"segments": _diff_segments(text, edited)}
 
 
 # ---------- AI detection heuristic ----------
@@ -2057,7 +2446,7 @@ AI_MARKERS = [
 async def _ai_verdict(text: str) -> dict:
     """Ask Claude for a nuanced verdict on whether text feels AI-generated.
     Returns {label, confidence, reasoning} or {} if unavailable."""
-    if not EMERGENT_LLM_KEY:
+    if not ANTHROPIC_API_KEY:
         return {}
     snippet = text[:6000]
     system = (
@@ -2075,18 +2464,10 @@ async def _ai_verdict(text: str) -> dict:
         "  - notes: liste med 0-3 korte observasjoner om stemmen (fri form)\n\n"
         f"TEKST:\n{snippet}"
     )
-    chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=f"detect-{uuid.uuid4().hex[:8]}",
-        system_message=system,
-    ).with_model(*BRAGR_MODEL_ANALYSIS).with_params(temperature=0.3)
     try:
         parts = []
-        async for ev in chat.stream_message(UserMessage(text=prompt)):
-            if isinstance(ev, TextDelta):
-                parts.append(ev.content)
-            elif isinstance(ev, StreamDone):
-                break
+        async for chunk in stream_llm_text(*BRAGR_MODEL_ANALYSIS, system, prompt, ANTHROPIC_API_KEY, temperature=0.3):
+            parts.append(chunk)
         raw = "".join(parts).strip()
         m = re.search(r"\{.*\}", raw, re.DOTALL)
         if m:

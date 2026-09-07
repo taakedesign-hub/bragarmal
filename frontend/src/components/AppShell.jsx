@@ -14,6 +14,7 @@ const TOOLS = [
   { to: "/skriv", tid: "toolnav-skriv", key: "info.write" },
   { to: "/manuskript", tid: "toolnav-manuskript", key: "info.manuscript" },
   { to: "/karakterer", tid: "toolnav-karakterer", key: "info.characters" },
+  { to: "/undersokelser", tid: "toolnav-undersokelser", key: "info.research" },
   { to: "/tips", tid: "toolnav-tips", key: "info.tips" },
 ];
 

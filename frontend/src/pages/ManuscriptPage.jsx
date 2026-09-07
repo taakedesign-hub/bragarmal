@@ -1,7 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
-import { api, BACKEND } from "@/lib/api";
+import { api, API, BACKEND } from "@/lib/api";
 import { toast } from "sonner";
-import { Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, X as XIcon, Loader2, BookOpen, Save, Download, ScrollText, Camera, RotateCcw, Target, Rows3, LayoutGrid, UserRound } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, X as XIcon, Loader2, BookOpen, Save, Download, ScrollText, Camera, RotateCcw, Target, Rows3, LayoutGrid, UserRound, Search, Link2, GripVertical } from "lucide-react";
+
+const RESEARCH_CATEGORY_LABEL = {
+  person: "Person",
+  sted: "Sted",
+  tidsperiode: "Tidsperiode",
+  gjenstand: "Gjenstand",
+  annet: "Annet",
+};
+
+const TAG_PALETTE = ["#8A4B2A", "#5c7a4a", "#c8432c", "#4a6b7a", "#8a6a4a", "#6a5a7a"];
+function tagColor(tag) {
+  let h = 0;
+  for (let i = 0; i < tag.length; i++) h = (h * 31 + tag.charCodeAt(i)) >>> 0;
+  return TAG_PALETTE[h % TAG_PALETTE.length];
+}
 import { useWrittenForm } from "@/lib/writtenForm";
 import WrittenFormToggle from "@/components/WrittenFormToggle";
 
@@ -36,18 +51,25 @@ export default function ManuscriptPage() {
   const [snapshotsFor, setSnapshotsFor] = useState(null);
   const [view, setView] = useState("table"); // "table" | "grid"
   const [characters, setCharacters] = useState([]);
+  const [researchNotes, setResearchNotes] = useState([]);
+  const [showScrapped, setShowScrapped] = useState(false);
+
+  const activeScenes = useMemo(() => scenes.filter((s) => !s.scrapped), [scenes]);
+  const scrappedScenes = useMemo(() => scenes.filter((s) => s.scrapped), [scenes]);
 
   const load = async () => {
     setLoading(true);
     try {
-      const [r, g, c] = await Promise.all([
+      const [r, g, c, rn] = await Promise.all([
         api.get("/manuscript"),
         api.get("/manuscript/goals"),
         api.get("/characters"),
+        api.get("/research"),
       ]);
       setScenes(r.data || []);
       setGoals(g.data || { total_goal: 0, session_goal: 0 });
       setCharacters(c.data || []);
+      setResearchNotes(rn.data || []);
     } catch (e) {
       console.debug("manuscript load failed", e);
       toast("Kunne ikke laste manuskript");
@@ -58,7 +80,7 @@ export default function ManuscriptPage() {
   useEffect(() => { load(); }, []);
 
   const sorted = useMemo(() => {
-    const arr = [...scenes];
+    const arr = [...activeScenes];
     arr.sort((a, b) => {
       const av = a[sortKey], bv = b[sortKey];
       if (av === bv) return 0;
@@ -70,9 +92,9 @@ export default function ManuscriptPage() {
         : String(bv).localeCompare(String(av), "nb");
     });
     return arr;
-  }, [scenes, sortKey, sortDir]);
+  }, [activeScenes, sortKey, sortDir]);
 
-  const totalWords = useMemo(() => scenes.reduce((s, x) => s + (x.word_count || 0), 0), [scenes]);
+  const totalWords = useMemo(() => activeScenes.reduce((s, x) => s + (x.word_count || 0), 0), [activeScenes]);
 
   const toggleSort = (key) => {
     if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -94,8 +116,29 @@ export default function ManuscriptPage() {
     catch (e) { toast(e?.response?.data?.detail || "Kunne ikke lagre"); load(); }
   };
 
+  const applyReorder = async (reordered) => {
+    // Merge new order values back into full scenes state, leaving scrapped scenes untouched
+    setScenes((arr) => arr.map((s) => {
+      const found = reordered.find((r) => r.id === s.id);
+      return found ? { ...s, order: found.order } : s;
+    }));
+    try { await api.post("/manuscript/reorder", { ordered_ids: reordered.map((s) => s.id) }); }
+    catch (e) { toast("Kunne ikke omorganisere"); load(); }
+  };
+
   const removeScene = async (id) => {
-    if (!window.confirm("Slett denne scenen?")) return;
+    setScenes((arr) => arr.map((s) => s.id === id ? { ...s, scrapped: true } : s));
+    toast("Flyttet til Kuttet", {
+      action: { label: "ANGRE", onClick: () => patchScene(id, { scrapped: false }) },
+    });
+    try { await api.patch(`/manuscript/${id}`, { scrapped: true }); }
+    catch (e) { toast("Kunne ikke flytte til Kuttet"); load(); }
+  };
+
+  const restoreScene = (id) => patchScene(id, { scrapped: false });
+
+  const deleteForever = async (id) => {
+    if (!window.confirm("Slette denne scenen for godt? Dette kan ikke angres.")) return;
     setScenes((arr) => arr.filter((s) => s.id !== id));
     try { await api.delete(`/manuscript/${id}`); }
     catch (e) { toast("Kunne ikke slette"); load(); }
@@ -103,16 +146,26 @@ export default function ManuscriptPage() {
 
   const moveScene = async (id, dir) => {
     // Only meaningful when sortKey === "order" — reorder by shifting indices
-    const ordered = [...scenes].sort((a, b) => a.order - b.order);
+    const ordered = [...activeScenes].sort((a, b) => a.order - b.order);
     const idx = ordered.findIndex((s) => s.id === id);
     if (idx < 0) return;
     const target = dir === "up" ? idx - 1 : idx + 1;
     if (target < 0 || target >= ordered.length) return;
     [ordered[idx], ordered[target]] = [ordered[target], ordered[idx]];
-    const reordered = ordered.map((s, i) => ({ ...s, order: i }));
-    setScenes(reordered);
-    try { await api.post("/manuscript/reorder", { ordered_ids: reordered.map((s) => s.id) }); }
-    catch (e) { toast("Kunne ikke omorganisere"); load(); }
+    await applyReorder(ordered.map((s, i) => ({ ...s, order: i })));
+  };
+
+  const [draggedId, setDraggedId] = useState(null);
+
+  const dropSceneOn = async (draggedSceneId, targetId) => {
+    if (!draggedSceneId || draggedSceneId === targetId) return;
+    const ordered = [...activeScenes].sort((a, b) => a.order - b.order);
+    const fromIdx = ordered.findIndex((s) => s.id === draggedSceneId);
+    const toIdx = ordered.findIndex((s) => s.id === targetId);
+    if (fromIdx < 0 || toIdx < 0) return;
+    const [moved] = ordered.splice(fromIdx, 1);
+    ordered.splice(toIdx, 0, moved);
+    await applyReorder(ordered.map((s, i) => ({ ...s, order: i })));
   };
 
   return (
@@ -165,6 +218,16 @@ export default function ManuscriptPage() {
               {view === "table" ? "RUTENETT" : "TABELL"}
             </button>
             <button
+              onClick={() => setShowScrapped((v) => !v)}
+              className="inline-flex items-center gap-2 font-mono-ui text-[11px] tracking-widest hover:underline"
+              style={{ color: showScrapped ? "var(--rust)" : "var(--ink-mute)" }}
+              data-testid="ms-toggle-scrapped"
+              title="Scener flyttet vekk fra manuset, men ikke slettet for godt"
+            >
+              <Trash2 size={13} strokeWidth={1.5} />
+              KUTTET ({scrappedScenes.length})
+            </button>
+            <button
               onClick={addScene}
               className="inline-flex items-center gap-2 px-4 py-2 font-mono-ui text-[11px] tracking-widest"
               style={{ background: "var(--ink)", color: "var(--paper)" }}
@@ -189,15 +252,20 @@ export default function ManuscriptPage() {
         onEdit={() => setGoalOpen(true)}
       />
 
-      {/* Table or grid */}
-      {view === "grid" ? (
+      {/* Table, grid, or scrapped list */}
+      {showScrapped ? (
+        <ScrappedList scenes={scrappedScenes} onRestore={restoreScene} onDeleteForever={deleteForever} />
+      ) : view === "grid" ? (
         <PlotGrid
-          scenes={[...scenes].sort((a, b) => a.order - b.order)}
+          scenes={[...activeScenes].sort((a, b) => a.order - b.order)}
           loading={loading}
           onOpen={setEditorScene}
           onSnapshots={setSnapshotsFor}
           onDelete={removeScene}
           onMove={moveScene}
+          draggedId={draggedId}
+          onDragStart={setDraggedId}
+          onDrop={dropSceneOn}
         />
       ) : (
       <div className="mt-10 overflow-x-auto">
@@ -235,9 +303,21 @@ export default function ManuscriptPage() {
               </td></tr>
             )}
             {!loading && sorted.map((s, i) => (
-              <tr key={s.id} className="hairline-b hover:bg-neutral-50 transition-colors" data-testid={`ms-row-${s.id}`}>
+              <tr
+                key={s.id}
+                className="hairline-b hover:bg-neutral-50 transition-colors"
+                data-testid={`ms-row-${s.id}`}
+                draggable={sortKey === "order"}
+                onDragStart={() => setDraggedId(s.id)}
+                onDragOver={(e) => sortKey === "order" && e.preventDefault()}
+                onDrop={(e) => { e.preventDefault(); dropSceneOn(draggedId, s.id); setDraggedId(null); }}
+                style={{ opacity: draggedId === s.id ? 0.4 : 1, cursor: sortKey === "order" ? "grab" : "default" }}
+              >
                 <td className="py-3 pr-4 font-mono-ui text-xs" style={{ color: "var(--ink-mute)" }}>
-                  {String(i + 1).padStart(2, "0")}
+                  <span className="inline-flex items-center gap-1.5">
+                    {sortKey === "order" && <GripVertical size={12} strokeWidth={1.5} style={{ color: "var(--ink-mute)" }} />}
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                 </td>
                 <td className="py-3 pr-4">
                   <input
@@ -247,6 +327,19 @@ export default function ManuscriptPage() {
                     onBlur={(e) => e.target.value !== s.title && patchScene(s.id, { title: e.target.value })}
                     data-testid={`ms-title-${s.id}`}
                   />
+                  {s.tags?.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {s.tags.map((t) => (
+                        <span
+                          key={t}
+                          className="px-1.5 py-0.5 font-mono-ui text-[9px] tracking-wide"
+                          style={{ border: `1px solid ${tagColor(t)}`, color: tagColor(t) }}
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </td>
                 {showSynopsis && (
                   <td className="py-3 pr-4">
@@ -362,6 +455,7 @@ export default function ManuscriptPage() {
         <SceneContentEditor
           scene={editorScene}
           characters={characters}
+          researchNotes={researchNotes}
           onClose={() => setEditorScene(null)}
           onSaved={(u) => { setScenes((arr) => arr.map((s) => s.id === u.id ? u : s)); setEditorScene(u); }}
           onSnapshot={async () => {
@@ -401,12 +495,23 @@ export default function ManuscriptPage() {
   );
 }
 
-function SceneContentEditor({ scene, characters = [], onClose, onSaved, onSnapshot }) {
+function SceneContentEditor({ scene, characters = [], researchNotes = [], onClose, onSaved, onSnapshot }) {
   const [content, setContent] = useState(scene.content || "");
   const [title, setTitle] = useState(scene.title || "");
+  const [tags, setTags] = useState(scene.tags || []);
+  const [tagInput, setTagInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [viewingChar, setViewingChar] = useState(null);
+  const [viewingNote, setViewingNote] = useState(null);
   const [writtenForm, setWrittenForm] = useWrittenForm();
+
+  const addTag = (raw) => {
+    const t = raw.trim();
+    if (!t || tags.includes(t) || tags.length >= 12) { setTagInput(""); return; }
+    setTags((a) => [...a, t]);
+    setTagInput("");
+  };
+  const removeTag = (t) => setTags((a) => a.filter((x) => x !== t));
 
   useEffect(() => {
     const h = (e) => { if (e.key === "Escape") onClose(); };
@@ -415,7 +520,8 @@ function SceneContentEditor({ scene, characters = [], onClose, onSaved, onSnapsh
     return () => { document.removeEventListener("keydown", h); document.body.style.overflow = ""; };
   }, [onClose]);
 
-  const dirty = title !== (scene.title || "") || content !== (scene.content || "");
+  const sameTags = tags.length === (scene.tags || []).length && tags.every((t) => (scene.tags || []).includes(t));
+  const dirty = title !== (scene.title || "") || content !== (scene.content || "") || !sameTags;
   const wc = content.trim() ? content.trim().split(/\s+/).length : 0;
 
   const mentioned = useMemo(() => {
@@ -423,10 +529,17 @@ function SceneContentEditor({ scene, characters = [], onClose, onSaved, onSnapsh
     return characters.filter((c) => c.name && text.includes(c.name.toLowerCase()));
   }, [content, characters]);
 
+  const mentionedNotes = useMemo(() => {
+    const text = content.toLowerCase();
+    return researchNotes.filter((n) => n.title && text.includes(n.title.toLowerCase()));
+  }, [content, researchNotes]);
+
+  const suggestedTags = mentioned.map((c) => c.name).filter((n) => !tags.includes(n));
+
   const save = async () => {
     setSaving(true);
     try {
-      const r = await api.patch(`/manuscript/${scene.id}`, { title, content });
+      const r = await api.patch(`/manuscript/${scene.id}`, { title, content, tags });
       toast("Lagret");
       onSaved(r.data);
     } catch (e) {
@@ -474,6 +587,54 @@ function SceneContentEditor({ scene, characters = [], onClose, onSaved, onSnapsh
             lang={writtenForm}
             spellCheck="true"
           />
+          <div className="mt-4 pt-4 hairline-t">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--ink-mute)" }}>
+                MERKELAPPER:
+              </span>
+              {tags.map((t) => (
+                <span
+                  key={t}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 font-mono-ui text-[11px]"
+                  style={{ border: `1px solid ${tagColor(t)}`, color: tagColor(t) }}
+                  data-testid={`ms-tag-${t}`}
+                >
+                  {t}
+                  <button onClick={() => removeTag(t)} style={{ color: tagColor(t) }}>
+                    <XIcon size={11} strokeWidth={1.5} />
+                  </button>
+                </span>
+              ))}
+              <input
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") { e.preventDefault(); addTag(tagInput); }
+                }}
+                placeholder="Legg til …"
+                className="bg-transparent font-mono-ui text-[11px] outline-none w-24"
+                style={{ color: "var(--ink)" }}
+                data-testid="ms-tag-input"
+              />
+            </div>
+            {suggestedTags.length > 0 && (
+              <div className="mt-2 flex items-center gap-2 flex-wrap">
+                <span className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--ink-mute)" }}>
+                  FORESLÅTT FRA KARAKTERER:
+                </span>
+                {suggestedTags.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => addTag(t)}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 font-mono-ui text-[11px] hover:opacity-70"
+                    style={{ border: "1px dashed var(--line)", color: "var(--ink-mute)" }}
+                  >
+                    <Plus size={10} strokeWidth={1.5} /> {t}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           {mentioned.length > 0 && (
             <div className="mt-4 pt-4 hairline-t flex items-center gap-2 flex-wrap">
               <span className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--ink-mute)" }}>
@@ -489,6 +650,25 @@ function SceneContentEditor({ scene, characters = [], onClose, onSaved, onSnapsh
                 >
                   <UserRound size={11} strokeWidth={1.5} />
                   {c.name}
+                </button>
+              ))}
+            </div>
+          )}
+          {mentionedNotes.length > 0 && (
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
+              <span className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--ink-mute)" }}>
+                OMTALT I DENNE SCENEN:
+              </span>
+              {mentionedNotes.map((n) => (
+                <button
+                  key={n.id}
+                  onClick={() => setViewingNote(n)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 font-mono-ui text-[11px] hover:opacity-70"
+                  style={{ border: "1px solid var(--line)", color: "var(--ink)" }}
+                  data-testid={`ms-mentioned-note-${n.id}`}
+                >
+                  <Search size={11} strokeWidth={1.5} />
+                  {n.title}
                 </button>
               ))}
             </div>
@@ -524,6 +704,62 @@ function SceneContentEditor({ scene, characters = [], onClose, onSaved, onSnapsh
       {viewingChar && (
         <CharacterQuickView character={viewingChar} onClose={() => setViewingChar(null)} />
       )}
+      {viewingNote && (
+        <ResearchNoteQuickView note={viewingNote} onClose={() => setViewingNote(null)} />
+      )}
+    </div>
+  );
+}
+
+function ResearchNoteQuickView({ note, onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      style={{ background: "rgba(20,18,15,0.55)", backdropFilter: "blur(4px)" }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md max-h-[80vh] flex flex-col"
+        style={{ background: "var(--paper)", border: "1px solid var(--line)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-6 py-4 hairline-b flex items-center justify-between">
+          <span className="font-serif-display text-2xl" style={{ color: "var(--ink)" }}>{note.title}</span>
+          <button onClick={onClose} style={{ color: "var(--ink-mute)" }}><XIcon size={16} strokeWidth={1.3} /></button>
+        </div>
+        <div className="flex-1 overflow-auto">
+          {note.has_image && (
+            <img src={`${API}/research/${note.id}/image`} alt="" className="w-full h-48 object-cover" draggable={false} />
+          )}
+          <div className="px-6 py-5 space-y-4">
+            <div>
+              <div className="label-ui">Kategori</div>
+              <p className="mt-1 font-editor text-sm" style={{ color: "var(--ink-soft)" }}>
+                {RESEARCH_CATEGORY_LABEL[note.category] || "Annet"}
+              </p>
+            </div>
+            {note.content && (
+              <div>
+                <div className="label-ui">Notat</div>
+                <p className="mt-1 font-editor text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "var(--ink-soft)" }}>
+                  {note.content}
+                </p>
+              </div>
+            )}
+            {note.source_url && (
+              <a
+                href={note.source_url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 font-mono-ui text-[11px] tracking-widest hover:opacity-70"
+                style={{ color: "var(--moss)" }}
+              >
+                <Link2 size={12} strokeWidth={1.5} /> ÅPNE KILDE
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -576,7 +812,52 @@ function CharacterQuickView({ character, onClose }) {
 
 // -------- Sub-components --------
 
-function PlotGrid({ scenes, loading, onOpen, onSnapshots, onDelete, onMove }) {
+function ScrappedList({ scenes, onRestore, onDeleteForever }) {
+  if (scenes.length === 0) {
+    return (
+      <div className="mt-10 py-16 text-center font-editor italic" style={{ color: "var(--ink-mute)" }}>
+        Ingenting i Kuttet. Scener du sletter havner her først, i tilfelle du ombestemmer deg.
+      </div>
+    );
+  }
+  return (
+    <div className="mt-10" data-testid="ms-scrapped-list">
+      <p className="font-editor text-sm mb-4" style={{ color: "var(--ink-soft)" }}>
+        Disse scenene er tatt ut av manuset, men ikke slettet for godt. Gjenopprett dem, eller slett dem permanent.
+      </p>
+      {scenes.map((s) => (
+        <div key={s.id} className="py-3 hairline-b flex items-center justify-between gap-4" data-testid={`ms-scrapped-${s.id}`}>
+          <div>
+            <div className="font-serif-display text-lg" style={{ color: "var(--ink)" }}>{s.title || "Uten tittel"}</div>
+            <div className="font-mono-ui text-[10px] tracking-widest mt-0.5" style={{ color: "var(--ink-mute)" }}>
+              {s.word_count || 0} ORD
+            </div>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={() => onRestore(s.id)}
+              className="inline-flex items-center gap-1.5 font-mono-ui text-[11px] tracking-widest hover:underline"
+              style={{ color: "var(--moss)" }}
+              data-testid={`ms-restore-${s.id}`}
+            >
+              <RotateCcw size={13} strokeWidth={1.5} /> GJENOPPRETT
+            </button>
+            <button
+              onClick={() => onDeleteForever(s.id)}
+              className="inline-flex items-center gap-1.5 font-mono-ui text-[11px] tracking-widest hover:underline"
+              style={{ color: "var(--ink-mute)" }}
+              data-testid={`ms-delete-forever-${s.id}`}
+            >
+              <Trash2 size={13} strokeWidth={1.5} /> SLETT FOR GODT
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PlotGrid({ scenes, loading, onOpen, onSnapshots, onDelete, onMove, draggedId, onDragStart, onDrop }) {
   if (loading) {
     return (
       <div className="mt-10 py-16 text-center">
@@ -599,11 +880,16 @@ function PlotGrid({ scenes, loading, onOpen, onSnapshots, onDelete, onMove }) {
           <div
             key={s.id}
             className="paper p-5 flex flex-col"
-            style={{ borderLeft: `3px solid ${meta.color}` }}
+            style={{ borderLeft: `3px solid ${meta.color}`, opacity: draggedId === s.id ? 0.4 : 1, cursor: "grab" }}
             data-testid={`ms-grid-card-${s.id}`}
+            draggable
+            onDragStart={() => onDragStart(s.id)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => { e.preventDefault(); onDrop(draggedId, s.id); onDragStart(null); }}
           >
             <div className="flex items-start justify-between gap-2">
-              <div className="font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--ink-mute)" }}>
+              <div className="inline-flex items-center gap-1.5 font-mono-ui text-[10px] tracking-widest" style={{ color: "var(--ink-mute)" }}>
+                <GripVertical size={12} strokeWidth={1.5} />
                 {String(i + 1).padStart(2, "0")}
               </div>
               <div className="font-mono-ui text-[10px] tracking-widest" style={{ color: meta.color }}>
@@ -626,6 +912,19 @@ function PlotGrid({ scenes, loading, onOpen, onSnapshots, onDelete, onMove }) {
               {s.scene_date && <span>{s.scene_date}</span>}
               <span>{s.word_count || 0} ord</span>
             </div>
+            {s.tags?.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {s.tags.map((t) => (
+                  <span
+                    key={t}
+                    className="px-1.5 py-0.5 font-mono-ui text-[9px] tracking-wide"
+                    style={{ border: `1px solid ${tagColor(t)}`, color: tagColor(t) }}
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            )}
             <div className="mt-4 pt-3 hairline-t flex items-center justify-between">
               <div className="flex items-center gap-1">
                 <button onClick={() => onMove(s.id, "up")} title="Flytt opp" className="p-1.5 hover:bg-neutral-100" style={{ color: "var(--ink-mute)" }}>

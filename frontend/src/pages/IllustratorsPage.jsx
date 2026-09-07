@@ -4,10 +4,11 @@ import Logo from "@/components/Logo";
 import InfoMenu from "@/components/InfoMenu";
 import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
-import { api } from "@/lib/api";
+import { api, API } from "@/lib/api";
 import { toast } from "sonner";
 import { TID } from "@/lib/testIds";
-import { Palette, ArrowRight, ExternalLink, Send, CheckCircle2, Star } from "lucide-react";
+import { Palette, ArrowRight, ExternalLink, Send, CheckCircle2, Star, ImagePlus, Upload, Link2, Copy } from "lucide-react";
+import { contactMailto } from "@/lib/site";
 
 export default function IllustratorsPage() {
   const nav = useNavigate();
@@ -16,7 +17,12 @@ export default function IllustratorsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [newId, setNewId] = useState(null);
+  const [editToken, setEditToken] = useState(null);
   const [upgrading, setUpgrading] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageCount, setImageCount] = useState(0);
+  const MAX_IMAGES = 6;
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -49,6 +55,9 @@ export default function IllustratorsPage() {
       const { data } = await api.post("/illustrators", form);
       setDone(true);
       setNewId(data?.id || null);
+      setEditToken(data?.edit_token || null);
+      setImageFile(null);
+      setImageCount(0);
       // Optimistically add to list (server hides email)
       setList((prev) => [
         {
@@ -66,6 +75,23 @@ export default function IllustratorsPage() {
       toast(err?.response?.data?.detail || "Kunne ikke sende inn — prøv igjen");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const uploadImage = async () => {
+    if (!editToken || !imageFile || imageUploading || imageCount >= MAX_IMAGES) return;
+    setImageUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", imageFile);
+      const { data } = await api.post(`/illustrators/edit/${editToken}/images`, fd);
+      setImageFile(null);
+      setImageCount((n) => n + 1);
+      setList((prev) => prev.map((it) => (it.id === newId ? { ...it, cover_image_id: it.cover_image_id || data?.id } : it)));
+    } catch (err) {
+      toast(err?.response?.data?.detail || "Kunne ikke laste opp bildet — prøv igjen");
+    } finally {
+      setImageUploading(false);
     }
   };
 
@@ -88,7 +114,7 @@ export default function IllustratorsPage() {
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Seo
         title="Illustratører — Bragarmål"
-        description="Register deg som illustratør, eller finn norske illustratører til bokprosjektet ditt."
+        description="Registrer deg som illustratør, eller finn norske illustratører til bokprosjektet ditt."
         path="/illustratorer"
       />
 
@@ -167,6 +193,86 @@ export default function IllustratorsPage() {
                     Du er nå oppført i katalogen — gratis, ingen tidsbegrensning. Rull ned for å se listen.
                   </p>
 
+                  {editToken && (
+                    <div className="mt-5 p-4" style={{ border: "1px solid var(--ink)", background: "white" }} data-testid="illustrator-edit-link-box">
+                      <div className="flex items-center gap-2">
+                        <Link2 size={14} strokeWidth={1.5} style={{ color: "var(--ink)" }} />
+                        <span className="label-ui" style={{ color: "var(--ink)" }}>Viktig — lagre denne lenken</span>
+                      </div>
+                      <p className="mt-2 font-editor text-sm" style={{ color: "var(--ink)" }}>
+                        Vi har ingen innlogging for illustratører. Denne lenken er din eneste måte å
+                        redigere teksten eller bildet ditt senere — vi viser den kun denne ene gangen.
+                      </p>
+                      <div className="mt-3 flex items-center gap-2 flex-wrap">
+                        <code
+                          className="flex-1 min-w-0 px-3 py-2 font-mono-ui text-xs truncate"
+                          style={{ background: "#fdfcf9", border: "1px solid var(--line)" }}
+                          data-testid="illustrator-edit-link-text"
+                        >
+                          {`${window.location.origin}/illustratorer/rediger/${editToken}`}
+                        </code>
+                        <button
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(`${window.location.origin}/illustratorer/rediger/${editToken}`);
+                              toast("Lenke kopiert");
+                            } catch { toast("Kunne ikke kopiere — merk og kopier manuelt"); }
+                          }}
+                          className="btn-ghost inline-flex items-center gap-2 shrink-0"
+                          data-testid="illustrator-edit-link-copy"
+                        >
+                          <Copy size={14} strokeWidth={1.5} /> Kopier
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {newId && (
+                    <div className="mt-5 p-4" style={{ border: "1px solid var(--line)", background: "white" }} data-testid="illustrator-image-upload">
+                      <div className="flex items-center gap-2">
+                        <ImagePlus size={14} strokeWidth={1.5} style={{ color: "var(--rust)" }} />
+                        <span className="label-ui" style={{ color: "var(--rust)" }}>Valgfritt</span>
+                      </div>
+                      <p className="mt-2 font-editor text-sm" style={{ color: "var(--ink)" }}>
+                        Legg til opptil {MAX_IMAGES} bilder av arbeidet ditt — vises direkte i katalogen, ikke bare som lenke.
+                      </p>
+                      {imageCount > 0 && (
+                        <div className="mt-3 flex items-center gap-2 font-editor text-sm" style={{ color: "var(--rust)" }}>
+                          <CheckCircle2 size={16} strokeWidth={1.5} /> {imageCount} av {MAX_IMAGES} lastet opp
+                        </div>
+                      )}
+                      {imageCount < MAX_IMAGES && (
+                        <div className="mt-3 flex items-center gap-3 flex-wrap">
+                          <label
+                            className="btn-ghost inline-flex items-center gap-2 cursor-pointer"
+                            style={{ borderColor: "var(--line)" }}
+                          >
+                            {imageFile ? imageFile.name : "Velg bilde"}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              data-testid="illustrator-image-input"
+                              onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                            />
+                          </label>
+                          <button
+                            onClick={uploadImage}
+                            disabled={!imageFile || imageUploading}
+                            data-testid="illustrator-image-submit"
+                            className="btn-primary inline-flex items-center gap-2 disabled:opacity-60"
+                          >
+                            <Upload size={14} strokeWidth={1.6} />
+                            {imageUploading ? "Laster opp…" : "Last opp"}
+                          </button>
+                        </div>
+                      )}
+                      <p className="mt-2 font-editor text-xs italic" style={{ color: "var(--ink-mute)" }}>
+                        Du kan legge til, bytte ut eller slette bilder senere via redigeringslenken over.
+                      </p>
+                    </div>
+                  )}
+
                   {newId && (
                     <div className="mt-5 p-4" style={{ border: "1px solid var(--rust)", background: "white" }}>
                       <div className="flex items-center gap-2">
@@ -189,7 +295,7 @@ export default function IllustratorsPage() {
                   )}
 
                   <button
-                    onClick={() => { setDone(false); setNewId(null); }}
+                    onClick={() => { setDone(false); setNewId(null); setEditToken(null); setImageFile(null); setImageCount(0); }}
                     className="mt-4 label-ui underline underline-offset-4"
                     style={{ color: "var(--rust)" }}
                     data-testid="illustrator-form-again"
@@ -318,41 +424,54 @@ export default function IllustratorsPage() {
               <ul className="mt-8">
                 {list.map((it) => (
                   <li key={it.id} className="hairline-t py-6" data-testid={`ill-item-${it.id}`}>
-                    <div className="flex items-baseline justify-between gap-4 flex-wrap">
-                      <h3 className="font-serif-display text-xl md:text-2xl leading-snug inline-flex items-center gap-2" style={{ color: "var(--ink)" }}>
-                        {it.name}
-                        {it.is_featured && (
-                          <span
-                            className="inline-flex items-center gap-1 px-2 py-0.5 font-mono-ui text-[9px] tracking-widest align-middle"
-                            style={{ background: "var(--rust)", color: "white" }}
-                            data-testid={`ill-featured-${it.id}`}
+                    <div className="flex gap-5">
+                      {it.cover_image_id && (
+                        <img
+                          src={`${API}/illustrators/${it.id}/images/${it.cover_image_id}`}
+                          alt={`Arbeid av ${it.name}`}
+                          className="w-24 h-24 md:w-28 md:h-28 object-cover shrink-0"
+                          style={{ border: "1px solid var(--line)" }}
+                          data-testid={`ill-image-${it.id}`}
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline justify-between gap-4 flex-wrap">
+                          <h3 className="font-serif-display text-xl md:text-2xl leading-snug inline-flex items-center gap-2" style={{ color: "var(--ink)" }}>
+                            {it.name}
+                            {it.is_featured && (
+                              <span
+                                className="inline-flex items-center gap-1 px-2 py-0.5 font-mono-ui text-[9px] tracking-widest align-middle"
+                                style={{ background: "var(--rust)", color: "white" }}
+                                data-testid={`ill-featured-${it.id}`}
+                              >
+                                <Star size={9} strokeWidth={2} /> FREMHEVET
+                              </span>
+                            )}
+                          </h3>
+                          <a
+                            href={it.portfolio_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="label-ui inline-flex items-center gap-1.5 hover:underline underline-offset-4"
+                            style={{ color: "var(--rust)" }}
+                            data-testid={`ill-link-${it.id}`}
                           >
-                            <Star size={9} strokeWidth={2} /> FREMHEVET
-                          </span>
+                            Se portefølje <ExternalLink size={12} strokeWidth={1.5} />
+                          </a>
+                        </div>
+                        {it.services && (
+                          <div className="mt-3 font-editor text-sm" style={{ color: "var(--ink)" }}>
+                            <span className="label-ui" style={{ color: "var(--ink-mute)" }}>Tilbyr: </span>
+                            {it.services}
+                          </div>
                         )}
-                      </h3>
-                      <a
-                        href={it.portfolio_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="label-ui inline-flex items-center gap-1.5 hover:underline underline-offset-4"
-                        style={{ color: "var(--rust)" }}
-                        data-testid={`ill-link-${it.id}`}
-                      >
-                        Se portefølje <ExternalLink size={12} strokeWidth={1.5} />
-                      </a>
-                    </div>
-                    {it.services && (
-                      <div className="mt-3 font-editor text-sm" style={{ color: "var(--ink)" }}>
-                        <span className="label-ui" style={{ color: "var(--ink-mute)" }}>Tilbyr: </span>
-                        {it.services}
+                        {it.style && (
+                          <p className="mt-2 font-editor text-sm md:text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+                            {it.style}
+                          </p>
+                        )}
                       </div>
-                    )}
-                    {it.style && (
-                      <p className="mt-2 font-editor text-sm md:text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>
-                        {it.style}
-                      </p>
-                    )}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -371,7 +490,7 @@ export default function IllustratorsPage() {
             </p>
           </div>
           <a
-            href="mailto:hei@Bragarmål.no?subject=Illustrat%C3%B8r-tips"
+            href={contactMailto("Illustratør-tips")}
             className="btn-ghost inline-flex items-center gap-2"
             data-testid="ill-refer"
           >

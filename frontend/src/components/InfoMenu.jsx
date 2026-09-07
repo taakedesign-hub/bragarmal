@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { contactMailto, CONTACT_EMAIL_DISPLAY } from "@/lib/site";
 
 export default function InfoMenu({ align = "right" }) {
   const { t } = useI18n();
@@ -29,7 +30,7 @@ export default function InfoMenu({ align = "right" }) {
     {
       heading: t("info.contact"),
       items: [
-        { href: "mailto:hei@Bragarmål.no?subject=Hilsen%20fra%20BRAGARMÅL", label: t("info.sendEmail"), desc: "hei@Bragarmål.no" },
+        { href: contactMailto("Hilsen fra BRAGARMÅL"), label: t("info.sendEmail"), desc: CONTACT_EMAIL_DISPLAY },
       ],
     },
   ].filter(Boolean);
