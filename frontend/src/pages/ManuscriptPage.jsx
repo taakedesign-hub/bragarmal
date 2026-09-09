@@ -1056,7 +1056,7 @@ function ScrivenningsView({ scenes, onClose }) {
   }, [onClose]);
   const total = scenes.reduce((s, x) => s + (x.word_count || 0), 0);
   return (
-    <div className="fixed inset-0 z-50" style={{ background: "var(--paper)" }} data-testid="scrivenings-view">
+    <div className="fixed inset-0 z-50 overflow-y-auto" style={{ background: "var(--paper)" }} data-testid="scrivenings-view">
       <div className="max-w-3xl mx-auto px-6 md:px-10 py-16">
         <div className="flex items-center justify-between hairline-b pb-4">
           <span className="label-ui">Sammenhengende visning · {total.toLocaleString("nb-NO")} ord</span>
