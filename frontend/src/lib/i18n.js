@@ -60,7 +60,7 @@ const NO = {
     tryFree: "Prøv gratis i 2 uker",
     tryFreeSub: "deretter månedlig medlemskap",
     beta: "Beta-versjon — gratis i 3 mnd",
-    betaSub: "for de 10 første som registrerer seg",
+    betaSub: "for tidlige brukere",
     seePricing: "Se priser",
     seePricingSub: "månedlig, 3, 6 eller 12 måneder",
     tipsKicker: "Praktiske råd",

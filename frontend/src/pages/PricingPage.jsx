@@ -109,9 +109,6 @@ export default function PricingPage() {
               <span className="inline-flex items-center gap-2 px-2.5 py-1" style={{ background: "var(--linen)", color: "var(--ink)" }}>
                 <span className="font-mono-ui text-[10px] tracking-widest">BETA</span>
               </span>
-              <span className="label-ui" style={{ color: "var(--ink-mute)" }}>
-                {status ? `${status.beta_slots_remaining} av ${status.beta_total} plasser igjen` : "For de 10 første"}
-              </span>
             </div>
             <h2 className="font-serif-display text-3xl md:text-4xl mt-6" style={{ color: "var(--ink)" }}>
               Gratis <em className="italic" style={{ color: "var(--rust)" }}>· 3 mnd</em>
@@ -121,10 +118,10 @@ export default function PricingPage() {
               <span className="font-editor text-sm" style={{ color: "var(--ink-mute)" }}>kr / de første 3 månedene</span>
             </div>
             <p className="font-editor text-sm mt-4" style={{ color: "var(--ink-soft)" }}>
-              For de 10 første som registrerer seg. Etter 3 måneder velger du selv om du vil fortsette.
+              Etter 3 måneder velger du selv om du vil fortsette.
             </p>
             <button className="btn-primary mt-8" disabled data-testid="tier-beta-btn">
-              {isBeta ? "Du er beta-medlem" : "Kun for de 10 første"}
+              {isBeta ? "Du er beta-medlem" : "Tildeles automatisk ved registrering"}
             </button>
           </div>
 
