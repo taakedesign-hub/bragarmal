@@ -408,7 +408,7 @@ async def _record_failed_login(identifier: str):
 
 
 async def _upsert_user_and_start_session(response: Response, email: str, name: str, picture: Optional[str]) -> dict:
-    """Shared by every login path (Emergent-relayed or direct Google OAuth):
+    """Shared by every login path:
     upsert the user, mint a session token, set the cookie."""
     existing = await db.users.find_one({"email": email}, {"_id": 0})
     if existing:
@@ -455,33 +455,8 @@ async def _upsert_user_and_start_session(response: Response, email: str, name: s
     }
 
 
-@api_router.post("/auth/session")
-async def create_session(request: Request, response: Response):
-    """Exchange session_id from Emergent Auth for a session cookie."""
-    body = await request.json()
-    session_id = body.get("session_id")
-    if not session_id:
-        raise HTTPException(status_code=400, detail="Mangler session_id")
-
-    async with httpx.AsyncClient(timeout=15) as h:
-        r = await h.get(
-            "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
-            headers={"X-Session-ID": session_id},
-        )
-        if r.status_code != 200:
-            raise HTTPException(status_code=401, detail="Kunne ikke bekrefte økt")
-        data = r.json()
-
-    result = await _upsert_user_and_start_session(
-        response, data["email"], data.get("name", data["email"]), data.get("picture")
-    )
-    result.pop("session_token", None)
-    return result
-
-
-# ---------- Direct Google OAuth (Emergent-independent login) ----------
-# Only active once GOOGLE_OAUTH_CLIENT_ID/SECRET are configured — otherwise these
-# routes 404 and the Emergent-relayed flow above keeps working unchanged.
+# ---------- Google OAuth ----------
+# Aktiv først når GOOGLE_OAUTH_CLIENT_ID/SECRET er satt — ellers svarer rutene 404.
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get('GOOGLE_OAUTH_CLIENT_ID')
 GOOGLE_OAUTH_CLIENT_SECRET = os.environ.get('GOOGLE_OAUTH_CLIENT_SECRET')
 GOOGLE_OAUTH_REDIRECT_URI = os.environ.get('GOOGLE_OAUTH_REDIRECT_URI')  # e.g. https://api.bragarmål.no/api/auth/google/callback

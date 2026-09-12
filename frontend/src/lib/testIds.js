@@ -4,7 +4,6 @@ export const TID = {
   ctaGetStarted: "landing-cta-get-started",
   // Auth
   googleLoginBtn: "google-login-btn",
-  authCallbackStatus: "auth-callback-status",
   // Nav
   navHome: "nav-home",
   navSamples: "nav-samples",

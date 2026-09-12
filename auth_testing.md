@@ -1,6 +1,6 @@
 # Auth Testing Playbook — Skrivestemme
 
-The app uses Emergent-managed Google Auth. Since automated tests cannot complete a real Google OAuth flow, use the seeded session token approach below.
+The app uses Google OAuth directly. Since automated tests cannot complete a real Google OAuth flow, use the seeded session token approach below.
 
 ## Step 1: Seed a test user and session in MongoDB
 ```
@@ -75,13 +75,13 @@ curl -X POST "$BASE/api/detect" \
 await page.context.add_cookies([{
   "name": "session_token",
   "value": "SESSION_TOKEN_HERE",
-  "domain": "echo-writer-2.preview.emergentagent.com",
+  "domain": "xn--bragarml-g0a.no",
   "path": "/",
   "httpOnly": True,
   "secure": True,
   "sameSite": "None"
 }])
-await page.goto("https://echo-writer-2.preview.emergentagent.com/dashboard")
+await page.goto("https://xn--bragarml-g0a.no/dashboard")
 ```
 
 ## Cleanup

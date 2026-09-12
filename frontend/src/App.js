@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import { HelmetProvider } from "react-helmet-async";
 import { useEffect } from "react";
@@ -13,7 +13,6 @@ import ManifestPage from "@/pages/ManifestPage";
 import EthicsPage from "@/pages/EthicsPage";
 import PrivacyPage from "@/pages/PrivacyPage";
 import ExamplesPage from "@/pages/ExamplesPage";
-import AuthCallback from "@/pages/AuthCallback";
 import Dashboard from "@/pages/Dashboard";
 import SamplesPage from "@/pages/SamplesPage";
 import VoicePage from "@/pages/VoicePage";
@@ -27,11 +26,6 @@ import IllustratorEditPage from "@/pages/IllustratorEditPage";
 import AppShell from "@/components/AppShell";
 
 function AppRouter() {
-  const location = useLocation();
-  // Synchronous check — must run before other routing decisions
-  if (location.hash?.includes("session_id=")) {
-    return <AuthCallback />;
-  }
   return (
     <Routes>
       <Route path="/" element={<Landing />} />

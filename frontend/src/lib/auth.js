@@ -19,12 +19,6 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    // CRITICAL: If returning from OAuth callback, skip the /me check.
-    // AuthCallback will exchange the session_id and establish the session first.
-    if (typeof window !== "undefined" && window.location.hash?.includes("session_id=")) {
-      setLoading(false);
-      return;
-    }
     // Returning from the direct Google OAuth callback: the token rides in
     // the URL hash (never sent to any server) since the cookie it also sets
     // may get silently dropped by third-party-cookie blocking.
