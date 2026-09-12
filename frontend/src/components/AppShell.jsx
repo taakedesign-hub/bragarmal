@@ -70,7 +70,14 @@ export default function AppShell({ children }) {
         </div>
 
         {/* Verktøylinje — alltid synlig, direkte lenke til hvert verktøy fra hver side i skrivepulten */}
-        <div className="hairline-t overflow-x-auto">
+        <div className="hairline-t relative">
+          {/* Uttoning mot høyre: på mobil ligger halvparten av verktøyene utenfor
+              skjermkanten, og uten dette hintet ser linjen ut som om den slutter. */}
+          <div
+            className="md:hidden pointer-events-none absolute inset-y-0 right-0 w-12 z-10"
+            style={{ background: "linear-gradient(to right, transparent, var(--bg))" }}
+          />
+          <div className="overflow-x-auto">
           <div className="max-w-[1400px] mx-auto px-4 md:px-10 flex items-center gap-1 md:gap-2">
             {TOOLS.map((tool) => {
               const active = location.pathname === tool.to;
@@ -89,6 +96,7 @@ export default function AppShell({ children }) {
                 </Link>
               );
             })}
+            </div>
           </div>
         </div>
       </header>
