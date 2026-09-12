@@ -18,14 +18,14 @@ from urllib.parse import urlencode
 import httpx
 import bcrypt
 import secrets
-import requests
 import stripe
 from PIL import Image
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, UploadFile, File, Form, Query, Header
 from fastapi.responses import StreamingResponse, JSONResponse, RedirectResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
+from bson import ObjectId
 from pydantic import BaseModel, Field, ConfigDict
 
 import litellm
@@ -46,7 +46,6 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')  # still used by storage_put/storage_get below
 ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY')
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
@@ -56,71 +55,36 @@ STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 BETA_FREE_SLOTS = 10
 FOUNDER_SLOTS = 100  # First 100 (including the 50 beta) can access founder prices
 
-# ---------- Object Storage ----------
-STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"
+# ---------- Fillagring ----------
+# Originalfilene lå hos Emergent. Etter flyttingen derfra var lagringen død uten at
+# noen merket det: opplasting så vellykket ut for brukeren, teksten ble lagret — men
+# selve originalen forsvant i stillhet. Nå ligger de i vår egen database.
+# GridFS, ikke binærfelt i dokumentet, fordi lydopptak kan være større enn
+# MongoDBs dokumentgrense på 16 MB.
 APP_NAME = "bragr"
-_storage_key: Optional[str] = None
 
 
-def init_storage() -> Optional[str]:
-    global _storage_key
-    if _storage_key:
-        return _storage_key
-    if not EMERGENT_LLM_KEY:
-        return None
+def _gridfs() -> AsyncIOMotorGridFSBucket:
+    return AsyncIOMotorGridFSBucket(db, bucket_name="uploads")
+
+
+async def storage_put(path: str, data: bytes, content_type: str) -> dict:
+    file_id = await _gridfs().upload_from_stream(
+        path, data, metadata={"content_type": content_type}
+    )
+    return {"path": str(file_id)}
+
+
+async def storage_get(path: str) -> tuple[bytes, str]:
     try:
-        resp = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": EMERGENT_LLM_KEY}, timeout=30)
-        resp.raise_for_status()
-        _storage_key = resp.json()["storage_key"]
-        return _storage_key
-    except Exception as e:
-        logging.getLogger(__name__).warning(f"Storage init failed: {e}")
-        return None
-
-
-def storage_put(path: str, data: bytes, content_type: str) -> dict:
-    key = init_storage()
-    if not key:
-        raise HTTPException(status_code=500, detail="Fillagring ikke tilgjengelig")
-    resp = requests.put(
-        f"{STORAGE_URL}/objects/{path}",
-        headers={"X-Storage-Key": key, "Content-Type": content_type},
-        data=data, timeout=120,
-    )
-    if resp.status_code == 403:
-        # key expired — reinit and retry once
-        global _storage_key
-        _storage_key = None
-        key = init_storage()
-        resp = requests.put(
-            f"{STORAGE_URL}/objects/{path}",
-            headers={"X-Storage-Key": key, "Content-Type": content_type},
-            data=data, timeout=120,
-        )
-    resp.raise_for_status()
-    return resp.json()
-
-
-def storage_get(path: str) -> tuple[bytes, str]:
-    key = init_storage()
-    if not key:
-        raise HTTPException(status_code=500, detail="Fillagring ikke tilgjengelig")
-    resp = requests.get(
-        f"{STORAGE_URL}/objects/{path}",
-        headers={"X-Storage-Key": key}, timeout=60,
-    )
-    if resp.status_code == 403:
-        global _storage_key
-        _storage_key = None
-        key = init_storage()
-        resp = requests.get(
-            f"{STORAGE_URL}/objects/{path}",
-            headers={"X-Storage-Key": key}, timeout=60,
-        )
-    if resp.status_code == 404:
+        stream = await _gridfs().open_download_stream(ObjectId(path))
+    except Exception:
+        # Gjelder også filer lastet opp før flyttingen: de har en Emergent-sti i
+        # stedet for en GridFS-id, og selve bytene er ikke våre lenger.
         raise HTTPException(status_code=404, detail="Fil ikke funnet i lagring")
-    resp.raise_for_status()
-    return resp.content, resp.headers.get("Content-Type", "application/octet-stream")
+    data = await stream.read()
+    content_type = (stream.metadata or {}).get("content_type", "application/octet-stream")
+    return data, content_type
 
 
 
@@ -844,7 +808,7 @@ async def upload_sample(
     try:
         ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "bin"
         path = f"{APP_NAME}/uploads/{user.user_id}/{uuid.uuid4()}.{ext}"
-        result = storage_put(path, data, file.content_type or "application/octet-stream")
+        result = await storage_put(path, data, file.content_type or "application/octet-stream")
         storage_path = result["path"]
         file_id = str(uuid.uuid4())
         await db.files.insert_one({
@@ -948,7 +912,7 @@ async def scan_handwritten(
     try:
         ext = (file.filename or "photo.jpg").rsplit(".", 1)[-1].lower() if "." in (file.filename or "") else "jpg"
         path = f"{APP_NAME}/uploads/{user.user_id}/{uuid.uuid4()}.{ext}"
-        result = storage_put(path, data, file.content_type or "image/jpeg")
+        result = await storage_put(path, data, file.content_type or "image/jpeg")
         file_id = str(uuid.uuid4())
         await db.files.insert_one({
             "id": file_id,
@@ -1028,7 +992,7 @@ async def transcribe_audio(
     try:
         ext = (file.filename or "audio.webm").rsplit(".", 1)[-1].lower() if "." in (file.filename or "") else "webm"
         path = f"{APP_NAME}/uploads/{user.user_id}/{uuid.uuid4()}.{ext}"
-        result = storage_put(path, data, file.content_type or "audio/webm")
+        result = await storage_put(path, data, file.content_type or "audio/webm")
         file_id = str(uuid.uuid4())
         await db.files.insert_one({
             "id": file_id,
@@ -2803,7 +2767,7 @@ async def download_file(
     if not doc:
         raise HTTPException(status_code=404, detail="Fil ikke funnet")
 
-    data, content_type = storage_get(doc["storage_path"])
+    data, content_type = await storage_get(doc["storage_path"])
     return Response(
         content=data,
         media_type=doc.get("content_type") or content_type,
@@ -2816,12 +2780,26 @@ async def download_file(
 
 @api_router.delete("/files/{file_id}")
 async def delete_file(file_id: str, user: User = Depends(get_current_user)):
-    r = await db.files.update_one(
-        {"id": file_id, "user_id": user.user_id, "is_deleted": False},
+    doc = await db.files.find_one(
+        {"id": file_id, "user_id": user.user_id, "is_deleted": False}, {"_id": 0, "storage_path": 1}
+    )
+    if not doc:
+        raise HTTPException(status_code=404, detail="Ikke funnet")
+
+    await db.files.update_one(
+        {"id": file_id, "user_id": user.user_id},
         {"$set": {"is_deleted": True, "deleted_at": datetime.now(timezone.utc).isoformat()}},
     )
-    if r.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Ikke funnet")
+
+    # Sletter brukeren en fil, skal selve filen faktisk bort — ikke bare merkes som
+    # slettet. Oppføringen blir stående som kvittering på at den er fjernet.
+    if doc.get("storage_path"):
+        try:
+            await _gridfs().delete(ObjectId(doc["storage_path"]))
+        except Exception as e:
+            # Filer fra før flyttingen har en Emergent-sti, ikke en GridFS-id — de
+            # bytene har vi uansett ikke lenger.
+            logger.warning("Kunne ikke slette filinnhold for %s: %s", file_id, e)
     return {"ok": True}
 
 
