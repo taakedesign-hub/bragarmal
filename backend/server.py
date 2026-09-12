@@ -235,6 +235,19 @@ PROVIDER_API_KEYS = {
 }
 
 
+# Anthropic fjernet sampling-parametere (temperature/top_p/top_k) fra og med denne
+# modellgenerasjonen — sender vi dem, svarer API-et 400 og hele kallet feiler. Eldre
+# modeller (Sonnet 4.6, Haiku) og andre leverandører tar dem fortsatt.
+NO_SAMPLING_PREFIXES = (
+    "claude-opus-5", "claude-opus-4-7", "claude-opus-4-8",
+    "claude-sonnet-5", "claude-fable-5", "claude-mythos-5",
+)
+
+
+def _accepts_temperature(provider: str, model: str) -> bool:
+    return provider != "anthropic" or not model.startswith(NO_SAMPLING_PREFIXES)
+
+
 async def stream_llm_text(
     provider: str, model: str, system: str, user_msg: str, api_key: str,
     temperature: float = 0.7, max_tokens: int = 4096, image_b64: Optional[str] = None,
@@ -248,16 +261,19 @@ async def stream_llm_text(
             {"type": "text", "text": user_msg},
             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"}},
         ]
+    kwargs = {}
+    if _accepts_temperature(provider, model):
+        kwargs["temperature"] = temperature
     resp = await litellm.acompletion(
         model=f"{provider}/{model}",
         api_key=api_key,
-        temperature=temperature,
         max_tokens=max_tokens,
         stream=True,
         messages=[
             {"role": "system", "content": system},
             {"role": "user", "content": content},
         ],
+        **kwargs,
     )
     async for chunk in resp:
         delta = chunk.choices[0].delta.content if chunk.choices else None
@@ -591,7 +607,14 @@ async def me(user: User = Depends(get_current_user)):
 
 @api_router.post("/auth/logout")
 async def logout(request: Request, response: Response):
+    # Må lese token på samme måte som get_current_user: når cookien blir droppet
+    # av tredjeparts-cookiesperre, ligger økten kun i Authorization-headeren — og
+    # da ble den aldri slettet, så «logg ut» lot økten leve videre i syv dager.
     token = request.cookies.get("session_token")
+    if not token:
+        auth = request.headers.get("Authorization")
+        if auth and auth.startswith("Bearer "):
+            token = auth.split(" ", 1)[1]
     if token:
         await db.user_sessions.delete_one({"session_token": token})
     response.delete_cookie("session_token", path="/")
@@ -1479,9 +1502,15 @@ async def create_illustrator(body: IllustratorCreate):
 @api_router.get("/illustrators")
 async def list_illustrators():
     """Public listing — no email is returned to the client. Featured listings sort first."""
+    # Inkluderende projeksjon: en ekskluderende liste glemmer nye felt etter hvert
+    # som dokumentet vokser — slik edit_token (som gir full kontroll over
+    # oppføringen) ble lekket til alle som kalte dette endepunktet.
     items = await db.illustrators.find(
         {"is_public": True},
-        {"_id": 0, "email": 0},
+        {
+            "_id": 0, "id": 1, "name": 1, "portfolio_url": 1, "style": 1,
+            "services": 1, "is_featured": 1, "created_at": 1,
+        },
     ).sort([("is_featured", -1), ("created_at", -1)]).to_list(200)
     for it in items:
         cover = await db.illustrator_images.find_one(
@@ -2762,27 +2791,14 @@ async def list_files(user: User = Depends(get_current_user)):
 @api_router.get("/files/{file_id}/download")
 async def download_file(
     file_id: str,
-    authorization: Optional[str] = Header(None),
-    auth: Optional[str] = Query(None),
-    request: Request = None,
+    user: User = Depends(get_current_user),
 ):
-    # Auth: session_token cookie OR ?auth=token query param OR Authorization header
-    token = None
-    if request:
-        token = request.cookies.get("session_token")
-    if not token and auth:
-        token = auth
-    if not token and authorization and authorization.startswith("Bearer "):
-        token = authorization.split(" ", 1)[1]
-    if not token:
-        raise HTTPException(status_code=401, detail="Ikke autentisert")
-
-    session = await db.user_sessions.find_one({"session_token": token}, {"_id": 0})
-    if not session:
-        raise HTTPException(status_code=401, detail="Ugyldig økt")
-
+    # Bruker den vanlige autentiseringen: den forrige varianten her sjekket kun at
+    # økten fantes — ikke at den var gyldig — så utløpte økter kunne laste ned filer
+    # i det uendelige. Den godtok også token som ?auth=... i URL-en, som havner i
+    # nettleserhistorikk og serverlogger; ingenting i frontenden brukte det.
     doc = await db.files.find_one(
-        {"id": file_id, "user_id": session["user_id"], "is_deleted": False}, {"_id": 0}
+        {"id": file_id, "user_id": user.user_id, "is_deleted": False}, {"_id": 0}
     )
     if not doc:
         raise HTTPException(status_code=404, detail="Fil ikke funnet")
@@ -3142,7 +3158,10 @@ app.include_router(api_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    # Ingen jokertegn som standard: kombinert med allow_credentials=True ville et
+    # uteglemt CORS_ORIGINS gjort at hvilken som helst nettside kunne lese
+    # manuskriptene til en innlogget bruker.
+    allow_origins=[o.strip() for o in os.environ.get('CORS_ORIGINS', FRONTEND_URL).split(',') if o.strip()],
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -29,7 +29,11 @@ export default function SamplesPage() {
     try {
       const r = await api.get("/samples");
       setSamples(r.data || []);
-    } catch {}
+    } catch (e) {
+      // Uten dette sa siden «Ingen prøver ennå» når lastingen feilet — brukeren
+      // fikk beskjed om at biblioteket var tomt, ikke at noe gikk galt.
+      toast("Kunne ikke laste prøvene — sjekk nettforbindelsen og prøv igjen");
+    }
   };
   useEffect(() => { load(); }, []);
 
@@ -633,6 +637,18 @@ function AudioForm({ onSaved }) {
   const startedAtRef = useRef(0);
   const timerRef = useRef(null);
   const fileRef = useRef(null);
+
+  // Bytter man fane midt i et opptak, ble mikrofonen stående på — opptaksindikatoren
+  // i nettleseren lyste videre, og telleren fortsatte å skrive til en avmontert
+  // komponent.
+  useEffect(() => () => {
+    clearInterval(timerRef.current);
+    const mr = mediaRef.current;
+    if (mr && mr.state !== "inactive") {
+      try { mr.stream?.getTracks().forEach((t) => t.stop()); } catch {}
+      try { mr.stop(); } catch {}
+    }
+  }, []);
 
   const startRec = async () => {
     try {

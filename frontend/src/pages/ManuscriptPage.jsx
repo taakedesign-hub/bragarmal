@@ -469,7 +469,7 @@ export default function ManuscriptPage() {
 
       {scrivenings && (
         <ScrivenningsView
-          scenes={[...scenes].sort((a, b) => a.order - b.order)}
+          scenes={[...activeScenes].sort((a, b) => a.order - b.order)}
           onClose={() => setScrivenings(false)}
         />
       )}
@@ -513,15 +513,26 @@ function SceneContentEditor({ scene, characters = [], researchNotes = [], onClos
   };
   const removeTag = (t) => setTags((a) => a.filter((x) => x !== t));
 
+  // Et bomklikk på det mørke feltet rundt — eller Escape — lukket editoren og
+  // forkastet alt uten å spørre. Ref-en gjør at lytteren alltid ser gjeldende
+  // tilstand uten å måtte registreres på nytt ved hvert tastetrykk.
+  const dirtyRef = useRef(false);
+  const requestClose = () => {
+    if (dirtyRef.current && !window.confirm("Du har endringer som ikke er lagret. Lukke likevel?")) return;
+    onClose();
+  };
+
   useEffect(() => {
-    const h = (e) => { if (e.key === "Escape") onClose(); };
+    const h = (e) => { if (e.key === "Escape") requestClose(); };
     document.addEventListener("keydown", h);
     document.body.style.overflow = "hidden";
     return () => { document.removeEventListener("keydown", h); document.body.style.overflow = ""; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onClose]);
 
   const sameTags = tags.length === (scene.tags || []).length && tags.every((t) => (scene.tags || []).includes(t));
   const dirty = title !== (scene.title || "") || content !== (scene.content || "") || !sameTags;
+  dirtyRef.current = dirty;
   const wc = content.trim() ? content.trim().split(/\s+/).length : 0;
 
   const mentioned = useMemo(() => {
@@ -553,7 +564,7 @@ function SceneContentEditor({ scene, characters = [], researchNotes = [], onClos
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
       style={{ background: "rgba(20,18,15,0.55)", backdropFilter: "blur(4px)" }}
-      onClick={onClose}
+      onClick={requestClose}
     >
       <div
         className="w-full max-w-4xl max-h-[90vh] flex flex-col"
@@ -564,7 +575,7 @@ function SceneContentEditor({ scene, characters = [], researchNotes = [], onClos
           <span className="label-ui">Sceneinnhold · {wc} ord</span>
           <div className="flex items-center gap-3">
             <WrittenFormToggle form={writtenForm} onChange={setWrittenForm} />
-            <button onClick={onClose} className="p-2 hover:opacity-70" style={{ color: "var(--ink-mute)" }}>
+            <button onClick={requestClose} className="p-2 hover:opacity-70" style={{ color: "var(--ink-mute)" }}>
               <XIcon size={18} strokeWidth={1.3} />
             </button>
           </div>
@@ -686,7 +697,7 @@ function SceneContentEditor({ scene, characters = [], researchNotes = [], onClos
             TA ØYEBLIKKSBILDE
           </button>
           <div className="flex items-center gap-3">
-            <button onClick={onClose} className="font-mono-ui text-[11px] tracking-widest hover:opacity-70" style={{ color: "var(--ink-mute)" }}>
+            <button onClick={requestClose} className="font-mono-ui text-[11px] tracking-widest hover:opacity-70" style={{ color: "var(--ink-mute)" }}>
               LUKK
             </button>
             <button

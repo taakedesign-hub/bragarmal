@@ -11,14 +11,14 @@ export default function Dashboard() {
 
   useEffect(() => {
     (async () => {
-      try {
-        const [s, p] = await Promise.all([
-          api.get("/samples"),
-          api.get("/voice/profile"),
-        ]);
-        setSamples(s.data || []);
-        setProfile(p.data || null);
-      } catch {}
+      // allSettled, ikke all: med Promise.all forsvant begge resultatene om ett
+      // kall feilet, og siden påsto at brukeren ikke hadde lagt inn noe ennå.
+      const [s, p] = await Promise.allSettled([
+        api.get("/samples"),
+        api.get("/voice/profile"),
+      ]);
+      if (s.status === "fulfilled") setSamples(s.value.data || []);
+      if (p.status === "fulfilled") setProfile(p.value.data || null);
     })();
   }, []);
 

@@ -47,9 +47,10 @@ export default function FaktastasjonPage() {
       const r = await api.patch(`/research/${upd.id}`, {
         title: upd.title, category: upd.category, content: upd.content, source_url: upd.source_url,
       });
-      const merged = { ...r.data, has_image: upd.has_image };
-      setNotes((a) => a.map((n) => (n.id === merged.id ? merged : n)));
-      setEditing(merged);
+      // Serveren vet best om notatet har bilde — den lokale skjemakopien henger
+      // etter når et bilde nettopp er lastet opp, og overstyrte den til å forsvinne.
+      setNotes((a) => a.map((n) => (n.id === r.data.id ? r.data : n)));
+      setEditing(r.data);
       toast("Lagret");
     } catch (e) { toast(e?.response?.data?.detail || "Kunne ikke lagre"); }
   };
@@ -193,6 +194,9 @@ function NoteEditor({ note, onClose, onSave, onDelete, onImageUploaded }) {
       fd.append("file", imageFile);
       await api.post(`/research/${note.id}/image`, fd);
       onImageUploaded(note.id);
+      // Skjemaet er en egen kopi av notatet — uten dette viser modalen fortsatt
+      // «ingen bilde» like etter at bildet er lastet opp.
+      setForm((f) => ({ ...f, has_image: true }));
       setImageFile(null);
       toast("Bilde lastet opp");
     } catch (err) {
