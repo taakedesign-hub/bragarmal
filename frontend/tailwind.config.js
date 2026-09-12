@@ -7,6 +7,8 @@ module.exports = {
   ],
   theme: {
     extend: {
+      // Smale telefoner (under 420px) trenger egne avkortinger i headeren
+      screens: { xs: "420px" },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',

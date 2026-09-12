@@ -10,7 +10,9 @@
   --surface: #FFFFFF;
   --ink: #1C1B1A;
   --ink-soft: #4A4844;
-  --ink-mute: #7A7772;
+  /* 5.5:1 mot hvitt — den gamle (#7A7772) lå på 4.46:1 og falt under WCAG AA,
+     noe som rammet alle små etiketter i appen. */
+  --ink-mute: #6B6863;
   --line: #D9D4C7;
   --line-soft: #E7E2D4;
   --moss: #c8432c;
@@ -200,6 +202,12 @@ button, a {
   border: 1px solid var(--line);
 }
 .btn-ghost:hover { border-color: var(--ink); }
+
+/* På smale telefoner sprengte headeren viewporten — knappen er den bredeste
+   faste delen, så den strammes inn her i stedet for å klippes av. */
+@media (max-width: 479px) {
+  .btn-ghost { padding: 0.5rem 0.7rem; font-size: 0.7rem; letter-spacing: 0.05em; }
+}
 
 .input-line {
   background: transparent;
