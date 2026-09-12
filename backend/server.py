@@ -235,6 +235,19 @@ PROVIDER_API_KEYS = {
 }
 
 
+# Anthropic fjernet sampling-parametere (temperature/top_p/top_k) fra og med denne
+# modellgenerasjonen — sender vi dem, svarer API-et 400 og hele kallet feiler. Eldre
+# modeller (Sonnet 4.6, Haiku) og andre leverandører tar dem fortsatt.
+NO_SAMPLING_PREFIXES = (
+    "claude-opus-5", "claude-opus-4-7", "claude-opus-4-8",
+    "claude-sonnet-5", "claude-fable-5", "claude-mythos-5",
+)
+
+
+def _accepts_temperature(provider: str, model: str) -> bool:
+    return provider != "anthropic" or not model.startswith(NO_SAMPLING_PREFIXES)
+
+
 async def stream_llm_text(
     provider: str, model: str, system: str, user_msg: str, api_key: str,
     temperature: float = 0.7, max_tokens: int = 4096, image_b64: Optional[str] = None,
@@ -248,16 +261,19 @@ async def stream_llm_text(
             {"type": "text", "text": user_msg},
             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"}},
         ]
+    kwargs = {}
+    if _accepts_temperature(provider, model):
+        kwargs["temperature"] = temperature
     resp = await litellm.acompletion(
         model=f"{provider}/{model}",
         api_key=api_key,
-        temperature=temperature,
         max_tokens=max_tokens,
         stream=True,
         messages=[
             {"role": "system", "content": system},
             {"role": "user", "content": content},
         ],
+        **kwargs,
     )
     async for chunk in resp:
         delta = chunk.choices[0].delta.content if chunk.choices else None
