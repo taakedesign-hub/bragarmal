@@ -16,33 +16,13 @@ Tests for iteration 13 bug fixes:
 4. site.webmanifest still has white bg/theme (regression from iter 12).
 """
 
-import io
 import json
-import os
 import re
-from pathlib import Path
 
 import pytest
-import requests
 from PIL import Image
 
-
-def _resolve_base_url() -> str:
-    val = os.environ.get("REACT_APP_BACKEND_URL")
-    if not val:
-        fe = Path("/app/frontend/.env").read_text()
-        for line in fe.splitlines():
-            if line.startswith("REACT_APP_BACKEND_URL="):
-                val = line.split("=", 1)[1].strip()
-                break
-    if not val:
-        raise RuntimeError("REACT_APP_BACKEND_URL not configured")
-    return val.rstrip("/")
-
-
-BASE_URL = _resolve_base_url()
-FE_PUBLIC = Path("/app/frontend/public")
-FE_SRC = Path("/app/frontend/src")
+from .repo import PUBLIC as FE_PUBLIC, public_text, src_text
 
 
 # ---------- (1) Transparent PWA icons ----------
@@ -82,24 +62,6 @@ class TestTransparentIcons:
             f"(icon has no opaque ink pixels)"
         )
 
-    @pytest.mark.parametrize("path", TRANSPARENT_ICONS)
-    def test_icon_served_has_transparent_pixels(self, path):
-        """Served over HTTP: also RGBA with alpha=0 pixels."""
-        r = requests.get(f"{BASE_URL}{path}", timeout=30)
-        assert r.status_code == 200, f"{path} HTTP {r.status_code}"
-        assert "image/png" in r.headers.get("content-type", "").lower(), (
-            f"{path} content-type={r.headers.get('content-type')!r}"
-        )
-        img = Image.open(io.BytesIO(r.content))
-        # Some encoders serve as 'P' with tRNS — normalise to RGBA and re-check
-        rgba = img.convert("RGBA") if img.mode != "RGBA" else img
-        assert img.mode == "RGBA", (
-            f"{path} served mode={img.mode!r} — expected RGBA"
-        )
-        mn, mx = rgba.split()[-1].getextrema()
-        assert mn == 0, f"{path} served alpha min={mn} — expected 0"
-        assert mx == 255, f"{path} served alpha max={mx} — expected 255"
-
     @pytest.mark.parametrize(
         "path,max_kb",
         [
@@ -110,9 +72,7 @@ class TestTransparentIcons:
     )
     def test_transparent_icon_size_bound(self, path, max_kb):
         """Since icons now have transparent bg, byte size is smaller."""
-        r = requests.get(f"{BASE_URL}{path}", timeout=30)
-        assert r.status_code == 200
-        kb = len(r.content) / 1024
+        kb = (FE_PUBLIC / path.lstrip("/")).stat().st_size / 1024
         assert kb <= max_kb, (
             f"{path} is {kb:.1f}KB — should be <= {max_kb}KB with transparent bg"
         )
@@ -124,7 +84,7 @@ class TestLogoComponentSource:
     """Logo.jsx must render only <img>, never wrap itself in <a> or <Link>."""
 
     def test_logo_has_no_internal_link_wrapper(self):
-        src = (FE_SRC / "components" / "Logo.jsx").read_text()
+        src = src_text("components/Logo.jsx")
         # Must NOT import Link
         assert "react-router-dom" not in src, (
             "Logo.jsx imports react-router-dom — it should not wrap itself in Link"
@@ -136,7 +96,7 @@ class TestLogoComponentSource:
         assert "<img" in src, "Logo.jsx has no <img element"
 
     def test_logo_has_alt_bragarmal(self):
-        src = (FE_SRC / "components" / "Logo.jsx").read_text()
+        src = src_text("components/Logo.jsx")
         assert re.search(r'alt=["\']Bragarmål["\']', src), (
             "Logo.jsx <img> missing alt=\"Bragarmål\""
         )
@@ -159,7 +119,7 @@ PAGES_WITH_LOGO_LINK = [
 class TestPagesWrapLogoInLink:
     @pytest.mark.parametrize("rel_path", PAGES_WITH_LOGO_LINK)
     def test_page_wraps_logo_in_link_to_root(self, rel_path):
-        src = (FE_SRC / rel_path).read_text()
+        src = src_text(rel_path)
         # Look for <Link to="/" ...>...<Logo .../></Link>
         pattern = re.compile(
             r'<Link\s+to=["\']/["\'][^>]*>\s*(?:\{[^}]*\}\s*)?<Logo\b',
@@ -172,7 +132,7 @@ class TestPagesWrapLogoInLink:
 
 class TestFooterLogoLink:
     def test_footer_has_logo_link_with_testid(self):
-        src = (FE_SRC / "components" / "Footer.jsx").read_text()
+        src = src_text("components/Footer.jsx")
         # Look for data-testid="footer-logo-link" and Link to="/"
         assert 'data-testid="footer-logo-link"' in src, (
             "Footer.jsx missing data-testid=\"footer-logo-link\""
@@ -197,8 +157,6 @@ class TestFooterLogoLink:
 
 class TestManifestWhiteBg:
     def test_manifest_bg_and_theme_white(self):
-        r = requests.get(f"{BASE_URL}/site.webmanifest", timeout=30)
-        assert r.status_code == 200
-        data = json.loads(r.text)
+        data = json.loads(public_text("/site.webmanifest"))
         assert data.get("background_color", "").lower() == "#ffffff"
         assert data.get("theme_color", "").lower() == "#ffffff"

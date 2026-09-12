@@ -38,24 +38,22 @@ import stripe
 from dotenv import load_dotenv
 from pymongo import MongoClient
 
-load_dotenv(Path("/app/backend/.env"))
+from .repo import REPO_ROOT
 
-BASE_URL = (
-    os.environ.get("REACT_APP_BACKEND_URL")
-    or next(
-        (
-            line.split("=", 1)[1].strip()
-            for line in Path("/app/frontend/.env").read_text().splitlines()
-            if line.startswith("REACT_APP_BACKEND_URL=")
-        ),
-        None,
-    )
-).rstrip("/")
+load_dotenv(REPO_ROOT / "backend" / ".env")
 
-MONGO_URL = os.environ["MONGO_URL"]
-DB_NAME = os.environ["DB_NAME"]
+# Disse testene snakker med en kjørende backend OG med Stripe. Mangler noe av
+# det, hoppes hele modulen over — de skal aldri falle tilbake til produksjon.
+BASE_URL = (os.environ.get("BASE_URL") or "").rstrip("/")
+MONGO_URL = os.environ.get("MONGO_URL")
+DB_NAME = os.environ.get("DB_NAME")
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
 stripe.api_key = STRIPE_SECRET_KEY
+
+pytestmark = pytest.mark.skipif(
+    not (BASE_URL and MONGO_URL and DB_NAME and STRIPE_SECRET_KEY),
+    reason="Krever BASE_URL, MONGO_URL, DB_NAME og STRIPE_SECRET_KEY",
+)
 
 IDN_ORIGIN = "https://bragarmål.no"
 
