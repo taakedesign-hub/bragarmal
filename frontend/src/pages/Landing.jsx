@@ -11,6 +11,15 @@ import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 
+// Felles rytme for alle åtte heltboksene: nummer øverst, innhold nederst, samme
+// skala og lenkestil. Variasjonen ligger i farge og innhold — ikke i strukturen.
+const BOX = "aspect-square flex flex-col justify-between overflow-hidden p-4 sm:p-6 md:p-8";
+const NUM = "font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60";
+const TITLE = "font-serif-display text-lg sm:text-xl md:text-3xl leading-tight";
+const SUB = "mt-2 font-editor text-[11px] sm:text-xs md:text-sm leading-snug opacity-80";
+const CTA = "mt-3 font-mono-ui text-[10px] md:text-[11px] tracking-widest uppercase inline-flex items-center gap-2";
+const TILE_IMG = "absolute inset-0 w-full h-full object-contain p-6 md:p-8 pointer-events-none";
+
 export default function Landing() {
   const nav = useNavigate();
   const { user } = useAuth();
@@ -50,14 +59,15 @@ export default function Landing() {
             to="/"
             aria-label="Bragarmål — gå til forsiden"
             data-testid="header-logo-link"
-            className="flex items-center shrink-0 transition-opacity hover:opacity-80 cursor-pointer"
+            className="flex items-center shrink-0 transition-opacity hover:opacity-80 cursor-pointer scale-[0.62] origin-left sm:scale-100"
           >
             <Logo size={56} />
           </Link>
           <nav className="flex items-center gap-0.5 md:gap-2 shrink min-w-0">
             <InfoMenu align="right" />
-            <Link to="/logg-inn" data-testid="nav-skrivepult" className="label-ui px-1.5 md:px-3 py-2 whitespace-nowrap" style={{ color: "var(--ink-mute)" }}>{t("nav.tools")}</Link>
-            <Link to="/illustratorer" data-testid="nav-illustrators" className="label-ui px-1.5 md:px-3 py-2 whitespace-nowrap" style={{ color: "var(--ink-mute)" }}>{t("nav.illustrator")}</Link>
+            {/* Skjult på liten skjerm — plassen holder ikke, og begge finnes som egne bokser rett under */}
+            <Link to="/logg-inn" data-testid="nav-skrivepult" className="hidden sm:inline-block label-ui px-1.5 md:px-3 py-2 whitespace-nowrap" style={{ color: "var(--ink-mute)" }}>{t("nav.tools")}</Link>
+            <Link to="/illustratorer" data-testid="nav-illustrators" className="hidden sm:inline-block label-ui px-1.5 md:px-3 py-2 whitespace-nowrap" style={{ color: "var(--ink-mute)" }}>{t("nav.illustrator")}</Link>
             <button
               data-testid={TID.loginBtn}
               onClick={goLogin}
@@ -73,174 +83,151 @@ export default function Landing() {
       <section className="max-w-[1800px] mx-auto px-6 md:px-10 pt-10 md:pt-14 pb-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
 
-          {/* Box 1 — BLACK: pricing bullets — text higher, slightly larger */}
-          <div
-            data-testid="hero-box-pricing"
-            className="aspect-square flex flex-col p-6 md:p-8"
-            style={{ background: "#0f0e0d", color: "#ffffff" }}
-          >
-            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-70">01</div>
-            <ul className="mt-6 md:mt-8 space-y-3 md:space-y-4">
+          {/* Box 1 — SVART: pris/prøve */}
+          <div data-testid="hero-box-pricing" className={BOX} style={{ background: "#0f0e0d", color: "#ffffff" }}>
+            <div className={NUM}>01</div>
+            <ul className="space-y-2 sm:space-y-3 md:space-y-4">
               <li>
                 <button
                   data-testid="hero-cta-trial"
                   onClick={startTrial}
-                  className="text-left font-serif-display text-base md:text-lg leading-snug hover:underline underline-offset-4"
+                  className="text-left font-serif-display text-[13px] sm:text-base md:text-lg leading-tight hover:underline underline-offset-4"
                 >
                   {t("landing.tryFree")}
-                  <span className="block font-editor text-[11px] md:text-xs opacity-70 mt-0.5">{t("landing.tryFreeSub")}</span>
+                  <span className="block font-editor text-[10px] md:text-xs opacity-70 mt-0.5">{t("landing.tryFreeSub")}</span>
                 </button>
               </li>
               <li>
                 <button
                   data-testid={TID.ctaGetStarted}
                   onClick={goLogin}
-                  className="text-left font-serif-display text-base md:text-lg leading-snug hover:underline underline-offset-4"
+                  className="text-left font-serif-display text-[13px] sm:text-base md:text-lg leading-tight hover:underline underline-offset-4"
                 >
                   {t("landing.beta")}
-                  <span className="block font-editor text-[11px] md:text-xs opacity-70 mt-0.5">{t("landing.betaSub")}</span>
+                  <span className="block font-editor text-[10px] md:text-xs opacity-70 mt-0.5">{t("landing.betaSub")}</span>
                 </button>
               </li>
               <li>
-                <Link
-                  to="/priser"
-                  data-testid="hero-cta-pricing"
-                  className="text-left font-serif-display text-base md:text-lg leading-snug hover:underline underline-offset-4 inline-flex items-center gap-1"
-                >
+                <Link to="/priser" data-testid="hero-cta-pricing" className={`${CTA} hover:underline underline-offset-4`}>
                   {t("info.pricing")} <ArrowRight size={12} strokeWidth={1.6} />
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Box 2 — WHITE: Når hjelper Bragarmål deg? — top-right, right-aligned */}
+          {/* Box 2 — HVIT: Når hjelper Bragarmål deg? */}
           <Link
             to="/eksempler"
             data-testid="hero-box-examples"
-            className="aspect-square flex flex-col justify-start items-end text-right p-6 md:p-8 group transition-all hover:bg-neutral-50 relative"
+            className={`${BOX} group transition-colors hover:bg-neutral-50`}
             style={{ background: "#ffffff", color: "#0f0e0d" }}
           >
-            <div className="absolute top-6 md:top-8 left-6 md:left-8 font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60">02</div>
-            <div className="mt-1">
-              <div className="font-serif-display text-2xl md:text-3xl leading-tight">
-                {t("landing.box2Title")}
-              </div>
-              <p className="mt-3 font-serif-display italic text-sm md:text-base leading-snug max-w-[32ch] ml-auto" style={{ color: "var(--ink-soft)" }}>
-                {t("landing.box2Sub")}
-              </p>
-              <div className="mt-4 font-mono-ui text-sm md:text-base tracking-wide uppercase inline-flex items-center gap-2 hover:underline underline-offset-4" style={{ color: "#c8432c" }}>
+            <div className={NUM}>02</div>
+            <div>
+              <div className={TITLE}>{t("landing.box2Title")}</div>
+              <p className={SUB} style={{ color: "var(--ink-soft)" }}>{t("landing.box2Sub")}</p>
+              <div className={CTA} style={{ color: "#c8432c" }}>
                 {t("landing.box2Cta")} <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
               </div>
             </div>
           </Link>
 
-          {/* Box 3 — RED: illustratører & kunstnere — bottom-left */}
+          {/* Box 3 — RØD: illustratører & kunstnere (eneste røde boks) */}
           <Link
             to="/illustratorer"
             data-testid="hero-box-illustrators"
-            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:opacity-90"
+            className={`${BOX} group transition-opacity hover:opacity-90`}
             style={{ background: "#c8432c", color: "#ffffff" }}
           >
-            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-90">03</div>
+            <div className={NUM}>03</div>
             <div>
-              <div className="font-serif-display text-2xl md:text-3xl leading-tight tracking-tight">ILLUSTRATØRER</div>
-              <div className="mt-1 font-serif-display italic text-sm md:text-base opacity-80">& kunstnere</div>
-              <div className="mt-3 font-editor text-xs md:text-sm opacity-90 flex items-center gap-2">
+              {/* Ett langt ord — må kunne krympe så det ikke renner ut av boksen på mobil */}
+              <div className="font-serif-display text-base sm:text-xl md:text-3xl leading-tight tracking-tight break-words">
+                ILLUSTRATØRER
+              </div>
+              <div className={SUB}>& kunstnere</div>
+              <div className={CTA}>
                 {t("landing.box3Cta")} <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
               </div>
             </div>
           </Link>
 
-          {/* Box 7 — WHITE: håndtegnet notatbok, lenke til Skriv — flyttet hit (posisjon 4) for å bryte opp svart/hvitt-kolonnene */}
+          {/* Box 4 — HVIT: håndtegnet notatbok, lenke til Skriv */}
           <Link
             to="/skriv"
             data-testid="hero-box-write"
-            className="aspect-square overflow-hidden relative group block"
-            style={{ background: "#ffffff" }}
+            className={`${BOX} group transition-colors hover:bg-neutral-50 relative`}
+            style={{ background: "#ffffff", color: "#0f0e0d" }}
           >
-            <img
-              src="/tile-notatbok.svg"
-              alt=""
-              className="w-full h-full object-contain p-2"
-              draggable={false}
-            />
-            <div className="absolute top-6 md:top-8 left-6 md:left-8 font-mono-ui text-[10px] md:text-xs tracking-widest" style={{ color: "#0f0e0d" }}>04</div>
-            <div className="absolute inset-x-0 bottom-0 p-4 md:p-5">
-              <div className="font-serif-display italic text-2xl md:text-3xl leading-none" style={{ color: "#0f0e0d" }}>Skriv.</div>
-              <div className="mt-1 font-mono-ui text-[10px] tracking-widest uppercase inline-flex items-center gap-2 group-hover:underline underline-offset-4" style={{ color: "#c8432c" }}>
+            <img src="/tile-notatbok.svg" alt="" className={TILE_IMG} draggable={false} />
+            <div className={`${NUM} relative`}>04</div>
+            <div className="relative">
+              <div className={`${TITLE} italic`}>Skriv.</div>
+              <div className={CTA} style={{ color: "#c8432c" }}>
                 Til skrivepulten <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
               </div>
             </div>
           </Link>
 
-          {/* Box 6 — WHITE: register CTA — flyttet hit (posisjon 5) */}
+          {/* Box 5 — HVIT: registrer deg */}
           <button
             data-testid="hero-box-register"
             onClick={goLogin}
-            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:bg-neutral-50 text-right"
+            className={`${BOX} text-left group transition-colors hover:bg-neutral-50`}
             style={{ background: "#ffffff", color: "#0f0e0d" }}
           >
-            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-60 text-left">05</div>
-            <div className="ml-auto">
-              <div className="font-serif-display text-xl md:text-2xl leading-tight">
+            <div className={NUM}>05</div>
+            <div>
+              <div className={TITLE}>
                 {t("landing.box6Title1")}<br/>{t("landing.box6Title2")}
               </div>
-              <div className="mt-3 font-editor text-[11px] md:text-xs opacity-70 max-w-[24ch] ml-auto">
-                {t("landing.box6Sub")}
-              </div>
-              <div className="mt-3 font-editor text-xs md:text-sm inline-flex items-center gap-2 justify-end" style={{ color: "#c8432c" }}>
+              <div className={SUB} style={{ color: "var(--ink-soft)" }}>{t("landing.box6Sub")}</div>
+              <div className={CTA} style={{ color: "#c8432c" }}>
                 {t("landing.box6Cta")} <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
               </div>
             </div>
           </button>
 
-          {/* Box 5 — BLACK: tools — flyttet hit (posisjon 6), under en hvit boks i stedet for under en annen svart */}
+          {/* Box 6 — SVART: verktøyene */}
           <Link
             to="/dashboard"
             data-testid="hero-box-tools"
-            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:opacity-90"
+            className={`${BOX} group transition-opacity hover:opacity-90`}
             style={{ background: "#0f0e0d", color: "#ffffff" }}
           >
-            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-70">06</div>
+            <div className={NUM}>06</div>
             <div>
-              <div className="font-serif-display text-2xl md:text-3xl leading-tight">
+              <div className={TITLE}>
                 {t("landing.box5Title1")}<br/>{t("landing.box5Title2")}
               </div>
-              <div className="mt-3 font-serif-display italic text-sm md:text-base opacity-80 flex items-center gap-2">
+              <div className={CTA}>
                 {t("landing.box5Cta")} <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
               </div>
             </div>
           </Link>
 
-          {/* Box 4 — Image with transparent bg: full ink+pen visible, ethics link — flyttet hit (posisjon 7) */}
+          {/* Box 7 — HVIT: blekkhus og penn, lenke til Etikk */}
           <Link
             to="/etikk"
             data-testid="hero-box-image"
-            className="aspect-square overflow-hidden relative group block"
-            style={{ background: "#ffffff" }}
+            className={`${BOX} group transition-colors hover:bg-neutral-50 relative`}
+            style={{ background: "#ffffff", color: "#0f0e0d" }}
           >
-            <img
-              src="/ink-pen.png"
-              alt="Blekkhus og fyllepenn"
-              className="w-full h-full object-contain p-4"
-              draggable={false}
-            />
-            <div className="absolute inset-x-0 bottom-0 p-4 md:p-5 flex items-center justify-between">
-              <span className="font-mono-ui text-[10px] md:text-xs tracking-widest" style={{ color: "#0f0e0d" }}>07</span>
-              <span
-                className="font-mono-ui text-base md:text-lg tracking-wide uppercase inline-flex items-center gap-2 hover:underline underline-offset-4"
-                style={{ color: "#c8432c" }}
-              >
-                {t("landing.box4Cta")} <ArrowRight size={14} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
-              </span>
+            <img src="/ink-pen.png" alt="Blekkhus og fyllepenn" className={TILE_IMG} draggable={false} />
+            <div className={`${NUM} relative`}>07</div>
+            <div className="relative">
+              <div className={`${TITLE} italic`}>{t("landing.box4Cta")}.</div>
+              <div className={CTA} style={{ color: "#c8432c" }}>
+                Slik tenker vi <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
+              </div>
             </div>
           </Link>
 
-          {/* Box 8 — DEEP GREEN: blekkspor, lenke til Stemme (kun boks 3 skal være rød) */}
+          {/* Box 8 — DYPGRØNN: blekkspor, lenke til Stemme */}
           <Link
             to="/stemme"
             data-testid="hero-box-voice"
-            className="aspect-square flex flex-col justify-between p-6 md:p-8 group transition-all hover:opacity-90 relative overflow-hidden"
+            className={`${BOX} group transition-opacity hover:opacity-90 relative`}
             style={{ background: "#3d5c3a", color: "#ffffff" }}
           >
             <img
@@ -249,10 +236,10 @@ export default function Landing() {
               className="absolute inset-0 w-full h-full object-contain p-6 opacity-90 pointer-events-none"
               draggable={false}
             />
-            <div className="font-mono-ui text-[10px] md:text-xs tracking-widest opacity-90 relative">08</div>
+            <div className={`${NUM} relative`}>08</div>
             <div className="relative">
-              <div className="font-serif-display italic text-2xl md:text-3xl leading-none">Stemme.</div>
-              <div className="mt-1 font-mono-ui text-[10px] tracking-widest uppercase inline-flex items-center gap-2 group-hover:underline underline-offset-4">
+              <div className={`${TITLE} italic`}>Stemme.</div>
+              <div className={CTA}>
                 Din rytme, ikke maskinens <ArrowRight size={12} strokeWidth={1.6} className="transition-transform group-hover:translate-x-1" />
               </div>
             </div>

@@ -40,10 +40,12 @@ export default function InfoMenu({ align = "right" }) {
       <button
         data-testid="info-menu-btn"
         onClick={() => setOpen((v) => !v)}
-        className="label-ui inline-flex items-center gap-1.5 px-3 py-2"
+        className="label-ui inline-flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-2 text-[10px] sm:text-[0.7rem] tracking-[0.1em] sm:tracking-[0.16em] whitespace-nowrap"
         style={{ color: open ? "var(--ink)" : "var(--ink-mute)" }}
       >
-        {t("nav.information")}
+        {/* Kortform på smale skjermer — «INFORMASJON» presset headeren utenfor viewporten */}
+        <span className="hidden xs:inline">{t("nav.information")}</span>
+        <span className="xs:hidden">INFO</span>
         <ChevronDown size={14} strokeWidth={1.5} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 200ms" }} />
       </button>
       {open && (
