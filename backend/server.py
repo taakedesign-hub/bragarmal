@@ -106,10 +106,6 @@ async def _api_health():
     return {"status": "ok"}
 
 
-@app.on_event("startup")
-async def _startup():
-    init_storage()
-
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 

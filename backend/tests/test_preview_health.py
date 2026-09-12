@@ -1,7 +1,14 @@
 """
-Preview environment health/smoke test.
+Live smoke test: health and response times against a deployed environment.
 
-Verifies preview environment is healthy after user reported production being slow.
+Written for the old preview environment, which no longer exists. Den kjøres
+ikke i CI — den måler svartider mot et miljø som faktisk er deployet, og
+trenger en konto som finnes der. Kjør den manuelt mot et miljø slik:
+
+    LIVE_SMOKE_URL=https://bragarmal-production.up.railway.app \\
+    LIVE_SMOKE_EMAIL=... LIVE_SMOKE_PASSWORD=... \\
+    python -m pytest tests/test_preview_health.py
+
 - Auth via cookie (POST /api/auth/login)
 - Response times measured for critical endpoints
 - Character CRUD verified
@@ -9,22 +16,18 @@ Verifies preview environment is healthy after user reported production being slo
 """
 import os
 import time
-from pathlib import Path
 
 import pytest
 import requests
 
-# Resolve BASE_URL from frontend .env (source of truth for preview URL)
-BASE_URL = None
-fe_env = Path("/app/frontend/.env").read_text()
-for line in fe_env.splitlines():
-    if line.startswith("REACT_APP_BACKEND_URL="):
-        BASE_URL = line.split("=", 1)[1].strip().rstrip("/")
-        break
-assert BASE_URL, "REACT_APP_BACKEND_URL not found"
+BASE_URL = (os.environ.get("LIVE_SMOKE_URL") or "").rstrip("/")
+EMAIL = os.environ.get("LIVE_SMOKE_EMAIL", "")
+PASSWORD = os.environ.get("LIVE_SMOKE_PASSWORD", "")
 
-EMAIL = "editortest2@bragarmal.no"
-PASSWORD = "Test1234!"
+pytestmark = pytest.mark.skipif(
+    not (BASE_URL and EMAIL and PASSWORD),
+    reason="Krever LIVE_SMOKE_URL, LIVE_SMOKE_EMAIL og LIVE_SMOKE_PASSWORD",
+)
 
 # Perf thresholds
 FRONTEND_MAX = 3.0

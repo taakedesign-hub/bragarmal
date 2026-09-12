@@ -4,56 +4,34 @@ PWA static assets & manifest tests.
 Bug context: PWA splash showed 'BRAG' cut off on beige background. Fix:
 manifest bg/theme -> #ffffff, added 192/512 maskable icons, theme-color meta ->
 #ffffff. These tests verify that:
-  1. The manifest is served with correct JSON + colors + icon entries.
-  2. All declared icons are served with correct MIME type + status 200.
+  1. The manifest is valid JSON with the right colors + icon entries.
+  2. Every icon the manifest declares exists.
   3. The icon files are actual valid PNGs of the declared dimensions.
   4. index.html contains <meta name="theme-color" content="#ffffff">.
+
+Kildene leses fra `frontend/public` i repoet, ikke over HTTP: frontend og
+backend ligger på hver sin origin nå, så backend-URL-en serverer ingen av
+disse filene.
 """
 
 import io
 import json
-import os
 import re
-from pathlib import Path
 
 import pytest
-import requests
 from PIL import Image
 
-
-def _resolve_base_url() -> str:
-    val = os.environ.get("REACT_APP_BACKEND_URL")
-    if not val:
-        fe = Path("/app/frontend/.env").read_text()
-        for line in fe.splitlines():
-            if line.startswith("REACT_APP_BACKEND_URL="):
-                val = line.split("=", 1)[1].strip()
-                break
-    if not val:
-        raise RuntimeError("REACT_APP_BACKEND_URL not configured")
-    return val.rstrip("/")
-
-
-BASE_URL = _resolve_base_url()
-
-
-# ---------- helpers ----------
-
-def _get(path: str) -> requests.Response:
-    return requests.get(f"{BASE_URL}{path}", timeout=30)
+from .repo import public_bytes, public_text
 
 
 # ---------- manifest ----------
 
 class TestManifest:
-    def test_manifest_served_200(self):
-        r = _get("/site.webmanifest")
-        assert r.status_code == 200, f"manifest status={r.status_code}"
+    def test_manifest_exists(self):
+        assert public_bytes("/site.webmanifest"), "site.webmanifest er tom"
 
     def test_manifest_is_valid_json_with_white_colors(self):
-        r = _get("/site.webmanifest")
-        assert r.status_code == 200
-        data = json.loads(r.text)  # will raise if not JSON
+        data = json.loads(public_text("/site.webmanifest"))  # will raise if not JSON
         assert data.get("background_color", "").lower() == "#ffffff", (
             f"background_color={data.get('background_color')!r} — expected #ffffff"
         )
@@ -62,8 +40,7 @@ class TestManifest:
         )
 
     def test_manifest_has_192_and_512_maskable_icons(self):
-        r = _get("/site.webmanifest")
-        data = json.loads(r.text)
+        data = json.loads(public_text("/site.webmanifest"))
         icons = data.get("icons", [])
         by_src = {i["src"]: i for i in icons}
 
@@ -83,7 +60,7 @@ class TestManifest:
             )
 
 
-# ---------- icon files served ----------
+# ---------- icon files present ----------
 
 ICONS = [
     ("/bragarmal-mark-192.png", (192, 192)),
@@ -97,28 +74,19 @@ ICONS = [
 
 class TestIconAssets:
     @pytest.mark.parametrize("path,expected_size", ICONS)
-    def test_icon_served_200_png(self, path, expected_size):
-        r = _get(path)
-        assert r.status_code == 200, f"{path} status={r.status_code}"
-        ctype = r.headers.get("content-type", "").lower()
-        assert "image/png" in ctype, f"{path} content-type={ctype!r}"
+    def test_icon_is_png_of_declared_size(self, path, expected_size):
+        data = public_bytes(path)
 
         # Validate it's a real PNG of the expected dimensions.
-        im = Image.open(io.BytesIO(r.content))
+        im = Image.open(io.BytesIO(data))
         assert im.format == "PNG", f"{path} format={im.format}"
         assert im.size == expected_size, (
             f"{path} size={im.size} — expected {expected_size}"
         )
 
-    def test_favicon_ico_served(self):
-        r = _get("/favicon.ico")
-        assert r.status_code == 200, f"favicon.ico status={r.status_code}"
-        # content-type varies (image/x-icon, image/vnd.microsoft.icon, image/ico)
-        ctype = r.headers.get("content-type", "").lower()
-        assert "icon" in ctype or "image" in ctype, (
-            f"favicon.ico unexpected content-type={ctype!r}"
-        )
-        assert len(r.content) > 0, "favicon.ico is empty"
+    def test_favicon_ico_present(self):
+        data = public_bytes("/favicon.ico")
+        assert len(data) > 0, "favicon.ico is empty"
 
     # --- Visible pixel data / minimum byte-size sanity checks (per re-test spec) ---
     # If an icon file is only alpha-transparent (or truncated), the wordmark would
@@ -135,14 +103,13 @@ class TestIconAssets:
 
     @pytest.mark.parametrize("path,min_bytes", _WORDMARK_ICONS)
     def test_wordmark_icon_has_visible_pixels(self, path, min_bytes):
-        r = _get(path)
-        assert r.status_code == 200, f"{path} status={r.status_code}"
-        assert len(r.content) >= min_bytes, (
-            f"{path} size={len(r.content)}B below threshold {min_bytes}B — "
+        data = public_bytes(path)
+        assert len(data) >= min_bytes, (
+            f"{path} size={len(data)}B below threshold {min_bytes}B — "
             f"likely truncated or empty"
         )
 
-        im = Image.open(io.BytesIO(r.content))
+        im = Image.open(io.BytesIO(data))
         im.load()  # forces full decode; raises on truncated file
         rgba = im.convert("RGBA")
         w, h = rgba.size
@@ -170,9 +137,7 @@ class TestIconAssets:
 
 class TestIndexHtml:
     def test_index_has_white_theme_color_meta(self):
-        r = _get("/")
-        assert r.status_code == 200
-        html = r.text
+        html = public_text("/index.html")
         # Look for <meta name="theme-color" content="#ffffff">, tolerant to
         # attribute order + quotes.
         pattern = re.compile(
@@ -193,10 +158,8 @@ class TestIndexHtml:
         )
 
     def test_index_links_manifest(self):
-        r = _get("/")
-        assert r.status_code == 200
         assert re.search(
             r'<link[^>]*rel=["\']manifest["\'][^>]*href=["\'][^"\']*site\.webmanifest',
-            r.text,
+            public_text("/index.html"),
             re.IGNORECASE,
         ), "index.html does not link to site.webmanifest"

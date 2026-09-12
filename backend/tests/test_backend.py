@@ -5,7 +5,17 @@ import os
 import re
 import time
 
+import pytest
 import requests
+
+# Noen få tester krever en ekte LLM-nøkkel og bruker faktiske API-kall. De
+# hoppes over der nøkkelen mangler — resten av suiten kjører uten. Uten nøkkel
+# svarer /generate 503 og analysen leverer tom stilbeskrivelse, så disse ville
+# feilet på en mangel i miljøet, ikke på en feil i koden.
+needs_llm = pytest.mark.skipif(
+    not os.environ.get("ANTHROPIC_API_KEY"),
+    reason="Krever ANTHROPIC_API_KEY (bruker ekte API-kall)",
+)
 
 # Long-form Norwegian sample text used across tests
 NORSK_SAMPLE = (
@@ -26,7 +36,7 @@ class TestHealth:
         assert r.status_code == 200
         data = r.json()
         assert data.get("ok") is True
-        assert data.get("app") == "Skrivestemme"
+        assert data.get("app") == "BRAGARMÅL"
 
     def test_models_list(self, base_url, api_client):
         r = api_client.get(f"{base_url}/api/models")
@@ -144,6 +154,7 @@ class TestVoiceAnalysis:
         r = other_auth_client.post(f"{base_url}/api/voice/analyze")
         assert r.status_code == 400
 
+    @needs_llm
     def test_analyze_returns_profile(self, base_url, auth_client):
         # ensure at least one sample exists (from TestSamples)
         # add a second longer sample for richer analysis
@@ -180,6 +191,18 @@ class TestVoiceAnalysis:
         assert len(p["signature_phrases"]) > 0, "signature_phrases empty"
 
     def test_get_voice_profile(self, base_url, auth_client):
+        # Seed og analyser selv i stedet for å stole på rekkefølge: testen over
+        # hoppes over uten LLM-nøkkel, og med `--dist loadscope` kan denne
+        # klassen dessuten havne på en annen xdist-worker med sin egen bruker.
+        # Selve statistikken regnes ut lokalt, så den finnes uten nøkkel — det
+        # er bare stilbeskrivelsen i prosa som krever én.
+        auth_client.post(
+            f"{base_url}/api/samples",
+            json={"title": "Profilprøve", "content": NORSK_SAMPLE},
+        )
+        a = auth_client.post(f"{base_url}/api/voice/analyze", timeout=120)
+        assert a.status_code == 200, a.text
+
         r = auth_client.get(f"{base_url}/api/voice/profile")
         assert r.status_code == 200
         p = r.json()
@@ -230,6 +253,7 @@ def _read_sse(base_url, token, body, timeout=120):
 
 
 class TestGenerate:
+    @needs_llm
     def test_generate_prompt_streams(self, base_url, test_user):
         body = {
             "mode": "prompt",
@@ -248,6 +272,7 @@ class TestGenerate:
         assert re.search(r"[æøåÆØÅ]|\b(og|som|han|ikke|det)\b", full, re.IGNORECASE), \
             f"Output doesn't appear Norwegian: {full!r}"
 
+    @needs_llm
     def test_generate_continue_streams(self, base_url, test_user):
         body = {
             "mode": "continue",
@@ -262,6 +287,7 @@ class TestGenerate:
         assert len(deltas) > 0
         assert len("".join(deltas)) > 20
 
+    @needs_llm
     def test_generate_humanize_streams(self, base_url, test_user):
         body = {
             "mode": "humanize",

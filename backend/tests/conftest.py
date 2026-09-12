@@ -10,30 +10,33 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 from pathlib import Path
 
-# Load backend .env for MongoDB credentials
-load_dotenv(Path("/app/backend/.env"))
+from .repo import REPO_ROOT
 
-BASE_URL = os.environ["REACT_APP_BACKEND_URL"].rstrip("/") if "REACT_APP_BACKEND_URL" in os.environ else None
-if not BASE_URL:
-    # fetch from frontend .env
-    fe = Path("/app/frontend/.env").read_text()
-    for line in fe.splitlines():
-        if line.startswith("REACT_APP_BACKEND_URL="):
-            BASE_URL = line.split("=", 1)[1].strip().rstrip("/")
-            break
+# Load backend .env when one is present. Tidligere pekte denne på en hardkodet
+# `/app/backend/.env` som bare fantes i det gamle preview-miljøet.
+load_dotenv(REPO_ROOT / "backend" / ".env")
 
-MONGO_URL = os.environ["MONGO_URL"]
-DB_NAME = os.environ["DB_NAME"]
+# API-testene trenger en kjørende backend. I CI startes en lokal uvicorn og
+# BASE_URL peker på den. Uten BASE_URL hoppes de over i stedet for å feile —
+# de skal aldri stille som standard mot produksjon.
+BASE_URL = (os.environ.get("BASE_URL") or "").rstrip("/") or None
+MONGO_URL = os.environ.get("MONGO_URL")
+DB_NAME = os.environ.get("DB_NAME")
+
+_NO_API = "Krever kjørende backend: sett BASE_URL, MONGO_URL og DB_NAME"
 
 
 @pytest.fixture(scope="session")
 def base_url():
-    assert BASE_URL, "BASE_URL not configured"
+    if not BASE_URL:
+        pytest.skip(_NO_API)
     return BASE_URL
 
 
 @pytest.fixture(scope="session")
 def mongo_db():
+    if not (MONGO_URL and DB_NAME):
+        pytest.skip(_NO_API)
     c = MongoClient(MONGO_URL)
     db = c[DB_NAME]
     yield db

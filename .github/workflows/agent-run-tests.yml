@@ -8,12 +8,33 @@ on:
 jobs:
   agent-tests:
     runs-on: ubuntu-latest
+
+    # Backend-testene snakker med en ekte backend. Tidligere pekte de på
+    # produksjon, som gjorde at CI feilet hver gang en deploy rullet — og verre,
+    # de opprettet testbrukere i den levende databasen. Nå startes både Mongo og
+    # backend her i jobben, og hver kjøring får sin egen tomme database.
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ping:1}).ok'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      MONGO_URL: mongodb://localhost:27017
+      DB_NAME: bragarmal_ci
+      BASE_URL: http://127.0.0.1:8000
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -23,11 +44,31 @@ jobs:
           source .venv/bin/activate
           pip install -r backend/requirements.txt
 
+      - name: Start backend
+        working-directory: backend
+        run: |
+          source ../.venv/bin/activate
+          python -m uvicorn server:app --host 127.0.0.1 --port 8000 > "$RUNNER_TEMP/backend.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/backend.pid"
+
+      - name: Wait for backend
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS "$BASE_URL/api/" > /dev/null; then
+              echo "Backend svarer etter ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Backend startet ikke innen 30s"
+          cat "$RUNNER_TEMP/backend.log"
+          exit 1
+
       - name: Run agent test script
-        env:
-          MONGO_URL: ${{ secrets.MONGO_URL }}
-          DB_NAME: ${{ secrets.CI_TEST_DB_NAME }}
-          REACT_APP_BACKEND_URL: https://bragarmal-production.up.railway.app
         run: |
           source .venv/bin/activate
           python scripts/agent_run_tests.py
+
+      - name: Backend log
+        if: always()
+        run: cat "$RUNNER_TEMP/backend.log" || true
