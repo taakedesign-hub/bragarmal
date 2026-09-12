@@ -18,7 +18,7 @@ An app that detects the user's unique writing voice and helps them overcome writ
 - Click-to-rewrite sentences into user's voice
 
 ## Core Features (DONE)
-- JWT + Emergent Google Auth
+- Google OAuth (direkte mot Google) + øktbaserte tokens
 - Samples: paste, upload (PDF/DOCX/TXT), handwriting OCR (Claude Vision), voice transcription (Whisper)
 - Voice profile analysis (function words, sentence lengths, top content words)
 - AI signature detection with sentence-level color-coded highlighting
@@ -32,7 +32,7 @@ An app that detects the user's unique writing voice and helps them overcome writ
 - **Frontend**: React + Tailwind + Shadcn UI
 - **Backend**: FastAPI + Motor (async MongoDB)
 - **DB**: MongoDB
-- **Integrations**: Emergent LLM Key (Claude/GPT/Gemini/Whisper), Stripe (test), File & Media storage
+- **Integrations**: Anthropic/OpenAI/Gemini API-nøkler (Claude/GPT/Gemini/Whisper), Stripe, filer i GridFS
 
 ## Data Models
 - users, samples, voice_profiles, files, subscriptions, helpers, payment_transactions
@@ -48,9 +48,8 @@ An app that detects the user's unique writing voice and helps them overcome writ
 - 2026-08-05: Added protected `/tips` page — first entry "Stipend for forfattere" (Stipendportalen search-tips, small legater 10–50k, lokale muligheter). Added Tips-lenke i AppShell-nav. Data-drevet oppsett gjør det lett å legge til flere tips senere.
 
 ## Deployment Status
-- Preview URL: https://echo-writer-2.preview.emergentagent.com
-- **Ready to deploy** via Emergent Deploy button
-- User owns bragarmål.no — pending domain link via Emergent → Entri
+- Live: https://bragarmål.no (frontend på Cloudflare Workers)
+- Backend på Railway, database i MongoDB Atlas
 
 ## Backlog (P1)
 - Add paginering to /api/samples, /api/voice/analyze, /api/generate (perf opt after lansering)
