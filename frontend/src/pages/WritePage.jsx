@@ -76,6 +76,11 @@ export default function WritePage() {
   const [saving, setSaving] = useState(false);
   const [canSharePdf, setCanSharePdf] = useState(false);
   const abortRef = useRef(null);
+  const prevInputRef = useRef("");
+
+  // Forlater man siden midt i en generering, fortsatte lesesløyfen å skrive til
+  // state på en avmontert komponent og holdt forbindelsen åpen.
+  useEffect(() => () => abortRef.current?.abort(), []);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -105,6 +110,20 @@ export default function WritePage() {
 
   // Keep a stable ref to generate so the effect above can call it without stale closure
   const generateRef = useRef(null);
+
+  // Å sende en enkelt setning til nærlesning overskriver hele teksten brukeren har
+  // limt inn. Det er et tastetrykk unna å miste et helt kapittel, så endringen må
+  // kunne angres.
+  const focusOnText = (text, message) => {
+    prevInputRef.current = input;
+    setInput(text);
+    setMode("reflect");
+    setDetection(null);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+    toast(message, {
+      action: { label: "ANGRE", onClick: () => setInput(prevInputRef.current) },
+    });
+  };
 
   useEffect(() => {
     // Detect Web Share API file support (mobile Safari, Chrome Android)
@@ -949,11 +968,7 @@ export default function WritePage() {
                           .map((h) => h.sentence)
                           .join(" ");
                         if (!foreignText) return;
-                        setInput(foreignText);
-                        setMode("reflect");
-                        setDetection(null);
-                        if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
-                        toast("Alle røde setninger klare for lesning i «Les det jeg har»");
+                        focusOnText(foreignText, "Alle røde setninger klare for lesning i «Les det jeg har»");
                       }}
                       className="btn-primary"
                       style={{ padding: "0.4rem 0.9rem", fontSize: "0.7rem" }}
@@ -982,13 +997,8 @@ export default function WritePage() {
                     <span
                       key={i}
                       onClick={() => {
-                        setInput(h.sentence);
-                        setMode("reflect");
-                        setDetection(null);
-                        if (typeof window !== "undefined") {
-                          window.scrollTo({ top: 0, behavior: "smooth" });
-                        }
-                        toast(
+                        focusOnText(
+                          h.sentence,
                           h.foreign
                             ? "Setning satt til nærlesning i «Les det jeg har»"
                             : "Setning klar for lesning"
